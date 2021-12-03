@@ -1,0 +1,130 @@
+{
+  "@context": "https://w3id.org/did/v1",
+  "id": "did:op:8f67E08be5dD941a701c2491E814535522c33bC2",
+  "created": "2021-12-01T12:09:30Z",
+  "updated": "2021-12-02T22:08:40Z",
+  "dataToken": "0x8f67E08be5dD941a701c2491E814535522c33bC2",
+  "publicKey": [
+    {
+      "id": "did:op:8f67E08be5dD941a701c2491E814535522c33bC2",
+      "type": "EthereumECDSAKey",
+      "owner": "0x4cF0A8976397e450bA0a0846540707DA87212E17"
+    }
+  ],
+  "authentication": [
+    {
+      "type": "RsaSignatureAuthentication2018",
+      "publicKey": "did:op:8f67E08be5dD941a701c2491E814535522c33bC2"
+    }
+  ],
+  "service": [
+    {
+      "type": "metadata",
+      "attributes": {
+        "status": {
+          "isListed": true,
+          "isRetired": false,
+          "isOrderDisabled": false
+        },
+        "main": {
+          "type": "dataset",
+          "name": "4-apples_GT_diameter_and_centre.txt",
+          "dateCreated": "2021-12-01T12:08:56Z",
+          "author": "Jordi Gené-Mola; Ricardo Sanz-Cortiella; Joan R. Rosell-Polo; Alexandre Escolà; Eduard Gregorio",
+          "license": "https://market.oceanprotocol.com/terms",
+          "files": [
+            {
+              "contentLength": "",
+              "contentType": "text/plain",
+              "index": 0
+            }
+          ],
+          "datePublished": "2021-12-02T22:08:52Z"
+        },
+        "additionalInformation": {
+          "description": "The dataset includes 615 apples scanned under in-field conditions at two different phenology stages: green apples at 70% of final size and red apples at advanced ripening. The data includes different fruit diameters -from 26.9 mm to 94.8 mm- and different fruit occlusion percentages -from 1.4 % to 99 %-.\n\nAn additional set of 25 apples with diameters from 39 mm to 97 mm were scanned in laboratory conditions. The resulting high-resolution 3D point clouds (provided in the dataset) are a 360° complete representation of the apples.\n\nThis file is part of:\n\nJordi Gené-Mola; Ricardo Sanz-Cortiella; Joan R. Rosell-Polo; Alexandre Escolà; Eduard Gregorio, 2021, \"PFuji-Size dataset: photogrammetry-derived 3D point clouds of Fuji apples trees with annotations to evaluate fruit detection and size estimation methodologies\", [https://doi.org/10.34810/data141](https://doi.org/10.34810/data141), Repositori de Dades de Recerca, V1",
+          "tags": [
+            "fruit-detection",
+            "fruit-size",
+            "3-d-object-detection",
+            "apple",
+            "size",
+            "fruit-trees",
+            "structure-from-motion",
+            "multi-view-stereo",
+            "agricultural-robotics",
+            "precision-agriculture",
+            "agricultural-innovation",
+            "agricultural-enginnering",
+            "udlscienceportal"
+          ],
+          "links": [
+            {
+              "contentLength": "",
+              "contentType": "text/plain",
+              "url": "https://rhizomik.net/html/angliru/4-apples_GT_diameter_and_centre.sample.txt"
+            }
+          ],
+          "termsAndConditions": true
+        },
+        "encryptedFiles": "0x04909c4e2f424c4fed7bc090417f78cac0db8564a083a2e93df60eaab0e11c1f7f841a73894f49847c4bf85977b977d9e1ba31ced92e7190c288e6e907fc795989e5be2ce687fdacd00708f5b48ce6616adaf3d2e39946e12cc4ad177a4588c8ccf04d94fe691a986c0f7743bc505bddbf21809a80da8707b6aa90a06888c2019100cb2078b6cfa21f63f5121708a46a09a12fcb00d36d4947100299f698968e5a2d7e0b0dfadb74ab26cadf6f5fb21f934bef9a9480990f510409c22b68e500a2ab4f9c31660d5a8802fb343d4c38d2c35b551c8fe63514db3c6eeedd3a3c32",
+        "curation": {
+          "rating": 0,
+          "numVotes": 0,
+          "isListed": true
+        }
+      },
+      "index": 0
+    },
+    {
+      "type": "compute",
+      "index": 1,
+      "serviceEndpoint": "https://provider.gaiax.delta-dao.com/",
+      "attributes": {
+        "main": {
+          "name": "dataAssetComputingService",
+          "creator": "0x4cF0A8976397e450bA0a0846540707DA87212E17",
+          "datePublished": "2021-12-01T12:08:56Z",
+          "cost": "1",
+          "timeout": 31556952,
+          "provider": {},
+          "privacy": {
+            "allowRawAlgorithm": false,
+            "allowNetworkAccess": false,
+            "allowAllPublishedAlgorithms": false,
+            "publisherTrustedAlgorithms": [
+              {
+                "did": "did:op:6EDaE15f7314dC306BB6C382517D374356E6B9De",
+                "containerSectionChecksum": "6bb9d3bf8b26c4c8803326a8b4e4314c103021f66080b8cb943004cbafc6179c",
+                "filesChecksum": "01d520ca2207889110838d42b120f5da394b639853be394a16167efeceb32ef1"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "proof": {
+    "created": "2021-12-01T12:09:17Z",
+    "creator": "0x4cF0A8976397e450bA0a0846540707DA87212E17",
+    "type": "AddressHash",
+    "signatureValue": "0xf5bf57435b6e4edb2e1a027e74ec6fb49c8ed8f2682edcdda528b4fb6dd09cc6"
+  },
+  "isInPurgatory": "false",
+  "dataTokenInfo": {
+    "address": "0x8f67E08be5dD941a701c2491E814535522c33bC2",
+    "name": "Gentle Porpoise Token",
+    "symbol": "GENPOR-49",
+    "decimals": 18,
+    "cap": 1000
+  },
+  "chainId": 2021000,
+  "event": {
+    "txid": "0xb90db1c2e17930ae19fdf637b73f3c3d9c744edef8849bc1f45959de3c75cdf1",
+    "blockNo": 3185412,
+    "from": "0x4cF0A8976397e450bA0a0846540707DA87212E17",
+    "contract": "0xCfDdA22C9837aE76E0faA845354f33C62E03653a",
+    "update": true
+  },
+  "accessWhiteList": []
+}

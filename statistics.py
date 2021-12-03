@@ -1,7 +1,9 @@
 import os
 import json
 
+
 def get_job_details():
+    root = os.getenv('ROOT_FOLDER', '')
     """Reads in metadata information about assets used by the algo"""
     job = dict()
     job['dids'] = json.loads(os.getenv('DIDS', None))
@@ -13,7 +15,7 @@ def get_job_details():
     if job['dids'] is not None:
         for did in job['dids']:
             # get the ddo from disk
-            filename = '/data/ddos/' + did
+            filename = root + '/data/ddos/' + did
             print(f'Reading json from {filename}')
             with open(filename) as json_file:
                 ddo = json.load(json_file)
@@ -24,19 +26,19 @@ def get_job_details():
                         index = 0
                         for file in service['attributes']['main']['files']:
                             job['files'][did].append(
-                                '/data/inputs/' + did + '/' + str(index))
+                                root + '/data/inputs/' + did + '/' + str(index))
                             index = index + 1
     if algo_did is not None:
         job['algo']['did'] = algo_did
-        job['algo']['ddo_path'] = '/data/ddos/' + algo_did
+        job['algo']['ddo_path'] = root + '/data/ddos/' + algo_did
     return job
 
 
 def line_counter(job_details):
+    root = os.getenv('ROOT_FOLDER', '')
     """Executes the line counter based on inputs"""
     print('Starting compute job with the following input information:')
     print(json.dumps(job_details, sort_keys=True, indent=4))
-
     """ Now, count the lines of the first file in first did """
     first_did = job_details['dids'][0]
     filename = job_details['files'][first_did][0]
@@ -47,7 +49,7 @@ def line_counter(job_details):
                 non_blank_count += 1
     print('number of non-blank lines found %d' % non_blank_count)
     """ Print that number to output to generate algo output"""
-    f = open("/data/outputs/result", "w")
+    f = open(root + '/data/outputs/result', 'w')
     f.write(str(non_blank_count))
     f.close()
 
