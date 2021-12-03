@@ -1,5 +1,6 @@
 import os
 import json
+import pandas as pd
 
 
 def get_job_details():
@@ -34,25 +35,19 @@ def get_job_details():
     return job
 
 
-def line_counter(job_details):
+def descriptive_statistics(job_details):
     root = os.getenv('ROOT_FOLDER', '')
-    """Executes the line counter based on inputs"""
     print('Starting compute job with the following input information:')
     print(json.dumps(job_details, sort_keys=True, indent=4))
-    """ Now, count the lines of the first file in first did """
+    """ Computes descriptive statistics for the first file in first did """
     first_did = job_details['dids'][0]
     filename = job_details['files'][first_did][0]
-    non_blank_count = 0
-    with open(filename) as infp:
-        for line in infp:
-            if line.strip():
-                non_blank_count += 1
-    print('number of non-blank lines found %d' % non_blank_count)
-    """ Print that number to output to generate algo output"""
-    f = open(root + '/data/outputs/result', 'w')
-    f.write(str(non_blank_count))
-    f.close()
+    df = pd.read_csv(filename)
+    stats = df.describe(include='all')
+    print('Descriptive statistics for %s:\n%s' % (filename, stats))
+    """ Write statistics to generate algo output """
+    stats.to_csv(root + '/data/outputs/result')
 
 
 if __name__ == '__main__':
-    line_counter(get_job_details())
+    descriptive_statistics(get_job_details())
