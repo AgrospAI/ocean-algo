@@ -1,6 +1,7 @@
 import os
 import json
 import pandas as pd
+from ydata_profiling import ProfileReport
 
 
 def get_job_details():
@@ -35,19 +36,19 @@ def get_job_details():
     return job
 
 
-def descriptive_statistics(job_details):
+def exploratory_data_analysis(job_details):
     root = os.getenv('ROOT_FOLDER', '')
     print('Starting compute job with the following input information:')
     print(json.dumps(job_details, sort_keys=True, indent=4))
-    """ Computes descriptive statistics for the first file in first did """
+    """ Preparing exploratory data analysis report for the first file in first did """
     first_did = job_details['dids'][0]
     filename = job_details['files'][first_did][0]
-    df = pd.read_csv(filename)
-    stats = df.describe(include='all')
-    print('Descriptive statistics for %s:\n%s' % (filename, stats))
-    """ Write statistics to generate algo output """
-    stats.to_csv(root + '/data/outputs/result')
+    df = pd.read_csv(filename, sep=None)
+    profile = ProfileReport(df, title="Profiling Report", sensitive=False)
+    print('Generated profiling report for %s' % filename)
+    """ Write profiling report to output """
+    profile.to_file(root + '/data/outputs/Profiling_Report.html')
 
 
 if __name__ == '__main__':
-    descriptive_statistics(get_job_details())
+    exploratory_data_analysis(get_job_details())
