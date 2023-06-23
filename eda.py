@@ -16,20 +16,9 @@ def get_job_details():
     algo_did = os.getenv('TRANSFORMATION_DID', None)
     if job['dids'] is not None:
         for did in job['dids']:
-            # get the ddo from disk
-            filename = root + '/data/ddos/' + did
-            print(f'Reading json from {filename}')
-            with open(filename) as json_file:
-                ddo = json.load(json_file)
-                # search for metadata service
-                for service in ddo['services']:
-                    if service['type'] == 'metadata':
-                        job['files'][did] = list()
-                        index = 0
-                        for file in service['attributes']['main']['files']:
-                            job['files'][did].append(
-                                root + '/data/inputs/' + did + '/' + str(index))
-                            index = index + 1
+            job['files'][did] = list()
+            # Just one file for DID with name "0"
+            job['files'][did].append(root + '/data/inputs/' + did + '/0')
     if algo_did is not None:
         job['algo']['did'] = algo_did
         job['algo']['ddo_path'] = root + '/data/ddos/' + algo_did
