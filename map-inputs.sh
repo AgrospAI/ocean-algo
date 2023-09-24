@@ -11,8 +11,8 @@ done
 
 wait
 
-echo "RML mapping..."
-java -jar /rmlmapper.jar -v -m /map.ttl -o /output.nt
+echo "RML mapping using $1..."
+java -jar /rmlmapper.jar -m $1 -o /output.nt
 
 wait
 
