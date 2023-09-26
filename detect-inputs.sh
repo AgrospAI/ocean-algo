@@ -8,7 +8,7 @@ done
 
 wait
 
-python detect.py --weights /model/best.pt --source /data/input/ # run yolov5 python to detect images at /data/input using trained model best.pt
+python detect.py --source /data/input/
 
 wait
 
