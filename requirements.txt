@@ -1,1 +1,1 @@
-ydata_profiling==4.3.*
+ydata_profiling==4.6.*
