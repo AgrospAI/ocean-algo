@@ -30,7 +30,7 @@ mappings:
       - [ saref:relatesToProperty, auto:Weight~iri ]
       - [ saref:hasValue, $(Animal Weight \(g\)), xsd:int ]
       - [ saref:hasUnit, om:gram~iri ]
-      - [ saref:hasTimestamp, $(Date)T$(Time), xsd:date ]
+      - [ saref:hasTimestamp, $(Date)T$(Time), xsd:dateTime ]
       - [ saref:measurementMadeBy, ai4pork:sensors/schauer~iri ]
       - p: saref:isMeasurementOf
         o:
@@ -51,7 +51,7 @@ mappings:
       - [ saref:relatesToProperty, s4agri:Intake~iri ]
       - [ saref:hasValue, $(Feed \(g\)), xsd:int ]
       - [ saref:isMeasuredIn, om:gram~iri ]
-      - [ saref:hasTimestamp, $(Date)T$(Time), xsd:date ]
+      - [ saref:hasTimestamp, $(Date)T$(Time), xsd:dateTime ]
       - [ ai4pork:hasDuration, PT$(Duration \(s\))s, xsd:dayTimeDuration ]
       - [ saref:measurementMadeBy, ai4pork:sensors/schauer~iri ]
       - p: saref:isMeasurementOf

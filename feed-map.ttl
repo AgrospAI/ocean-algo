@@ -123,7 +123,7 @@
 :om_008 a rr:ObjectMap;
     rr:template "{Date}T{Time}";
     rr:termType rr:Literal;
-    rr:datatype xsd:date.
+    rr:datatype xsd:dateTime.
 :pom_009 a rr:PredicateObjectMap.
 :map_measurement-weight_000 rr:predicateObjectMap :pom_009.
 :pm_009 a rr:PredicateMap.
@@ -204,7 +204,7 @@
 :om_016 a rr:ObjectMap;
     rr:template "{Date}T{Time}";
     rr:termType rr:Literal;
-    rr:datatype xsd:date.
+    rr:datatype xsd:dateTime.
 :pom_017 a rr:PredicateObjectMap.
 :map_measurement-feed_000 rr:predicateObjectMap :pom_017.
 :pm_017 a rr:PredicateMap.
