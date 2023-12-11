@@ -1,6 +1,6 @@
 FROM rmlio/rmlmapper-java
 
-COPY map-inputs.sh /map-inputs.sh
+RUN apt-get update && apt-get install -y curl jq \
+  && rm -rf /var/lib/apt/lists/*
 WORKDIR /
-
-ENTRYPOINT ["/bin/sh"]
+ENTRYPOINT ["/bin/bash"]
