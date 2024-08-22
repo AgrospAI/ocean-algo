@@ -19,12 +19,13 @@
 @prefix om: <http://www.ontology-of-units-of-measure.org/resource/om-2/>.
 @prefix time: <http://www.w3.org/2006/time#>.
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#>.
+@prefix cep: <https://www.elcep.net/>.
 
 :rules_000 a void:Dataset;
     void:exampleResource :map_featureofinterest_000.
 :map_featureofinterest_000 rml:logicalSource :source_000.
 :source_000 a rml:LogicalSource;
-    rml:source "/0.csv";
+    rml:source "0.csv";
     rml:referenceFormulation ql:CSV.
 :map_featureofinterest_000 a rr:TriplesMap;
     rdfs:label "featureofinterest".
@@ -38,7 +39,7 @@
 :pm_000 rr:constant rdf:type.
 :pom_000 rr:objectMap :om_000.
 :om_000 a rr:ObjectMap;
-    rr:constant "https://ai4pork.angliru.udl.cat/ontology/Pork";
+    rr:constant <https://ai4pork.angliru.udl.cat/ontology/Pork>;
     rr:termType rr:IRI.
 :pom_001 a rr:PredicateObjectMap.
 :map_featureofinterest_000 rr:predicateObjectMap :pom_001.
@@ -56,18 +57,18 @@
 :pm_002 rr:constant s4agri:isLocatedIn.
 :pom_002 rr:objectMap :om_002.
 :om_002 a rr:ObjectMap;
-    rr:template "https://ai4pork.angliru.udl.cat/pens/{Pen Number}";
+    rr:template "https://www.elcep.net/pens/{Pen Number}";
     rr:termType rr:IRI.
 :rules_000 void:exampleResource :map_measurement-weight_000.
 :map_measurement-weight_000 rml:logicalSource :source_001.
 :source_001 a rml:LogicalSource;
-    rml:source "/0.csv";
+    rml:source "0.csv";
     rml:referenceFormulation ql:CSV.
 :map_measurement-weight_000 a rr:TriplesMap;
     rdfs:label "measurement-weight".
 :s_001 a rr:SubjectMap.
 :map_measurement-weight_000 rr:subjectMap :s_001.
-:s_001 rr:template "https://ai4pork.angliru.udl.cat/measurements/feedweight-{Animal ID}-{Date}T{Time}".
+:s_001 rr:template "https://ai4pork.angliru.udl.cat/measurements/weight-{Animal ID}-{End}".
 :pom_003 a rr:PredicateObjectMap.
 :map_measurement-weight_000 rr:predicateObjectMap :pom_003.
 :pm_003 a rr:PredicateMap.
@@ -75,7 +76,7 @@
 :pm_003 rr:constant rdf:type.
 :pom_003 rr:objectMap :om_003.
 :om_003 a rr:ObjectMap;
-    rr:constant "https://saref.etsi.org/core/Measurement";
+    rr:constant saref:Measurement;
     rr:termType rr:IRI.
 :pom_004 a rr:PredicateObjectMap.
 :map_measurement-weight_000 rr:predicateObjectMap :pom_004.
@@ -84,7 +85,7 @@
 :pm_004 rr:constant rdfs:label.
 :pom_004 rr:objectMap :om_004.
 :om_004 a rr:ObjectMap;
-    rr:template "Feed Weight {Animal ID} {Date}T{Time}";
+    rr:template "Feed Weight {Animal ID} {End}";
     rr:termType rr:Literal.
 :pom_005 a rr:PredicateObjectMap.
 :map_measurement-weight_000 rr:predicateObjectMap :pom_005.
@@ -93,7 +94,7 @@
 :pm_005 rr:constant saref:relatesToProperty.
 :pom_005 rr:objectMap :om_005.
 :om_005 a rr:ObjectMap;
-    rr:constant "https://saref.etsi.org/saref4auto/Weight";
+    rr:constant auto:Weight;
     rr:termType rr:IRI.
 :pom_006 a rr:PredicateObjectMap.
 :map_measurement-weight_000 rr:predicateObjectMap :pom_006.
@@ -104,7 +105,7 @@
 :om_006 a rr:ObjectMap;
     rml:reference "Animal Weight (g)";
     rr:termType rr:Literal;
-    rr:datatype xsd:int.
+    rr:datatype xsd:integer.
 :pom_007 a rr:PredicateObjectMap.
 :map_measurement-weight_000 rr:predicateObjectMap :pom_007.
 :pm_007 a rr:PredicateMap.
@@ -112,7 +113,7 @@
 :pm_007 rr:constant saref:hasUnit.
 :pom_007 rr:objectMap :om_007.
 :om_007 a rr:ObjectMap;
-    rr:constant "http://www.ontology-of-units-of-measure.org/resource/om-2/gram";
+    rr:constant om:gram;
     rr:termType rr:IRI.
 :pom_008 a rr:PredicateObjectMap.
 :map_measurement-weight_000 rr:predicateObjectMap :pom_008.
@@ -121,7 +122,7 @@
 :pm_008 rr:constant saref:hasTimestamp.
 :pom_008 rr:objectMap :om_008.
 :om_008 a rr:ObjectMap;
-    rr:template "{Date}T{Time}";
+    rml:reference "End";
     rr:termType rr:Literal;
     rr:datatype xsd:dateTime.
 :pom_009 a rr:PredicateObjectMap.
@@ -131,7 +132,7 @@
 :pm_009 rr:constant saref:measurementMadeBy.
 :pom_009 rr:objectMap :om_009.
 :om_009 a rr:ObjectMap;
-    rr:constant "https://ai4pork.angliru.udl.cat/sensors/schauer";
+    rr:template "https://www.elcep.net/sensors/schauer_pen_{Pen Number}";
     rr:termType rr:IRI.
 :pom_010 a rr:PredicateObjectMap.
 :map_measurement-weight_000 rr:predicateObjectMap :pom_010.
@@ -139,16 +140,19 @@
 :pom_010 rr:predicateMap :pm_010.
 :pm_010 rr:constant saref:isMeasurementOf.
 :pom_010 rr:objectMap :om_010.
+:om_010 a rr:ObjectMap;
+    rr:template "https://ai4pork.angliru.udl.cat/porks/{Animal ID}";
+    rr:termType rr:IRI.
 :rules_000 void:exampleResource :map_measurement-feed_000.
 :map_measurement-feed_000 rml:logicalSource :source_002.
 :source_002 a rml:LogicalSource;
-    rml:source "/0.csv";
+    rml:source "0.csv";
     rml:referenceFormulation ql:CSV.
 :map_measurement-feed_000 a rr:TriplesMap;
     rdfs:label "measurement-feed".
 :s_002 a rr:SubjectMap.
 :map_measurement-feed_000 rr:subjectMap :s_002.
-:s_002 rr:template "https://ai4pork.angliru.udl.cat/measurements/feed-{Animal ID}-{Date}T{Time}".
+:s_002 rr:template "https://ai4pork.angliru.udl.cat/measurements/feed-{Animal ID}-{End}".
 :pom_011 a rr:PredicateObjectMap.
 :map_measurement-feed_000 rr:predicateObjectMap :pom_011.
 :pm_011 a rr:PredicateMap.
@@ -156,7 +160,7 @@
 :pm_011 rr:constant rdf:type.
 :pom_011 rr:objectMap :om_011.
 :om_011 a rr:ObjectMap;
-    rr:constant "https://saref.etsi.org/core/Measurement";
+    rr:constant saref:Measurement;
     rr:termType rr:IRI.
 :pom_012 a rr:PredicateObjectMap.
 :map_measurement-feed_000 rr:predicateObjectMap :pom_012.
@@ -165,7 +169,7 @@
 :pm_012 rr:constant rdfs:label.
 :pom_012 rr:objectMap :om_012.
 :om_012 a rr:ObjectMap;
-    rr:template "Feed Intake {Animal ID} {Date}T{Time}";
+    rr:template "Feed Intake {Animal ID} {End}";
     rr:termType rr:Literal.
 :pom_013 a rr:PredicateObjectMap.
 :map_measurement-feed_000 rr:predicateObjectMap :pom_013.
@@ -174,7 +178,7 @@
 :pm_013 rr:constant saref:relatesToProperty.
 :pom_013 rr:objectMap :om_013.
 :om_013 a rr:ObjectMap;
-    rr:constant "https://saref.etsi.org/saref4agri/Intake";
+    rr:constant s4agri:Intake;
     rr:termType rr:IRI.
 :pom_014 a rr:PredicateObjectMap.
 :map_measurement-feed_000 rr:predicateObjectMap :pom_014.
@@ -185,15 +189,15 @@
 :om_014 a rr:ObjectMap;
     rml:reference "Feed (g)";
     rr:termType rr:Literal;
-    rr:datatype xsd:int.
+    rr:datatype xsd:integer.
 :pom_015 a rr:PredicateObjectMap.
 :map_measurement-feed_000 rr:predicateObjectMap :pom_015.
 :pm_015 a rr:PredicateMap.
 :pom_015 rr:predicateMap :pm_015.
-:pm_015 rr:constant saref:hasUnit.
+:pm_015 rr:constant saref:isMeasuredIn.
 :pom_015 rr:objectMap :om_015.
 :om_015 a rr:ObjectMap;
-    rr:constant "http://www.ontology-of-units-of-measure.org/resource/om-2/gram";
+    rr:constant om:gram;
     rr:termType rr:IRI.
 :pom_016 a rr:PredicateObjectMap.
 :map_measurement-feed_000 rr:predicateObjectMap :pom_016.
@@ -202,7 +206,7 @@
 :pm_016 rr:constant saref:hasTimestamp.
 :pom_016 rr:objectMap :om_016.
 :om_016 a rr:ObjectMap;
-    rr:template "{Date}T{Time}";
+    rml:reference "End";
     rr:termType rr:Literal;
     rr:datatype xsd:dateTime.
 :pom_017 a rr:PredicateObjectMap.
@@ -212,7 +216,7 @@
 :pm_017 rr:constant ai4pork:hasDuration.
 :pom_017 rr:objectMap :om_017.
 :om_017 a rr:ObjectMap;
-    rr:template "PT{Duration (s)}s";
+    rr:template "PT{Duration (s)}S";
     rr:termType rr:Literal;
     rr:datatype xsd:dayTimeDuration.
 :pom_018 a rr:PredicateObjectMap.
@@ -222,7 +226,7 @@
 :pm_018 rr:constant saref:measurementMadeBy.
 :pom_018 rr:objectMap :om_018.
 :om_018 a rr:ObjectMap;
-    rr:constant "https://ai4pork.angliru.udl.cat/sensors/schauer";
+    rr:template "https://www.elcep.net/sensors/schauer_pen_{Pen Number}";
     rr:termType rr:IRI.
 :pom_019 a rr:PredicateObjectMap.
 :map_measurement-feed_000 rr:predicateObjectMap :pom_019.
@@ -230,13 +234,6 @@
 :pom_019 rr:predicateMap :pm_019.
 :pm_019 rr:constant saref:isMeasurementOf.
 :pom_019 rr:objectMap :om_019.
-:om_010 a rr:ObjectMap;
-    rr:parentTriplesMap :map_featureofinterest_000;
-    rr:joinCondition :jc_000.
-:jc_000 rr:child "Animal ID";
-    rr:parent "Animal ID".
 :om_019 a rr:ObjectMap;
-    rr:parentTriplesMap :map_featureofinterest_000;
-    rr:joinCondition :jc_001.
-:jc_001 rr:child "Animal ID";
-    rr:parent "Animal ID".
+    rr:template "https://ai4pork.angliru.udl.cat/porks/{Animal ID}";
+    rr:termType rr:IRI.
