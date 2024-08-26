@@ -1,1 +1,2 @@
-ydata_profiling==4.6.*
+pandas~=2.2.2
+ydata_profiling~=4.9.0

@@ -26,7 +26,7 @@ def get_job_details():
     return job
 
 
-def exploratory_data_analysis(job_details, sensitive):
+def exploratory_data_analysis(job_details, sensitive=True):
     root = os.getenv('ROOT_FOLDER', '')
     print('Starting compute job with the following input information:')
     print(json.dumps(job_details, sort_keys=True, indent=4))
