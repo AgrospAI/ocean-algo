@@ -1,0 +1,11 @@
+# Use this docker-compose to test the algorithm locally
+services:
+  algorithm:
+    build: .
+    volumes:
+      - ../../data/:/data:cached # Change relative path accordingly !!
+    environment:
+      DIDS: '["8f67E08be5dD941a701c2491E814535522c33bC2"]'
+      ROOT_FOLDER: '/' # Won't be needed to specify on next oceanprotocol-job-details release
+      # Other possible environment variables: 'secret', 'TRANSFORMATION_DID'
+      
