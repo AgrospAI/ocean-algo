@@ -1,4 +1,3 @@
-from threading import Event
 import logging
 
 from implementation.algorithm import Algorithm
