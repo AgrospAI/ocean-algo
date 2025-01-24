@@ -1,0 +1,6 @@
+.poetry
+
+__pycache__
+dist
+
+.pytest_cache
