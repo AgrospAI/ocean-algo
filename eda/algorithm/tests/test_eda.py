@@ -1,33 +1,41 @@
+from pathlib import Path
 from typing import Optional
 
-import pytest
 from oceanprotocol_job_details.job_details import OceanProtocolJobDetails
+from pytest import fixture
 from src.implementation.algorithm import Algorithm
 
 job_details: Optional[OceanProtocolJobDetails]
+algorithm: Optional[Algorithm]
 
 
-@pytest.fixture(scope="session", autouse=True)
+@fixture(scope="session", autouse=True)
 def setup():
     """Setup code that will run before the first test in this module."""
 
-    global job_details
+    global job_details, algorithm
+
     job_details = OceanProtocolJobDetails().load()
+    algorithm = Algorithm(job_details)
 
     yield
 
     print("End of testing session ...")
 
 
-# Add actual tests on real algorithm implementations
-
-
 def test_details():
-    global job_details
     assert job_details is not None
 
 
-def test_main():
-    global job_details
-    with pytest.raises(NotImplementedError):
-        Algorithm(job_details).run()
+def test_eda():
+    assert algorithm.run()
+
+
+def test_eda_results():
+    assert algorithm.results is not None
+
+
+def test_output(tmp_path):
+    algorithm.save_result(tmp_path / "output.html")
+
+    assert Path(tmp_path / "output.html").exists()

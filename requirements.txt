@@ -1,1 +1,0 @@
-ydata_profiling==4.3.*

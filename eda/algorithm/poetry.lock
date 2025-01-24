@@ -868,15 +868,15 @@ files = [
 
 [[package]]
 name = "oceanprotocol-job-details"
-version = "0.0.3"
+version = "0.0.5"
 description = "A Python package to get details from OceanProtocol jobs"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 markers = "python_version <= \"3.11\" or python_version >= \"3.12\""
 files = [
-    {file = "oceanprotocol_job_details-0.0.3-py3-none-any.whl", hash = "sha256:dc86ec3014d8abeab2a9156fbbb4b545e61e5c557deb1e7e4020683ec98c9276"},
-    {file = "oceanprotocol_job_details-0.0.3.tar.gz", hash = "sha256:df53a67ab0d97b331fb2ee4e0b6bd4a0d23c2b36364118475e8cb7ee987f5fbc"},
+    {file = "oceanprotocol_job_details-0.0.5-py3-none-any.whl", hash = "sha256:c6b7f88b704f4a711f33baa992aa50aa7c5780e5d92e2716875a2a6b07c0eff5"},
+    {file = "oceanprotocol_job_details-0.0.5.tar.gz", hash = "sha256:751a1c72948b0e3084ffa90ab299803c2d05927e033b8bb89e5fd4da8844b1ea"},
 ]
 
 [package.dependencies]
@@ -1958,4 +1958,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.9,<3.13"
-content-hash = "ad7d384afb0fc1097ebf76baa8513a1f2a5a40c0f53144b31c2cd1bb1c408ace"
+content-hash = "feb3f9c9be0b575a1b9f89074bce4cdd677d8e295c030fbf385bd768d8bcb8d7"

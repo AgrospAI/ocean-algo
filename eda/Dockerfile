@@ -23,17 +23,23 @@ WORKDIR /algorithm
 
 # Copy the algorithm code (with the same depth), and the virtual environment from the previous image
 COPY algorithm/src /algorithm/src
-COPY --from=builder /algorithm/.venv /algorithm/.venv
+COPY algorithm/tests /algorithm/tests
+COPY --from=builder /algorithm/.venv /algorithm/.venv   
 
 # Create a new group `algorithm` with Group ID `1000`.
 RUN addgroup --gid 1000 algorithm
 # Create a new user `algorithm`, sets home directory to `/algorithm`, User ID `1000`, in
-# the group `algorithm`. The `-DH` option results in a system account.
-RUN adduser algorithm -h /algorithm -u 1000 -G algorithm -DH
-# Change the user for subsequent commands in Dockerfile to the user with ID `1000`.
+# the group `algorithm`. The `-DH` option results in a system account, own the directory
+RUN adduser algorithm -h /algorithm -u 1000 -G algorithm -DH && \
+    chown -R algorithm:algorithm /algorithm
+# # Change the user for subsequent commands in Dockerfile to the user with ID `1000`.
 USER 1000
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
+# ENV MPLCONFIGDIR=/algorithm/algorithm/.config
 
-CMD ["/algorithm/.venv/bin/python", "-u", "src/main.py"]
+ADD entrypoint.sh /algorithm/entrypoint.sh
+
+# Check if running tests 
+CMD ["/bin/sh", "-c", "/algorithm/entrypoint.sh"]

@@ -3,9 +3,12 @@ services:
   algorithm:
     build: .
     volumes:
-      - ../data/:/data:cached # Change relative path accordingly !!
+      - ../_data/inputs:/algorithm/data/inputs:ro
+      - ../_data/ddos:/algorithm/data/ddos:ro
+      - ../_data/outputs:/algorithm/data/outputs:rw
     environment:
       DIDS: '["8f67E08be5dD941a701c2491E814535522c33bC2"]'
-      ROOT_FOLDER: '/' # Won't be needed to specify on next oceanprotocol-job-details release
-      # Other possible environment variables: 'secret', 'TRANSFORMATION_DID'
-      
+      TEST: 1
+      # ROOT_FOLDER: ""
+      # secret: ""
+      # TRANSFORMATION_DID: ""
