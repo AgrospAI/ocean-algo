@@ -22,10 +22,22 @@ class Algorithm:
             raise ValueError("No files found")
 
     def run(self) -> "Algorithm":
-        raise NotImplementedError()
-
-        # self._validate_input()
-        # return self
+        self._validate_input()
+        
+        first_did = self._job_details.dids[0]
+        filename = self._job_details.files[first_did][0]
+        
+        self.results = 0
+        with open(filename, "r") as infp:
+            for line in infp:
+                if line.strip():
+                    self.results += 1
+        
+        logger.info(f"Number of non-blank lines found {self.results}")
+        
+        return self
+    
 
     def save_result(self, path: Path) -> None:
-        raise NotImplementedError()
+        with open(path, "w") as f:
+            f.write(str(self.results))

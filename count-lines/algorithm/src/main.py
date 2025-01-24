@@ -28,7 +28,7 @@ def main():
         )
     )
 
-    Algorithm(job_details)  # .run().save_result(Paths.OUTPUTS / <OUTPUT_FILE_NAME>)
+    Algorithm(job_details).run().save_result(Paths.OUTPUTS / "result")
 
 
 if __name__ == "__main__":

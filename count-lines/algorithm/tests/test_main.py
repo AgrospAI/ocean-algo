@@ -27,14 +27,17 @@ def test_details():
 
 
 def test_main():
-    with raises(NotImplementedError):
-        algorithm.run()
+    assert algorithm.run()
 
 
 def test_main_results():
-    assert algorithm.results is None
+    assert algorithm.results == 11
 
 
 def test_output(tmp_path):
-    with raises(NotImplementedError):
-        algorithm.save_result(tmp_path)
+    path = tmp_path / "output"
+    
+    algorithm.save_result(path)
+    assert path.exists()
+        
+    
