@@ -1,0 +1,1 @@
+[[ -z "${TEST}" ]] && /algorithm/.venv/bin/python -u src/main.py || /algorithm/.venv/bin/pytest -v
