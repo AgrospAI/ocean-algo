@@ -1,15 +1,14 @@
-import json
 from logging import getLogger
 from pathlib import Path
 from typing import Mapping, Optional, Tuple
 
-import joblib
+import orjson
 import pandas as pd
-from implementation import utils
+from implementation import estimators, utils
 from oceanprotocol_job_details.dataclasses.job_details import JobDetails
+from sklearn import clone
 from sklearn.compose import ColumnTransformer
 from sklearn.discriminant_analysis import StandardScaler
-from sklearn.impute import SimpleImputer
 from sklearn.metrics import get_scorer, make_scorer
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
@@ -43,19 +42,24 @@ class Algorithm:
         logger.info(f"Loaded data with shape: {df.shape}")
 
         # Fitting the model & preprocessing
-        _preprocessor = self._preprocessor
-        _predictor = self._predictor
-
         X_train, X_test, y_train, y_test = self._split(df)
-        X_train_preprocessed = _preprocessor.fit_transform(X_train)
-        _predictor.fit(X_train_preprocessed, y_train)
+
+        preprocessor = clone(self._preprocessor)
+        preprocessor.fit(X_train)
+
+        # Ensure the preprocessed data retains feature names
+        X_train_transformed = preprocessor.transform(X_train)
+
+        predictor = clone(self._predictor)
+        predictor.fit(X_train_transformed, y_train)
 
         pipeline = Pipeline(
             [
-                ("preprocessor", _preprocessor),
-                ("predictor", _predictor),
-            ],
+                ("preprocessor", preprocessor),
+                ("predictor", predictor),
+            ]
         )
+
         self.results = (pipeline, None)
         pipeline.predict(X_train)
 
@@ -68,10 +72,14 @@ class Algorithm:
         """Save the trained model pipeline to output"""
 
         if self.results:
+            import cloudpickle
+
             pipe, scores = self.results
+            cloudpickle.register_pickle_by_value(estimators)
 
             try:
-                joblib.dump(pipe, path / "pipe.pkl", compress=True)
+                with open(path / "pipe.pkl", "wb") as f:
+                    f.write(cloudpickle.dumps(pipe))
                 logger.info(f"Saved model to {path}")
             except Exception as e:
                 logger.exception(f"Error saving model: {e}")
@@ -79,47 +87,25 @@ class Algorithm:
             try:
                 # Save scores into csv
                 scores = pd.DataFrame(scores, index=[0])
-                scores.to_csv(path / "scores.csv")
+                scores.to_csv(path / "scores.csv", index=False)
             except Exception as e:
                 logger.exception(f"Error saving scores: {e}")
 
         try:
-            # Save algorithm parameters also
-            with open(path / "parameters.json", "w") as f:
-                json.dump(self._job_details.parameters, f)
+            # Save algorithm parameters
+            with open(path / "parameters.json", "wb") as f:
+                f.write(orjson.dumps(self._job_details.parameters))
         except Exception as e:
             logger.exception(f"Error saving algorithm parameters: {e}")
 
     @property
-    def _imputing(self) -> Pipeline:
-        # Todo determine which imputing strategy to use
+    def _preprocessor(self) -> Pipeline:
         return Pipeline(
             [
                 (
-                    "imputing",
-                    ColumnTransformer(
-                        transformers=[
-                            (
-                                "num",
-                                SimpleImputer(strategy="median"),
-                                self._numerical_features,
-                            ),
-                            (
-                                "cat",
-                                SimpleImputer(strategy="most_frequent"),
-                                self._categorical_features,
-                            ),
-                        ],
-                        remainder="passthrough",
-                    ),
-                )
-            ]
-        )
-
-    @property
-    def _encoding(self) -> Pipeline:
-        return Pipeline(
-            [
+                    "imputer",
+                    estimators.Imputer(categorical_columns=self._categorical_features),
+                ),
                 (
                     "encoding",
                     ColumnTransformer(
@@ -128,44 +114,28 @@ class Algorithm:
                                 "cat",
                                 OneHotEncoder(),
                                 self._categorical_features,
-                            )
+                            ),
                         ],
                         remainder="passthrough",
                     ),
-                )
+                ),
+                ("preprocessing", StandardScaler()),
             ]
         )
 
     @property
-    def _preprocessing(self) -> Pipeline:
-        return Pipeline(
-            [
-                ("scaler", StandardScaler()),
-            ]
-        )
+    def _predictor(self):
+        model_info, _ = utils.get(self._job_details.parameters, "model")
+        self._model_info = model_info
 
-    @property
-    def _preprocessor(self) -> Pipeline:
-        return Pipeline(
-            [
-                # ("imputer", self._imputing),
-                # ("encoder", self._encoding),
-                ("preprocessing", self._preprocessing),
-            ]
-        )
-
-    @property
-    def _predictor(self) -> Pipeline:
-        self._model_info, _ = utils.get(self._job_details.parameters, "model")
-
-        model_name, _ = utils.get(self._model_info, "name")
-        model_params, _ = utils.get(self._model_info, "params", {})
+        model_name, _ = utils.get(model_info, "name")
+        model_params, _ = utils.get(model_info, "params", {})
 
         logger.info(f"Creating model: {model_name} with params: {model_params}")
 
         estimators = {est[0]: est[1] for est in all_estimators()}
         if model_name in estimators:
-            return Pipeline([("predictor", estimators[model_name](**model_params))])
+            return estimators[model_name](**model_params)
 
         raise ValueError(f"Unknown scikit-learn model: {model_name}")
 
@@ -181,7 +151,6 @@ class Algorithm:
         X, y = df.drop(columns=[target_column]), df[target_column]
 
         # Get numerical and categorical columns
-        self._numerical_features = X.select_dtypes(include=["number"]).columns
         self._categorical_features = X.select_dtypes(include=["object"]).columns
 
         return train_test_split(
@@ -213,7 +182,8 @@ class Algorithm:
             try:
                 scorer = get_scorer(name)
             except ValueError:
-                logger.warning(f"Metric {name} not found, skipping")
+                logger.warning(f"Metric `{name}` not found, skipping")
+                scores[name] = "UNKNOWN"
                 continue
 
             if params:
@@ -228,10 +198,11 @@ class Algorithm:
             try:
                 score = scorer(pipe, X_test, y_test)
             except Exception as e:
-                logger.warning(f"Error calculating score for {name}: {e}")
+                logger.warning(f"Error calculating score for `{name}`: {e}")
+                scores[name] = "ERROR"
                 continue
 
             scores[name] = score
-            logger.info(f"Score for {name}: {score}")
+            logger.info(f"Score for `{name}`: {score}")
 
         return scores

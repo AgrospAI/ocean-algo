@@ -1,4 +1,4 @@
-import json
+import orjson
 import logging
 from dataclasses import asdict
 
@@ -20,10 +20,8 @@ def main():
 
     logger.info("Starting compute job with the following input information:")
     logger.info(
-        json.dumps(
+        orjson.dumps(
             {k: str(v) for k, v in asdict(job_details).items()},
-            sort_keys=True,
-            indent=4,
         )
     )
 
