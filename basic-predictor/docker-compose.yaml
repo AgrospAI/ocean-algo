@@ -1,0 +1,15 @@
+# Use this docker-compose to test the algorithm locally
+services:
+  algorithm:
+    build: .
+    volumes:
+      # Change relative path accordingly !!
+      - ../_data/inputs:/algorithm/data/inputs:ro
+      - ../_data/ddos:/algorithm/data/ddos:ro
+      - ../_data/outputs:/algorithm/data/outputs:rw
+      - ../_data/logs:/algorithm/data/logs:rw
+    environment:
+      TEST: 1
+      DIDS: '["8f67E08be5dD941a701c2491E814535522c33bC2"]'
+      # secret: ""
+      # TRANSFORMATION_DID: ""
