@@ -1,0 +1,41 @@
+prefixes:
+  saref: https://saref.etsi.org/core/
+  base: https://ai4pork.angliru.udl.cat/schauer/
+  ai4pork: https://ai4pork.angliru.udl.cat/
+  s4agri: https://saref.etsi.org/saref4agri/
+  s4city: https://saref.etsi.org/saref4city/
+  auto: https://saref.etsi.org/saref4auto/
+  om: http://www.ontology-of-units-of-measure.org/resource/om-2/
+  time: http://www.w3.org/2006/time#
+  rdfs: http://www.w3.org/2000/01/rdf-schema#
+  xsd: http://www.w3.org/2001/XMLSchema#
+
+mappings:
+  featureofinterest:
+    sources:
+      - [ '0.csv~csv' ]
+    s: ai4pork:porks/$(Animal ID)
+    po:
+      - [ a, ai4pork:ontology/Pork ]
+      - [ rdfs:label, $(Animal ID) ]
+
+  measurement:
+    sources:
+      - [ '0.csv~csv' ]
+    s: ai4pork:kpi/dailyweight-$(Animal ID)-$(Date)
+    po:
+      - [ a, s4city:KeyPerformanceIndicatorAssessment ]
+      - [ rdfs:label, Daily Weight $(Animal ID) $(Date) ]
+      - [ saref:relatesToProperty, auto:Weight~iri ]
+      - [ saref:hasValue, $(Weight \(g\)), xsd:int ]
+      - [ saref:isMeasuredIn, om:gram~iri ]
+      - [ s4agri:refersToTime, $(Date), xsd:date ]
+      - [ s4city:quantifiesKPI, ai4pork:ontology/dailyWeight~iri ]
+      - p: s4city:assesses
+        o:
+          mapping: featureofinterest
+          condition:
+            function: equal
+            parameters:
+              - [ str1, $(Animal ID) ]
+              - [ str2, $(Animal ID) ]
