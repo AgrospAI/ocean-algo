@@ -14,3 +14,7 @@ package-mode = false
 python = ">=3.9,<4.0"
 pytest = "^8.3.4"
 oceanprotocol-job-details = "0.0.7"
+scikit-learn = "^1.6.1"
+pandas = "^2.2.3"
+cloudpickle = "^3.1.1"
+orjson = "^3.10.15"
