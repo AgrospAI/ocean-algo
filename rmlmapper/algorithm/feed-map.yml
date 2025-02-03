@@ -1,0 +1,64 @@
+prefixes:
+  saref: https://saref.etsi.org/core/
+  base: https://ai4pork.angliru.udl.cat/schauer/
+  ai4pork: https://ai4pork.angliru.udl.cat/
+  s4agri: https://saref.etsi.org/saref4agri/
+  s4city: https://saref.etsi.org/saref4city/
+  auto: https://saref.etsi.org/saref4auto/
+  om: http://www.ontology-of-units-of-measure.org/resource/om-2/
+  time: http://www.w3.org/2006/time#
+  rdfs: http://www.w3.org/2000/01/rdf-schema#
+  xsd: http://www.w3.org/2001/XMLSchema#
+
+mappings:
+  featureofinterest:
+    sources:
+      - [ '0.csv~csv' ]
+    s: ai4pork:porks/$(Animal ID)
+    po:
+      - [ a, ai4pork:ontology/Pork ]
+      - [ rdfs:label, $(Animal ID) ]
+      - [ s4agri:isLocatedIn, ai4pork:pens/$(Pen Number)~iri ]
+
+  measurement-weight:
+    sources:
+      - [ '0.csv~csv' ]
+    s: ai4pork:measurements/feedweight-$(Animal ID)-$(Date)T$(Time)
+    po:
+      - [ a, saref:Measurement ]
+      - [ rdfs:label, Feed Weight $(Animal ID) $(Date)T$(Time) ]
+      - [ saref:relatesToProperty, auto:Weight~iri ]
+      - [ saref:hasValue, $(Animal Weight \(g\)), xsd:int ]
+      - [ saref:hasUnit, om:gram~iri ]
+      - [ saref:hasTimestamp, $(Date)T$(Time), xsd:date ]
+      - [ saref:measurementMadeBy, ai4pork:sensors/schauer~iri ]
+      - p: saref:isMeasurementOf
+        o:
+          mapping: featureofinterest
+          condition:
+            function: equal
+            parameters:
+              - [ str1, $(Animal ID) ]
+              - [ str2, $(Animal ID) ]
+
+  measurement-feed:
+    sources:
+      - [ '0.csv~csv' ]
+    s: ai4pork:measurements/feed-$(Animal ID)-$(Date)T$(Time)
+    po:
+      - [ a, saref:Measurement ]
+      - [ rdfs:label, Feed Intake $(Animal ID) $(Date)T$(Time) ]
+      - [ saref:relatesToProperty, s4agri:Intake~iri ]
+      - [ saref:hasValue, $(Feed \(g\)), xsd:int ]
+      - [ saref:isMeasuredIn, om:gram~iri ]
+      - [ saref:hasTimestamp, $(Date)T$(Time), xsd:date ]
+      - [ ai4pork:hasDuration, PT$(Duration \(s\))s, xsd:dayTimeDuration ]
+      - [ saref:measurementMadeBy, ai4pork:sensors/schauer~iri ]
+      - p: saref:isMeasurementOf
+        o:
+          mapping: featureofinterest
+          condition:
+            function: equal
+            parameters:
+              - [ str1, $(Animal ID) ]
+              - [ str2, $(Animal ID) ]
