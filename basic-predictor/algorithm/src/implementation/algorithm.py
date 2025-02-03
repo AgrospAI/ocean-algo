@@ -71,6 +71,10 @@ class Algorithm:
     def save_result(self, path: Path) -> None:
         """Save the trained model pipeline to output"""
 
+        pipeline_path = path / "pipe.pkl"
+        score_path = path / "scores.csv"
+        parameters_path = path / "parameters.json"
+
         if self.results:
             import cloudpickle
 
@@ -78,7 +82,7 @@ class Algorithm:
             cloudpickle.register_pickle_by_value(estimators)
 
             try:
-                with open(path / "pipe.pkl", "wb") as f:
+                with open(pipeline_path, "wb") as f:
                     f.write(cloudpickle.dumps(pipe))
                 logger.info(f"Saved model to {path}")
             except Exception as e:
@@ -87,13 +91,13 @@ class Algorithm:
             try:
                 # Save scores into csv
                 scores = pd.DataFrame(scores, index=[0])
-                scores.to_csv(path / "scores.csv", index=False)
+                scores.to_csv(score_path, index=False)
             except Exception as e:
                 logger.exception(f"Error saving scores: {e}")
 
         try:
             # Save algorithm parameters
-            with open(path / "parameters.json", "wb") as f:
+            with open(parameters_path, "wb") as f:
                 f.write(orjson.dumps(self._job_details.parameters))
         except Exception as e:
             logger.exception(f"Error saving algorithm parameters: {e}")
