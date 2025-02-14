@@ -21,12 +21,17 @@ _ResultType = Tuple[Pipeline, Mapping[str, float]]
 
 
 class Algorithm:
-
     def __init__(self, job_details: JobDetails):
         self._job_details = job_details
         self.results: Optional[_ResultType] = None
 
     def _validate_input(self) -> "Algorithm":
+        """ "
+        Validate that the input data is correct, this means:
+            1. There are given DIDs to train with.
+            2. There are found files for those DIDs.
+        """
+
         if not self._job_details.dids or len(self._job_details.dids) == 0:
             logger.warning("No DIDs found")
             raise ValueError("No DIDs found")
@@ -36,20 +41,34 @@ class Algorithm:
             raise ValueError("No files found")
 
     def run(self) -> "Algorithm":
+        """
+        Run the algorithm.
+
+        This method performs:
+            1. Loads the input data into a pandas.DataFrame.
+            2. Splits the data into training and testing sets.
+            3. Fits the preprocessing pipeline with the training data.
+            4. Fits the predictor with the preprocessed training data, and combines them into a single sklearn Pipeline object.
+            5. Evaluates the model with the testing data.
+        """
+
         self._validate_input()
 
+        #   1. Loads the input data into a pandas.DataFrame.
         df = self._df
         logger.info(f"Loaded data with shape: {df.shape}")
 
-        # Fitting the model & preprocessing
+        #   2. Splits the data into training and testing sets.
         X_train, X_test, y_train, y_test = self._split(df)
 
+        #   3. Fits the preprocessing pipeline with the training data.
         preprocessor = clone(self._preprocessor)
         preprocessor.fit(X_train)
 
         # Ensure the preprocessed data retains feature names
         X_train_transformed = preprocessor.transform(X_train)
 
+        #   4. Fits the predictor with the preprocessed training data, and combines them into a single sklearn Pipeline object.
         predictor = clone(self._predictor)
         predictor.fit(X_train_transformed, y_train)
 
@@ -60,11 +79,14 @@ class Algorithm:
             ]
         )
 
-        self.results = (pipeline, None)
-        pipeline.predict(X_train)
-
-        score = self._scores(pipeline, X_test, y_test)
-        self.results = (pipeline, score)
+        #   5. Evaluates the model with the testing data.
+        try:
+            pipeline.predict(X_train)
+            score = self._scores(pipeline, X_test, y_test)
+            self.results = (pipeline, score)
+        except Exception as e:
+            logger.exception(f"Error evaluating model: {e}")
+            self.results = (pipeline, None)
 
         return self
 
@@ -75,12 +97,26 @@ class Algorithm:
         score_path = path / "scores.csv"
         parameters_path = path / "parameters.json"
 
+        # === Save algorithm run parameters ===
+        try:
+            with open(parameters_path, "wb") as f:
+                f.write(orjson.dumps(self._job_details.parameters))
+        except Exception as e:
+            logger.exception(f"Error saving algorithm parameters: {e}")
+
         if self.results:
             import cloudpickle
 
-            pipe, scores = self.results
             cloudpickle.register_pickle_by_value(estimators)
 
+            # If only the pipeline is saved, save the pipeline
+            try:
+                pipe, scores = self.results
+            except Exception:
+                pipe = self.results
+                scores = None
+
+            # === Save algorithm resulting pipeline ===
             try:
                 with open(pipeline_path, "wb") as f:
                     f.write(cloudpickle.dumps(pipe))
@@ -88,19 +124,12 @@ class Algorithm:
             except Exception as e:
                 logger.exception(f"Error saving model: {e}")
 
+            # === Save algorithm pipeline scores ===
             try:
-                # Save scores into csv
                 scores = pd.DataFrame(scores, index=[0])
                 scores.to_csv(score_path, index=False)
             except Exception as e:
                 logger.exception(f"Error saving scores: {e}")
-
-        try:
-            # Save algorithm parameters
-            with open(parameters_path, "wb") as f:
-                f.write(orjson.dumps(self._job_details.parameters))
-        except Exception as e:
-            logger.exception(f"Error saving algorithm parameters: {e}")
 
     @property
     def _preprocessor(self) -> Pipeline:

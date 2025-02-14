@@ -1,3 +1,4 @@
+from pathlib import Path
 import orjson
 import logging
 from dataclasses import asdict
@@ -33,7 +34,7 @@ def main():
         logger.exception(f"An error occurred while running the algorithm: {e}")
 
     try:
-        algorithm.save_result(Paths.OUTPUTS)
+        algorithm.save_result(Path.joinpath(Path("/"), Paths.OUTPUTS))
     except Exception as e:
         logger.exception(f"An error occurred while saving the results: {e}")
 
