@@ -1,7 +1,7 @@
 import sys
 
 # Append current directory to the path
-sys.path.append(".")
+sys.path.append("/algorithm/src/")
 
 
 import logging

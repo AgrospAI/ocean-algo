@@ -1,7 +1,7 @@
 import sys
 
 # Append relative src directory to path
-sys.path.append("src")
+sys.path.append("/algorithm/src/")
 
 from pathlib import Path
 from typing import Optional
