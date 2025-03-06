@@ -1,12 +1,19 @@
-from pathlib import Path
-import orjson
+import sys
+
+# Append current directory to the path
+sys.path.append(".")
+
+
 import logging
 from dataclasses import asdict
+from pathlib import Path
 
-from implementation.algorithm import Algorithm
+import orjson
 from oceanprotocol_job_details.dataclasses.constants import Paths
 from oceanprotocol_job_details.dataclasses.job_details import JobDetails
 from oceanprotocol_job_details.job_details import OceanProtocolJobDetails
+
+from implementation.algorithm import Algorithm
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -20,11 +27,7 @@ def main():
     job_details: JobDetails = OceanProtocolJobDetails().load()
 
     logger.info("Starting compute job with the following input information:")
-    logger.info(
-        orjson.dumps(
-            {k: str(v) for k, v in asdict(job_details).items()},
-        )
-    )
+    logger.info(orjson.dumps({k: str(v) for k, v in asdict(job_details).items()}))
 
     algorithm = Algorithm(job_details)
 

@@ -4,7 +4,7 @@ from typing import Mapping, Optional, Tuple
 
 import orjson
 import pandas as pd
-from implementation import estimators, utils
+from src.implementation import estimators, utils
 from oceanprotocol_job_details.dataclasses.job_details import JobDetails
 from sklearn import clone
 from sklearn.compose import ColumnTransformer
@@ -98,11 +98,11 @@ class Algorithm:
         parameters_path = path / "parameters.json"
 
         # === Save algorithm run parameters ===
-        try:
-            with open(parameters_path, "wb") as f:
+        with open(parameters_path, "wb") as f:
+            try:
                 f.write(orjson.dumps(self._job_details.parameters))
-        except Exception as e:
-            logger.exception(f"Error saving algorithm parameters: {e}")
+            except Exception as e:
+                logger.exception(f"Error saving algorithm parameters: {e}")
 
         if self.results:
             import cloudpickle

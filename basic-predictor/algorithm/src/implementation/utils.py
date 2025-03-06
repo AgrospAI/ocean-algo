@@ -10,7 +10,6 @@ def get(
     key: str,
     default: Optional[T] = None,
 ) -> Tuple[T, bool]:
-
     if key in f.keys():
         return (f.get(key), True)
 

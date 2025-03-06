@@ -1,9 +1,14 @@
+import sys
+
+# Append relative src directory to path
+sys.path.append("src")
+
 from pathlib import Path
 from typing import Optional
 
 from oceanprotocol_job_details.job_details import OceanProtocolJobDetails
 from pytest import fixture
-from src.implementation.algorithm import Algorithm
+from implementation.algorithm import Algorithm
 
 job_details: Optional[OceanProtocolJobDetails]
 algorithm: Optional[Algorithm]
