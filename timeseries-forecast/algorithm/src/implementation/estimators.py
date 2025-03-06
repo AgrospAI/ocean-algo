@@ -1,6 +1,5 @@
 from logging import getLogger
-import re
-from typing import Optional, Sequence
+from typing import Sequence
 
 import numpy as np
 import pandas as pd
@@ -52,10 +51,7 @@ class Imputer(BaseEstimator, TransformerMixin):
         return input_features
 
 
-class Log(BaseEstimator, TransformerMixin):
-
-    def fit(self, X, y=None):
-        return self
+class LogarithmicTransformer(TransformerMixin):
 
     def transform(self, X):
         X = X.copy()
@@ -68,13 +64,10 @@ class Log(BaseEstimator, TransformerMixin):
         return X
 
 
-class Lagger(BaseEstimator, TransformerMixin):
+class LaggerTransformer(TransformerMixin):
 
     def __init__(self, lag: int):
         self.lag = lag
-
-    def fit(self, X, y=None):
-        return self
 
     def transform(self, X):
         X = X.copy()
@@ -88,7 +81,7 @@ class Lagger(BaseEstimator, TransformerMixin):
         return input_features
 
 
-class LogDifference(BaseEstimator, TransformerMixin):
+class LogDifferenceTransformer(TransformerMixin):
     """
     Calculates the difference between the logarithmic values of the target column and the previous values.
 
@@ -98,9 +91,6 @@ class LogDifference(BaseEstimator, TransformerMixin):
     def __init__(self, lags: int, target_column: str):
         self.lags = lags
         self.target_column = target_column
-
-    def fit(self, X, y=None):
-        return self
 
     def transform(self, X):
         X = X.copy()
@@ -117,18 +107,24 @@ class LogDifference(BaseEstimator, TransformerMixin):
         return input_features
 
 
-class Stationary(BaseEstimator, TransformerMixin):
+class StationaryTransformer(TransformerMixin):
     """Adds stationary information to the dataset"""
 
     def __init__(self, datetime_column: str):
         self.datetime_column = datetime_column
 
-    def fit(self, X, y=None):
-        return self
-
     def transform(self, X):
         X = X.copy()
-        X[self.datetime_column] = pd.to_datetime(X[self.datetime_column])
-        X = X.set_index(self.datetime_column)
-        X = X.diff().dropna()
-        return X
+        timestamp_s = pd.to_datetime(X[self.datetime_column]).map(
+            pd.Timestamp.timestamp
+        )
+
+        day = 24 * 60 * 60
+        year = (365.2425) * day
+
+        X["day_sin"] = np.sin(timestamp_s * (2 * np.pi / day))
+        X["day_cos"] = np.cos(timestamp_s * (2 * np.pi / day))
+        X["year_sin"] = np.sin(timestamp_s * (2 * np.pi / year))
+        X["year_cos"] = np.cos(timestamp_s * (2 * np.pi / year))
+
+        return X.set_index(self.datetime_column)

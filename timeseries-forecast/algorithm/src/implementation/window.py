@@ -7,7 +7,12 @@ from sklearn.metrics import mean_squared_error
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
 
-from implementation.estimators import Imputer, Lagger, Log, LogDifference
+from implementation.estimators import (
+    Imputer,
+    LaggerTransformer,
+    LogarithmicTransformer,
+    LogDifferenceTransformer,
+)
 from logging import getLogger
 
 logger = getLogger(__name__)
@@ -46,11 +51,13 @@ def generic_pipeline(
                     ),
                 ),
                 ("scaler", StandardScaler()),
-                ("log", Log()),
-                ("lag", Lagger(lag=lag)),
+                ("log", LogarithmicTransformer()),
+                ("lag", LaggerTransformer(lag=lag)),
                 (
                     "log-diff",
-                    LogDifference(lag=lag, target_column=f"{target_column}_log"),
+                    LogDifferenceTransformer(
+                        lag=lag, target_column=f"{target_column}_log"
+                    ),
                 ),
             )
         ]
