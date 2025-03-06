@@ -31,11 +31,11 @@ COPY --from=builder /algorithm/.venv /algorithm/.venv
 # Create a new group `algorithm` with Group ID `1000`.
 # Create a new user `algorithm`, sets home directory to `/algorithm`, User ID `1000`, in
 # the group `algorithm`. The `-DH` option results in a system account, own the directory
-RUN addgroup --gid 1000 algorithm && \
-    adduser algorithm -h /algorithm -u 1000 -G algorithm -DH && \
-    chown -R algorithm:algorithm /algorithm
+# RUN addgroup --gid 1000 algorithm && \
+#     adduser algorithm -h /algorithm -u 1000 -G algorithm -DH && \
+#     chown -R algorithm:algorithm /algorithm
 # Change the user for subsequent commands in Dockerfile to the user with ID `1000`.
-USER 1000
+# USER 1000
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
