@@ -25,7 +25,7 @@ dependencies = [
 requires-dist = [
     { name = "cloudpickle", specifier = ">=3.1.1,<4" },
     { name = "numpy", specifier = "==1.26.0" },
-    { name = "oceanprotocol-job-details", specifier = "==0.0.11" },
+    { name = "oceanprotocol-job-details", specifier = "==0.0.12" },
     { name = "orjson", specifier = ">=3.10.15,<4" },
     { name = "pandas", specifier = ">=2.2.3,<3" },
     { name = "pytest", specifier = ">=8.3.4,<9" },
@@ -117,16 +117,16 @@ wheels = [
 
 [[package]]
 name = "oceanprotocol-job-details"
-version = "0.0.11"
+version = "0.0.12"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "orjson" },
     { name = "pydantic" },
     { name = "pytest" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/08/d4/a69826b2d402dbfe5d59240ca33ef462b1073fc5ebd62d1d651769f6390a/oceanprotocol_job_details-0.0.11.tar.gz", hash = "sha256:9974af1f609855cb0a3564d6acbf7c5843105bf7c33db9db8a69bbb792601c76", size = 6043 }
+sdist = { url = "https://files.pythonhosted.org/packages/4c/19/b61e1323f6fb09cb617483375a0c8dff276f6b5913f3028e4aa41ca62455/oceanprotocol_job_details-0.0.12.tar.gz", hash = "sha256:a89c381e99afa8efc9e005fc2a8506cb28e30d5956bd10e45a74e0309fcc99b5", size = 5975 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/71/04/ea11e5a4de886004cfdb53d3027606de236fc488287d8debcdef2f9fbd8d/oceanprotocol_job_details-0.0.11-py3-none-any.whl", hash = "sha256:8fe7cae67394e14816fe820a31c05ef2d1335d07c8e446ad1f651e04e5bead5b", size = 10152 },
+    { url = "https://files.pythonhosted.org/packages/23/39/e927c91b4ce7764d1839f2253fe1455f14f2192dc87e23ca90f3c9db3ef0/oceanprotocol_job_details-0.0.12-py3-none-any.whl", hash = "sha256:4d6e78b637938103f831a002ee2b5ac0c90f2ad65d9871a8dfaaeba8c7b23839", size = 10062 },
 ]
 
 [[package]]

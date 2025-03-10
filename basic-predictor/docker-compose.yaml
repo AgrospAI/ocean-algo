@@ -7,9 +7,10 @@ services:
       - ../_data/ddos:/data/ddos:ro
       - ../_data/outputs:/data/outputs:rw
       - ../_data/logs:/data/logs:rw
+      - "./src:/algorithm/src/"
     environment:
       DEV: 1
       # TEST: 1
-      DIDS: '["8f67E08be5dD941a701c2491E814535522c33bC2"]'
+      DIDS: '["eb60f87363a36a5ae5cb8373524a8fd976b0cc5f8c40a706c615b857ae0e2974"]'
       # secret: ""
       # TRANSFORMATION_DID: ""

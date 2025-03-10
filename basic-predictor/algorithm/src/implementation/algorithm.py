@@ -198,7 +198,7 @@ class Algorithm:
     def _df(self) -> pd.DataFrame:
         filepath = self._job_details.files[list(self._job_details.files.keys())[0]][0]
         self._dataset_info, _ = utils.get(self._job_details.parameters, "dataset")
-        separator, _ = utils.get(self._dataset_info, "separator", None)
+        separator, _ = utils.get(orjson.loads(self._dataset_info), "separator", None)
 
         logger.info(f"Getting input data from file: {filepath}")
         return pd.read_csv(filepath, sep=separator)
