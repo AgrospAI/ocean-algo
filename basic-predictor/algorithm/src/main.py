@@ -28,7 +28,7 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
-logger.info("Environment: " + str(os.environ))
+print(orjson.loads(open("/data/inputs/algoCustomData.json", "r").read()))
 
 
 def main():
