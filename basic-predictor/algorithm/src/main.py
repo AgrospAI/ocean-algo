@@ -2,7 +2,7 @@ import sys
 import os
 
 # Append current directory to the path
-sys.path.append("/algorithm")
+sys.path.append("/algorithm/src")
 
 for root, dirs, files in os.walk("/algorithm"):
     level = root.replace("..", "").count(os.sep)

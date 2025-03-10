@@ -8,6 +8,7 @@ services:
       - ../_data/outputs:/data/outputs:rw
       - ../_data/logs:/data/logs:rw
     environment:
+      DEV: 1
       # TEST: 1
       DIDS: '["8f67E08be5dD941a701c2491E814535522c33bC2"]'
       # secret: ""
