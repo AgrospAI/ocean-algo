@@ -2,10 +2,9 @@ import sys
 import os
 
 # Append current directory to the path
-sys.path.append(".")
-sys.path.append("/data/transformations/src")
+sys.path.append("/algorithm")
 
-for root, dirs, files in os.walk(".."):
+for root, dirs, files in os.walk("/algorithm"):
     level = root.replace("..", "").count(os.sep)
     indent = " " * 4 * (level)
     print("{}{}/".format(indent, os.path.basename(root)))
