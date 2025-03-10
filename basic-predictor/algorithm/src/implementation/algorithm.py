@@ -4,7 +4,7 @@ from typing import Mapping, Optional, Tuple
 
 import orjson
 import pandas as pd
-from src.implementation import estimators, utils
+from implementation import estimators, utils
 from oceanprotocol_job_details.dataclasses.job_details import JobDetails
 from sklearn import clone
 from sklearn.compose import ColumnTransformer

@@ -4,14 +4,6 @@ import os
 # Append current directory to the path
 sys.path.append("/algorithm/src")
 
-for root, dirs, files in os.walk("/algorithm"):
-    level = root.replace("..", "").count(os.sep)
-    indent = " " * 4 * (level)
-    print("{}{}/".format(indent, os.path.basename(root)))
-    subindent = " " * 4 * (level + 1)
-    for f in files:
-        print("{}{}".format(subindent, f))
-
 
 import logging
 from dataclasses import asdict
@@ -29,6 +21,7 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
+logger.debug("Environment: " + str(os.environ))
 
 
 def main():
