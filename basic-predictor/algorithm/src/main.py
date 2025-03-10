@@ -21,7 +21,7 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
-logger.debug("Environment: " + str(os.environ))
+logger.info("Environment: " + str(os.environ))
 
 
 def main():
