@@ -3,6 +3,13 @@ import os
 
 # Append current directory to the path
 sys.path.append("/algorithm/src")
+for root, dirs, files in os.walk("/data"):
+    level = root.replace("..", "").count(os.sep)
+    indent = " " * 4 * (level)
+    print("{}{}/".format(indent, os.path.basename(root)))
+    subindent = " " * 4 * (level + 1)
+    for f in files:
+        print("{}{}".format(subindent, f))
 
 
 import logging
