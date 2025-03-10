@@ -40,6 +40,10 @@ def main():
 
     algorithm = Algorithm(job_details)
 
+    dids = orjson.loads(os.environ.get("DIDS"))
+    ddo = orjson.loads(open(f"/data/ddos/{dids[0]}").read())
+    logger.info(ddo)
+
     try:
         algorithm.run()
     except Exception as e:
