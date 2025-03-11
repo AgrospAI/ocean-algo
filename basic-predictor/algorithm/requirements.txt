@@ -16,7 +16,7 @@ numpy==1.26.0
     #   pandas
     #   scikit-learn
     #   scipy
-oceanprotocol-job-details==0.0.11
+oceanprotocol-job-details==0.0.12
     # via algorithm (./pyproject.toml)
 orjson==3.10.15
     # via
