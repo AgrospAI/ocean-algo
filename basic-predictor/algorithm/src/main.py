@@ -1,6 +1,5 @@
-from json import JSONDecodeError
-import os
 import sys
+from json import JSONDecodeError
 from typing import Mapping, Optional, Sequence, Tuple, TypeVar
 
 # Append current directory to the path
@@ -30,7 +29,7 @@ from sklearn.preprocessing import OneHotEncoder
 from sklearn.utils import all_estimators
 
 logging.basicConfig(
-    level=logging.info,
+    level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
@@ -256,8 +255,8 @@ class Algorithm:
         split = get(self._dataset_info, "split", 0.7)
         stratify = get(self._dataset_info, "stratify", False)
 
-        X = df.drop(columns=[target_column])
         y = df[target_column]
+        X = df.drop(columns=[target_column])
 
         # Get numerical and categorical columns
         self._categorical_features = X.select_dtypes(include=["object"]).columns
