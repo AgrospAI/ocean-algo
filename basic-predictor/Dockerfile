@@ -5,7 +5,7 @@ RUN apk add libgomp libstdc++ build-base
 
 WORKDIR /algorithm
 
-# Copy the algorithm code (with the same depth), and the virtual environment from the previous image
+# Copy the algorithm code (with the same depth)
 COPY algorithm/src /algorithm/src
 COPY algorithm/tests /algorithm/tests
 COPY algorithm/requirements.txt /algorithm/requirements.txt

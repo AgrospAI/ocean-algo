@@ -1,3 +1,4 @@
+from json import JSONDecodeError
 import os
 import sys
 from typing import Mapping, Optional, Sequence, Tuple, TypeVar
@@ -268,6 +269,14 @@ class Algorithm:
     def _df(self) -> pd.DataFrame:
         filepath = self._job_details.files[list(self._job_details.files.keys())[0]][0]
         self._dataset_info = get(self._job_details.parameters, "dataset")
+
+        if isinstance(self._dataset_info, str):
+            try:
+                self._dataset_info = orjson.loads(self._dataset_info)
+            except JSONDecodeError as e:
+                logger.error(f"Dataset info {self._dataset_info}")
+                logger.error(f"Error decoding dataset info: {e}")
+
         separator = get(self._dataset_info, "separator", ",")
 
         logger.info(f"Getting input data from file: {filepath}")
