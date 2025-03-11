@@ -2,10 +2,11 @@ from logging import getLogger
 from pathlib import Path
 from typing import Mapping, Optional, Tuple
 
-import orjson
 import pandas as pd
-from implementation import estimators, utils
+from implementation.estimators import Imputer
+from implementation.utils import get
 from oceanprotocol_job_details.dataclasses.job_details import JobDetails
+from orjson import JSONDecodeError, dumps, loads
 from sklearn import clone
 from sklearn.compose import ColumnTransformer
 from sklearn.discriminant_analysis import StandardScaler
@@ -16,7 +17,6 @@ from sklearn.preprocessing import OneHotEncoder
 from sklearn.utils import all_estimators
 
 logger = getLogger(__name__)
-
 _ResultType = Tuple[Pipeline, Mapping[str, float]]
 
 
@@ -57,6 +57,7 @@ class Algorithm:
         #   1. Loads the input data into a pandas.DataFrame.
         df = self._df
         logger.info(f"Loaded data with shape: {df.shape}")
+        logger.info(f"Dataset columns: {df.columns}")
 
         #   2. Splits the data into training and testing sets.
         X_train, X_test, y_train, y_test = self._split(df)
@@ -100,14 +101,15 @@ class Algorithm:
         # === Save algorithm run parameters ===
         with open(parameters_path, "wb") as f:
             try:
-                f.write(orjson.dumps(self._job_details.parameters))
+                f.write(dumps(self._job_details.parameters))
             except Exception as e:
                 logger.exception(f"Error saving algorithm parameters: {e}")
 
         if self.results:
             import cloudpickle
+            import main
 
-            cloudpickle.register_pickle_by_value(estimators)
+            cloudpickle.register_pickle_by_value(main)
 
             # If only the pipeline is saved, save the pipeline
             try:
@@ -137,7 +139,9 @@ class Algorithm:
             [
                 (
                     "imputer",
-                    estimators.Imputer(categorical_columns=self._categorical_features),
+                    Imputer(
+                        categorical_columns=self._categorical_features,
+                    ),
                 ),
                 (
                     "encoding",
@@ -158,12 +162,17 @@ class Algorithm:
 
     @property
     def _predictor(self):
-        model_info, _ = utils.get(self._job_details.parameters, "model")
-        self._model_info = model_info
+        self._model_info = get(self._job_details.parameters, "model")
 
-        model_name, _ = utils.get(model_info, "name")
-        model_params, _ = utils.get(model_info, "params", {})
+        if isinstance(self._model_info, str):
+            try:
+                self._model_info = loads(self._model_info)
+            except JSONDecodeError as e:
+                logger.error(f"Model info {self._model_info}")
+                logger.error(f"Error decoding dataset info: {e}")
 
+        model_name = get(self._model_info, "name")
+        model_params = get(self._model_info, "params", {})
         logger.info(f"Creating model: {model_name} with params: {model_params}")
 
         estimators = {est[0]: est[1] for est in all_estimators()}
@@ -173,15 +182,23 @@ class Algorithm:
         raise ValueError(f"Unknown scikit-learn model: {model_name}")
 
     def _split(self, df: pd.DataFrame) -> list:
-        target_column, _ = utils.get(self._dataset_info, "target_column")
-        if type(target_column) is not str:
-            raise ValueError("Target column must be a single string")
+        target_column = get(self._dataset_info, "target_column")
+        if not isinstance(target_column, str):
+            if isinstance(target_column, list) and len(target_column) == 1:
+                target_column = target_column[0]
+            else:
+                raise ValueError("Target column must be a single string")
 
-        random_state, _ = utils.get(self._dataset_info, "random_state", 42)
-        split, _ = utils.get(self._dataset_info, "split", 0.7)
-        stratify, _ = utils.get(self._dataset_info, "stratify", False)
+        random_state = get(self._dataset_info, "random_state", 42)
+        split = get(self._dataset_info, "split", 0.7)
+        stratify = get(self._dataset_info, "stratify", False)
 
-        X, y = df.drop(columns=[target_column]), df[target_column]
+        try:
+            y = df[target_column]
+            X = df.drop(columns=[target_column])
+        except KeyError as e:
+            logger.error(f"Column {target_column} does not exist in dataset!!")
+            raise e
 
         # Get numerical and categorical columns
         self._categorical_features = X.select_dtypes(include=["object"]).columns
@@ -197,20 +214,28 @@ class Algorithm:
     @property
     def _df(self) -> pd.DataFrame:
         filepath = self._job_details.files[list(self._job_details.files.keys())[0]][0]
-        self._dataset_info, _ = utils.get(self._job_details.parameters, "dataset")
-        separator, _ = utils.get(orjson.loads(self._dataset_info), "separator", None)
+        self._dataset_info = get(self._job_details.parameters, "dataset")
+
+        if isinstance(self._dataset_info, str):
+            try:
+                self._dataset_info = loads(self._dataset_info)
+            except JSONDecodeError as e:
+                logger.error(f"Dataset info {self._dataset_info}")
+                logger.error(f"Error decoding dataset info: {e}")
+
+        separator = get(self._dataset_info, "separator", ",")
 
         logger.info(f"Getting input data from file: {filepath}")
         return pd.read_csv(filepath, sep=separator)
 
     def _scores(self, pipe: Pipeline, X_test, y_test) -> Mapping[str, float]:
-        metric_names, _ = utils.get(self._model_info, "metrics", [])
+        metric_names = get(self._model_info, "metrics", [])
         scores = {}
         for metric in metric_names:
             name, params = metric, {}
             if type(metric) is dict:
-                name, _ = utils.get(metric, "name")
-                params, _ = utils.get(metric, "params", {})
+                name = get(metric, "name")
+                params = get(metric, "params", {})
 
             try:
                 scorer = get_scorer(name)

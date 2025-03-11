@@ -6,11 +6,13 @@ from oceanprotocol_job_details.dataclasses.job_details import JobDetails
 
 logger = getLogger(__name__)
 
+_ResultType = Any
+
 
 class Algorithm:
     def __init__(self, job_details: JobDetails):
         self._job_details = job_details
-        self.results: Optional[Any] = None
+        self.results: Optional[_ResultType] = None
 
     def _validate_input(self) -> "Algorithm":
         if not self._job_details.dids or len(self._job_details.dids) == 0:

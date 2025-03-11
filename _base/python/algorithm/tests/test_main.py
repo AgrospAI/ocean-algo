@@ -1,3 +1,8 @@
+import sys
+
+# Append relative src directory to path
+sys.path.append("src")
+
 from typing import Optional
 
 from oceanprotocol_job_details.job_details import OceanProtocolJobDetails
