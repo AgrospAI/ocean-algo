@@ -127,6 +127,7 @@ class Algorithm:
         #   1. Loads the input data into a pandas.DataFrame.
         df = self._df
         logger.info(f"Loaded data with shape: {df.shape}")
+        logger.debug(f"Dataset columns: {df.columns}")
 
         #   2. Splits the data into training and testing sets.
         X_train, X_test, y_train, y_test = self._split(df)
@@ -245,14 +246,18 @@ class Algorithm:
 
     def _split(self, df: pd.DataFrame) -> list:
         target_column = get(self._dataset_info, "target_column")
-        if type(target_column) is not str:
-            raise ValueError("Target column must be a single string")
+        if not isinstance(target_column, str):
+            if isinstance(target_column, list) and len(target_column) == 1:
+                target_column = target_column[0]
+            else:
+                raise ValueError("Target column must be a single string")
 
         random_state = get(self._dataset_info, "random_state", 42)
         split = get(self._dataset_info, "split", 0.7)
         stratify = get(self._dataset_info, "stratify", False)
 
-        X, y = df.drop(columns=[target_column]), df[target_column]
+        X = df.drop(columns=[target_column])
+        y = df[target_column]
 
         # Get numerical and categorical columns
         self._categorical_features = X.select_dtypes(include=["object"]).columns
@@ -279,7 +284,7 @@ class Algorithm:
 
         separator = get(self._dataset_info, "separator", ",")
 
-        logger.info(f"Getting input data from file: {filepath}")
+        logger.debug(f"Getting input data from file: {filepath}")
         return pd.read_csv(filepath, sep=separator)
 
     def _scores(self, pipe: Pipeline, X_test, y_test) -> Mapping[str, float]:
@@ -324,8 +329,8 @@ def main():
     # Load the current job details from the environment variables
     job_details: JobDetails = OceanProtocolJobDetails().load()
 
-    logger.info("Starting compute job with the following input information:")
-    logger.info(orjson.dumps({k: str(v) for k, v in asdict(job_details).items()}))
+    logger.debug("Starting compute job with the following input information:")
+    logger.debug(orjson.dumps({k: str(v) for k, v in asdict(job_details).items()}))
 
     algorithm = Algorithm(job_details)
 
