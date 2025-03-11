@@ -1,6 +1,6 @@
 import os
 import sys
-from typing import Mapping, Optional, Sequence, Tuple
+from typing import Mapping, Optional, Sequence, Tuple, TypeVar
 
 # Append current directory to the path
 sys.path.append("/algorithm/src")
@@ -33,7 +33,19 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
-print(orjson.loads(open("/data/inputs/algoCustomData.json", "r").read()))
+T = TypeVar("T")
+_ResultType = Tuple[Pipeline, Mapping[str, float]]
+
+
+def get(f: Mapping[str, T], key: str, default: Optional[T] = None) -> T:
+    if key in f.keys():
+        return f.get(key)
+
+    if default is None:
+        raise KeyError(f"Key {key} not found")
+
+    logger.info(f"Key {key} not found, returning default value {default}")
+    return default
 
 
 class Imputer(BaseEstimator, TransformerMixin):
@@ -75,9 +87,6 @@ class Imputer(BaseEstimator, TransformerMixin):
 
     def get_feature_names_out(self, input_features=None):
         return input_features
-
-
-_ResultType = Tuple[Pipeline, Mapping[str, float]]
 
 
 class Algorithm:
@@ -198,7 +207,7 @@ class Algorithm:
             [
                 (
                     "imputer",
-                    estimators.Imputer(categorical_columns=self._categorical_features),
+                    Imputer(categorical_columns=self._categorical_features),
                 ),
                 (
                     "encoding",
@@ -219,11 +228,11 @@ class Algorithm:
 
     @property
     def _predictor(self):
-        model_info, _ = utils.get(self._job_details.parameters, "model")
+        model_info = get(self._job_details.parameters, "model")
         self._model_info = model_info
 
-        model_name, _ = utils.get(model_info, "name")
-        model_params, _ = utils.get(model_info, "params", {})
+        model_name = get(model_info, "name")
+        model_params = get(model_info, "params", {})
 
         logger.info(f"Creating model: {model_name} with params: {model_params}")
 
@@ -234,13 +243,13 @@ class Algorithm:
         raise ValueError(f"Unknown scikit-learn model: {model_name}")
 
     def _split(self, df: pd.DataFrame) -> list:
-        target_column, _ = utils.get(self._dataset_info, "target_column")
+        target_column = get(self._dataset_info, "target_column")
         if type(target_column) is not str:
             raise ValueError("Target column must be a single string")
 
-        random_state, _ = utils.get(self._dataset_info, "random_state", 42)
-        split, _ = utils.get(self._dataset_info, "split", 0.7)
-        stratify, _ = utils.get(self._dataset_info, "stratify", False)
+        random_state = get(self._dataset_info, "random_state", 42)
+        split = get(self._dataset_info, "split", 0.7)
+        stratify = get(self._dataset_info, "stratify", False)
 
         X, y = df.drop(columns=[target_column]), df[target_column]
 
@@ -258,20 +267,20 @@ class Algorithm:
     @property
     def _df(self) -> pd.DataFrame:
         filepath = self._job_details.files[list(self._job_details.files.keys())[0]][0]
-        self._dataset_info, _ = utils.get(self._job_details.parameters, "dataset")
-        separator, _ = utils.get(orjson.loads(self._dataset_info), "separator", None)
+        self._dataset_info = get(self._job_details.parameters, "dataset")
+        separator = get(self._dataset_info, "separator", ",")
 
         logger.info(f"Getting input data from file: {filepath}")
         return pd.read_csv(filepath, sep=separator)
 
     def _scores(self, pipe: Pipeline, X_test, y_test) -> Mapping[str, float]:
-        metric_names, _ = utils.get(self._model_info, "metrics", [])
+        metric_names = get(self._model_info, "metrics", [])
         scores = {}
         for metric in metric_names:
             name, params = metric, {}
             if type(metric) is dict:
-                name, _ = utils.get(metric, "name")
-                params, _ = utils.get(metric, "params", {})
+                name = get(metric, "name")
+                params = get(metric, "params", {})
 
             try:
                 scorer = get_scorer(name)
@@ -310,10 +319,6 @@ def main():
     logger.info(orjson.dumps({k: str(v) for k, v in asdict(job_details).items()}))
 
     algorithm = Algorithm(job_details)
-
-    dids = orjson.loads(os.environ.get("DIDS"))
-    ddo = orjson.loads(open(f"/data/ddos/{dids[0]}").read())
-    logger.info(ddo)
 
     try:
         algorithm.run()

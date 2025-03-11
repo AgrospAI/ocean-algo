@@ -7,7 +7,8 @@ services:
       - ../_data/ddos:/data/ddos:ro
       - ../_data/outputs:/data/outputs:rw
       - ../_data/logs:/data/logs:rw
-      - "./src:/algorithm/src/"
+      - "./algorithm/src:/algorithm/src/"
+      - "./algorithm/tests:/algorithm/tests/"
     environment:
       DEV: 1
       # TEST: 1
