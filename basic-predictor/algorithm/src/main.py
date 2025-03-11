@@ -30,7 +30,7 @@ from sklearn.preprocessing import OneHotEncoder
 from sklearn.utils import all_estimators
 
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.info,
     format="%(asctime)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
@@ -127,7 +127,7 @@ class Algorithm:
         #   1. Loads the input data into a pandas.DataFrame.
         df = self._df
         logger.info(f"Loaded data with shape: {df.shape}")
-        logger.debug(f"Dataset columns: {df.columns}")
+        logger.info(f"Dataset columns: {df.columns}")
 
         #   2. Splits the data into training and testing sets.
         X_train, X_test, y_train, y_test = self._split(df)
@@ -284,7 +284,7 @@ class Algorithm:
 
         separator = get(self._dataset_info, "separator", ",")
 
-        logger.debug(f"Getting input data from file: {filepath}")
+        logger.info(f"Getting input data from file: {filepath}")
         return pd.read_csv(filepath, sep=separator)
 
     def _scores(self, pipe: Pipeline, X_test, y_test) -> Mapping[str, float]:
@@ -329,8 +329,8 @@ def main():
     # Load the current job details from the environment variables
     job_details: JobDetails = OceanProtocolJobDetails().load()
 
-    logger.debug("Starting compute job with the following input information:")
-    logger.debug(orjson.dumps({k: str(v) for k, v in asdict(job_details).items()}))
+    logger.info("Starting compute job with the following input information:")
+    logger.info(orjson.dumps({k: str(v) for k, v in asdict(job_details).items()}))
 
     algorithm = Algorithm(job_details)
 
