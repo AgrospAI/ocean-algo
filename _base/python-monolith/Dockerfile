@@ -1,8 +1,5 @@
 FROM python:3.10-alpine
 
-# Install scikit-learn specific dependencies
-RUN apk add libgomp libstdc++ build-base
-
 WORKDIR /algorithm
 
 # Copy the algorithm code (with the same depth)
