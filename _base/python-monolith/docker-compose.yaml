@@ -9,6 +9,7 @@ services:
       - ../../_data/outputs:/algorithm/data/outputs:rw
       - ./algorithm/src:/algorithm/src/
       - ./algorithm/tests:/algorithm/tests/
+      - ./entrypoint.sh:/algorithm/entrypoint.sh
     environment:
       DEV: 1
       TEST: 1
