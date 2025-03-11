@@ -1,6 +1,7 @@
 import sys
 from json import JSONDecodeError
 from typing import Mapping, Optional, Sequence, Tuple, TypeVar
+from weakref import KeyedRef
 
 # Append current directory to the path
 sys.path.append("/algorithm/src")
@@ -229,12 +230,17 @@ class Algorithm:
 
     @property
     def _predictor(self):
-        model_info = get(self._job_details.parameters, "model")
-        self._model_info = model_info
+        self._model_info = get(self._job_details.parameters, "model")
 
-        model_name = get(model_info, "name")
-        model_params = get(model_info, "params", {})
+        if isinstance(self._model_info, str):
+            try:
+                self._model_info = orjson.loads(self._model_info)
+            except JSONDecodeError as e:
+                logger.error(f"Model info {self._model_info}")
+                logger.error(f"Error decoding dataset info: {e}")
 
+        model_name = get(self._model_info, "name")
+        model_params = get(self._model_info, "params", {})
         logger.info(f"Creating model: {model_name} with params: {model_params}")
 
         estimators = {est[0]: est[1] for est in all_estimators()}
@@ -255,8 +261,12 @@ class Algorithm:
         split = get(self._dataset_info, "split", 0.7)
         stratify = get(self._dataset_info, "stratify", False)
 
-        y = df[target_column]
-        X = df.drop(columns=[target_column])
+        try:
+            y = df[target_column]
+            X = df.drop(columns=[target_column])
+        except KeyError as e:
+            logger.error(f"Column {target_column} does not exist in dataset!!")
+            raise e
 
         # Get numerical and categorical columns
         self._categorical_features = X.select_dtypes(include=["object"]).columns
