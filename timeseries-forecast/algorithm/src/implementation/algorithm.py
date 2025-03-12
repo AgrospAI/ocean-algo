@@ -2,13 +2,13 @@ from logging import getLogger
 from pathlib import Path
 from typing import Any, Optional
 
-import orjson
 import pandas as pd
-from oceanprotocol_job_details.dataclasses.job_details import JobDetails
-from sklearn.ensemble import AdaBoostRegressor
-
-from implementation import estimators, utils
+from implementation import estimators
+from implementation.utils import get
 from implementation.window import WindowGenerator
+from oceanprotocol_job_details.dataclasses.job_details import JobDetails
+from orjson import JSONDecodeError, dumps, loads
+from sklearn.ensemble import AdaBoostRegressor
 
 logger = getLogger(__name__)
 
@@ -32,9 +32,9 @@ class Algorithm:
 
         df = self._df
         logger.info(f"Data shape: {df.shape}")
+        logger.info(f"Data head: \n{df.head()}")
 
-        self.window = WindowGenerator(df, "", 3)
-
+        self.window = WindowGenerator(df, "sepal_length", 3)
         model = AdaBoostRegressor(n_estimators=100, learning_rate=0.05)
 
         self.results = self.window.train(model)
@@ -70,15 +70,23 @@ class Algorithm:
         try:
             # Save algorithm parameters
             with open(parameters_path, "wb") as f:
-                f.write(orjson.dumps(self._job_details.parameters))
+                f.write(dumps(self._job_details.parameters))
         except Exception as e:
             logger.exception(f"Error saving algorithm parameters: {e}")
 
     @property
     def _df(self) -> pd.DataFrame:
         filepath = self._job_details.files[list(self._job_details.files.keys())[0]][0]
-        self._dataset_info, _ = utils.get(self._job_details.parameters, "dataset")
-        separator, _ = utils.get(self._dataset_info, "separator", None)
+        self._dataset_info = get(self._job_details.parameters, "dataset")
+
+        if isinstance(self._dataset_info, str):
+            try:
+                self._dataset_info = loads(self._dataset_info)
+            except JSONDecodeError as e:
+                logger.error(f"Model info {self._dataset_info}")
+                logger.error(f"Error decoding dataset info: {e}")
+
+        separator = get(self._dataset_info, "separator", None)
 
         logger.info(f"Getting input data from file: {filepath}")
         return pd.read_csv(filepath, sep=separator)

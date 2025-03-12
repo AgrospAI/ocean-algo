@@ -1,7 +1,13 @@
+import sys
+from pathlib import Path
+
+# Append relative src directory to path
+sys.path.append("src")
+
 from typing import Optional
 
 from oceanprotocol_job_details.job_details import OceanProtocolJobDetails
-from pytest import fixture, raises
+from pytest import fixture
 from src.implementation.algorithm import Algorithm
 
 job_details: Optional[OceanProtocolJobDetails]
@@ -27,8 +33,7 @@ def test_details():
 
 
 def test_main():
-    with raises(NotImplementedError):
-        algorithm.run()
+    assert algorithm.run() is not None
 
 
 def test_main_results():
@@ -36,5 +41,6 @@ def test_main_results():
 
 
 def test_output(tmp_path):
-    with raises(NotImplementedError):
-        algorithm.save_result(tmp_path)
+    tmp = Path(tmp_path)
+
+    algorithm.save_result(tmp_path)

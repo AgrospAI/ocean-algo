@@ -1,75 +1,138 @@
 from logging import getLogger
-import re
-from typing import Optional, Sequence
+from typing import Literal, Sequence
 
 import numpy as np
 import pandas as pd
 from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 
 logger = getLogger(__name__)
 
+_Strategy = Literal["most_frequent", "mean", "median"]
+
+
+# class Imputer(BaseEstimator, TransformerMixin):
+# def __init__(
+#     self,
+#     categorical_columns: Sequence[str],
+#     skewness_threshold: float = 0.5,
+# ):
+#     self.categorical_columns = categorical_columns
+#     self.skewness_threshold = skewness_threshold
+#     self._imputers = {}
+
+# def _strategy(self, column: str, skewness: pd.Series) -> _Strategy:
+#     # If value is categorical, fill with most frequent value (mode)
+#     if column in self.categorical_columns:
+#         return "most_frequent"
+#     return "mean" if skewness.get(column, 0) < self.skewness_threshold else "median"
+
+# def fit(self, X, y=None):
+#     # Analyze the columns and fill the missing values with the proper strategy
+#     X = pd.DataFrame(X)
+#     numeric_columns = X.select_dtypes(include=[np.number]).columns.tolist()
+#     skewness = X[numeric_columns].skew().abs().T
+
+#     for col in X.columns:
+#         imputer = SimpleImputer(strategy=self._strategy(col, skewness))
+#         imputer.fit(X[col].values.reshape(-1, 1))
+#         self._imputers[col] = imputer.fit(X[[col]])  # Keep pd.DF format
+
+#     return self
+
+# def transform(self, X):
+#     X = pd.DataFrame(X)  # Col names
+#     for col, imputer in self._imputers.items():
+#         # Use double brackets to keep DataFrame structure
+#         X[col] = imputer.transform(X[[col]]).ravel()
+
+#     logger.info("Imputation transformation done")
+#     return X
+
+# def get_feature_names_out(self, input_features=None):
+#     return input_features
+
 
 class Imputer(BaseEstimator, TransformerMixin):
-
     def __init__(
         self,
         categorical_columns: Sequence[str],
+        numeric_columns: Sequence[str],
         skewness_threshold: float = 0.5,
     ):
         self.categorical_columns = categorical_columns
+        self.numeric_columns = numeric_columns
         self.skewness_threshold = skewness_threshold
-        self._imputers = {}
+
+    def _strategy(self, col: str) -> _Strategy:
+        # If value is categorical, fill with most frequent value (mode)
+        if col in self.categorical_columns:
+            return "mode"
+        if col not in self.skewness:
+            logger.warning(f"Column {col} not found in skewness")
+            return "mean"
+
+        return (
+            "mean" if self.skewness.get(col, 0) < self.skewness_threshold else "median"
+        )
 
     def fit(self, X, y=None):
-        # Analyze the columns and fill the missing values with the proper strategy
-        skewness = pd.DataFrame(X.skew().abs()).T
-
-        for col in X.columns:
-            # If value is categorical, fill with most frequent value (mode)
-            if col in self.categorical_columns:
-                imputer = SimpleImputer(strategy="most_frequent")
-            elif skewness[col][0] < self.skewness_threshold:
-                # If the column is normally distributed, fill with mean
-                imputer = SimpleImputer(strategy="mean")
-            else:
-                # If the column is skewed, fill with median
-                imputer = SimpleImputer(strategy="median")
-
-            logger.info(f"Fitting `{imputer.strategy}` imputer for column {col}")
-            imputer.fit(X[col].values.reshape(-1, 1))
-            self._imputers[col] = imputer
+        # Calculate skewness of df
+        X = pd.DataFrame(X)
+        self.skewness = X[self.numeric_columns].skew().abs().T
 
         return self
 
     def transform(self, X):
-        X = X.copy()
-        for col, imputer in self._imputers.items():
-            X[col] = imputer.transform(X[col].values.reshape(-1, 1)).ravel()
+        X = pd.DataFrame(X) if not isinstance(X, pd.DataFrame) else X
+        for col in X.columns:
+            X[col] = X[col].fillna(getattr(X[col], self._strategy(col)))
+
+        logger.info("Imputation transformation done")
         return X
 
     def get_feature_names_out(self, input_features=None):
         return input_features
 
 
-class Log(BaseEstimator, TransformerMixin):
+class ColumnTransformerWithNames(ColumnTransformer):
+    """Wraps ColumnTransformer to return a DataFrame with correct column names."""
 
+    def transform(self, X):
+        X_transformed = super().transform(X)
+
+        column_names = self.get_feature_names_out()
+        logger.info(f"Column transformation done with columns {column_names}")
+        return pd.DataFrame(X_transformed, columns=column_names, index=X.index)
+
+    def get_feature_names_out(self, input_features=None):
+        column_names = super().get_feature_names_out(input_features)
+        return ["".join(name.split("__")[1:]) for name in column_names]
+
+
+class Log(BaseEstimator, TransformerMixin):
     def fit(self, X, y=None):
         return self
 
     def transform(self, X):
-        X = X.copy()
-
+        X = pd.DataFrame(X)
         for col in X.columns:
             # Check if col is numeric and any is negative
-            if X.dtypes[col] in [np.float64, np.int64] and X[col].min() > 0:
+            if X.dtypes[col] in [np.float64, np.int64]:
+                min_value = X[col].min()
+                if min_value <= 0:
+                    logger.warning(f"Column {col} has negative values")
+                    continue
+
                 X[f"{col}_log"] = np.log(X[col])
+
+        logger.info("Logarithm transformation done")
 
         return X
 
 
 class Lagger(BaseEstimator, TransformerMixin):
-
     def __init__(self, lag: int):
         self.lag = lag
 
@@ -81,6 +144,8 @@ class Lagger(BaseEstimator, TransformerMixin):
         for i in range(self.lag):
             for col in X.columns:
                 X[f"{col}_lag_{i + 1}"] = X[col].shift(i + 1)
+
+        logger.info("Lagging done")
 
         return X
 
@@ -95,8 +160,8 @@ class LogDifference(BaseEstimator, TransformerMixin):
     https://stackoverflow.com/questions/63517126/any-way-to-predict-monthly-time-series-with-scikit-learn-in-python
     """
 
-    def __init__(self, lags: int, target_column: str):
-        self.lags = lags
+    def __init__(self, lag: int, target_column: str):
+        self.lag = lag
         self.target_column = target_column
 
     def fit(self, X, y=None):
@@ -105,11 +170,24 @@ class LogDifference(BaseEstimator, TransformerMixin):
     def transform(self, X):
         X = X.copy()
 
-        for i in range(self.lags):
+        # Ensure column exists
+        log_column = f"{self.target_column}_log"
+        if log_column not in X.columns:
+            logger.warning(f"Column {log_column} not found")
+            return X
+
+        for i in range(1, self.lag + 1):
+            lagged_column = f"{log_column}_lag_{i}"
+            if lagged_column not in X.columns:
+                logger.warning(
+                    f"Expected lagged column '{lagged_column}', but it was not found."
+                )
+                continue
+
             # Calculate the difference from previous logarithmic values
-            X[f"{self.target_column}_diff_{i + 1}"] = (
-                X[self.target_column] - X[f"{self.target_column}_{i + 1}"]
-            )
+            X[f"{log_column}_diff_{i}"] = X[log_column] - X[lagged_column]
+
+        logger.info("Logarithmic difference done")
 
         return X
 
@@ -130,5 +208,9 @@ class Stationary(BaseEstimator, TransformerMixin):
         X = X.copy()
         X[self.datetime_column] = pd.to_datetime(X[self.datetime_column])
         X = X.set_index(self.datetime_column)
-        X = X.diff().dropna()
-        return X
+
+        X_diff = X.diff().dropna()
+        X_diff.columns = [f"{col}_diff" for col in X_diff.columns]
+
+        logger.info("Stationary transformation done")
+        return X_diff

@@ -1,14 +1,18 @@
+from logging import getLogger
 from typing import Optional, Sequence
+
 import pandas as pd
+from implementation.estimators import (
+    ColumnTransformerWithNames,
+    Imputer,
+    Lagger,
+    Log,
+    LogDifference,
+)
 from sklearn import clone
-from sklearn.compose import ColumnTransformer
-from sklearn.discriminant_analysis import StandardScaler
 from sklearn.metrics import mean_squared_error
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import OneHotEncoder
-
-from implementation.estimators import Imputer, Lagger, Log, LogDifference
-from logging import getLogger
+from sklearn.preprocessing import MinMaxScaler, OneHotEncoder
 
 logger = getLogger(__name__)
 
@@ -19,40 +23,51 @@ def split(df: pd.DataFrame, target_column: str, train_ratio: float) -> tuple:
     train_df = df.iloc[: int(n * train_ratio)]
     test_df = df.iloc[int(n * train_ratio) :]
 
-    X_train, y_train = (
-        train_df.drop(columns=target_column),
-        train_df[target_column],
-    )
-    X_test, y_test = (
-        test_df.drop(columns=target_column),
-        test_df[target_column],
-    )
+    X_train, y_train = (train_df.drop(columns=target_column), train_df[target_column])
+    X_test, y_test = (test_df.drop(columns=target_column), test_df[target_column])
 
     return X_train, y_train, X_test, y_test
 
 
 def generic_pipeline(
-    categorical_columns: Sequence[str], target_column: str, lag: int
+    categorical_columns: Sequence[str],
+    numeric_columns: Sequence[str],
+    target_column: str,
+    lag: int,
 ) -> Pipeline:
     return Pipeline(
         [
             (
-                ("imputer", Imputer(categorical_columns=categorical_columns)),
-                (
-                    "encoder",
-                    ColumnTransformer(
-                        transformers=[("cat", OneHotEncoder(), categorical_columns)],
-                        remainder="passthrough",
-                    ),
+                "imputer",
+                Imputer(
+                    categorical_columns=categorical_columns,
+                    numeric_columns=numeric_columns,
                 ),
-                ("scaler", StandardScaler()),
-                ("log", Log()),
-                ("lag", Lagger(lag=lag)),
-                (
-                    "log-diff",
-                    LogDifference(lag=lag, target_column=f"{target_column}_log"),
+            ),
+            (
+                "encoder",
+                ColumnTransformerWithNames(
+                    transformers=[
+                        ("cat", OneHotEncoder(), categorical_columns),
+                        ("num", MinMaxScaler((0, 1)), numeric_columns),
+                    ],
+                    remainder="passthrough",
                 ),
-            )
+            ),
+            # ("log", Log()),
+            # (
+            #     "lag",
+            #     Lagger(
+            #         lag=lag,
+            #     ),
+            # ),
+            # (
+            #     "log-diff",
+            #     LogDifference(
+            #         lag=lag,
+            #         target_column=f"{target_column}_log",
+            #     ),
+            # ),
         ]
     )
 
@@ -65,7 +80,6 @@ def evaluate_model(model, X_test, y_test) -> float:
 
 
 class WindowGenerator:
-
     def __init__(
         self,
         df: pd.DataFrame,
@@ -85,16 +99,31 @@ class WindowGenerator:
         # Fit the preprocessing pipeline
         if preprocessing_pipeline is None:
             categorical_columns = self.X_train.select_dtypes(include="object").columns
+            numeric_columns = self.X_train.select_dtypes(include="number").columns
             self.preprocessing_pipeline = generic_pipeline(
                 categorical_columns=categorical_columns,
+                numeric_columns=numeric_columns,
+                target_column=target_column,
                 lag=lag,
             )
         else:
             self.preprocessing_pipeline = clone(preprocessing_pipeline)
         self.preprocessing_pipeline.fit(self.X_train)
 
+        logger.info("Successfuly fitted preprocessing pipeline")
+
     def train(self, model) -> tuple[Pipeline, dict[str, float]]:
         X_train = self.preprocessing_pipeline.fit_transform(self.X_train)
+        # Ensure feature names
+        feature_names = self.preprocessing_pipeline.named_steps[
+            "encoder"
+        ].get_feature_names_out()
+        X_train = pd.DataFrame(X_train, columns=feature_names)
+
+        logger.info("=== After preprocessing")
+        logger.info(f"Shape: {X_train.shape}")
+        logger.info(f"Columns: {list(X_train.columns)}")
+        logger.info(f"After preprocessing head:\n{X_train.head()}")
 
         # Train the given model on the training data
         model.fit(X_train, self.y_train)
