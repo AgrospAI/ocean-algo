@@ -34,7 +34,7 @@ class Algorithm:
         logger.info(f"Data shape: {df.shape}")
         logger.info(f"Data head: \n{df.head()}")
 
-        self.window = WindowGenerator(df, "sepal_length", 3)
+        self.window = WindowGenerator(df, "Sales", 3)
         model = AdaBoostRegressor(n_estimators=100, learning_rate=0.05)
 
         self.results = self.window.train(model)

@@ -123,7 +123,8 @@ class WindowGenerator:
         logger.info("=== After preprocessing")
         logger.info(f"Shape: {X_train.shape}")
         logger.info(f"Columns: {list(X_train.columns)}")
-        logger.info(f"After preprocessing head:\n{X_train.head()}")
+        logger.info(f"Head:\n{X_train.head()}")
+        logger.info(f"Description:\n{X_train.info()}")
 
         # Train the given model on the training data
         model.fit(X_train, self.y_train)

@@ -5,53 +5,10 @@ import numpy as np
 import pandas as pd
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.compose import ColumnTransformer
-from sklearn.impute import SimpleImputer
 
 logger = getLogger(__name__)
 
 _Strategy = Literal["most_frequent", "mean", "median"]
-
-
-# class Imputer(BaseEstimator, TransformerMixin):
-# def __init__(
-#     self,
-#     categorical_columns: Sequence[str],
-#     skewness_threshold: float = 0.5,
-# ):
-#     self.categorical_columns = categorical_columns
-#     self.skewness_threshold = skewness_threshold
-#     self._imputers = {}
-
-# def _strategy(self, column: str, skewness: pd.Series) -> _Strategy:
-#     # If value is categorical, fill with most frequent value (mode)
-#     if column in self.categorical_columns:
-#         return "most_frequent"
-#     return "mean" if skewness.get(column, 0) < self.skewness_threshold else "median"
-
-# def fit(self, X, y=None):
-#     # Analyze the columns and fill the missing values with the proper strategy
-#     X = pd.DataFrame(X)
-#     numeric_columns = X.select_dtypes(include=[np.number]).columns.tolist()
-#     skewness = X[numeric_columns].skew().abs().T
-
-#     for col in X.columns:
-#         imputer = SimpleImputer(strategy=self._strategy(col, skewness))
-#         imputer.fit(X[col].values.reshape(-1, 1))
-#         self._imputers[col] = imputer.fit(X[[col]])  # Keep pd.DF format
-
-#     return self
-
-# def transform(self, X):
-#     X = pd.DataFrame(X)  # Col names
-#     for col, imputer in self._imputers.items():
-#         # Use double brackets to keep DataFrame structure
-#         X[col] = imputer.transform(X[[col]]).ravel()
-
-#     logger.info("Imputation transformation done")
-#     return X
-
-# def get_feature_names_out(self, input_features=None):
-#     return input_features
 
 
 class Imputer(BaseEstimator, TransformerMixin):
@@ -117,19 +74,23 @@ class Log(BaseEstimator, TransformerMixin):
 
     def transform(self, X):
         X = pd.DataFrame(X)
+        res = pd.DataFrame()
+
         for col in X.columns:
-            # Check if col is numeric and any is negative
-            if X.dtypes[col] in [np.float64, np.int64]:
+            if X.dtypes[col] is np.number:
                 min_value = X[col].min()
                 if min_value <= 0:
                     logger.warning(f"Column {col} has negative values")
                     continue
 
-                X[f"{col}_log"] = np.log(X[col])
+                res[col] = X[col]
+                res[f"{col}_log"] = np.log(X[col])
+            else:
+                res[col] = X[col]
 
         logger.info("Logarithm transformation done")
 
-        return X
+        return res
 
 
 class Lagger(BaseEstimator, TransformerMixin):
