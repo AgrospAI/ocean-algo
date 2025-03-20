@@ -107,9 +107,9 @@ class Algorithm:
 
         if self.results:
             import cloudpickle
-            import main
+            import implementation.estimators as estimators
 
-            cloudpickle.register_pickle_by_value(main)
+            cloudpickle.register_pickle_by_value(estimators)
 
             # If only the pipeline is saved, save the pipeline
             try:

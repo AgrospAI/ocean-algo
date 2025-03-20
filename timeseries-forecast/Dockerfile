@@ -1,4 +1,4 @@
-FROM python:3.10-alpine
+FROM python:3.11-alpine
 
 # Install scikit-learn specific dependencies
 RUN apk add libgomp libstdc++ build-base

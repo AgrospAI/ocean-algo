@@ -13,6 +13,7 @@ dependencies = [
     "pandas>=2.2.3,<3",
     "cloudpickle>=3.1.1,<4",
     "orjson>=3.10.15,<4",
+    "seaborn>=0.13.2",
 ]
 
 [tool.uv]

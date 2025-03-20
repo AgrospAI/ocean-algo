@@ -34,45 +34,77 @@ class Algorithm:
         logger.info(f"Data shape: {df.shape}")
         logger.info(f"Data head: \n{df.head()}")
 
-        self.window = WindowGenerator(df, "Sales", 3)
+        self.window = WindowGenerator(
+            df=df,
+            target_column="Sales",
+            datetime_column="Date",
+        )
+
+        X_train, X_test, y_train, y_test = self.window.preprocess()
         model = AdaBoostRegressor(n_estimators=100, learning_rate=0.05)
 
-        self.results = self.window.train(model)
+        self.window.train(X_train, y_train, model)
+
+        evaluation_results = self.window.evaluate(
+            model,
+            X_test,
+            y_test,
+            ["neg_mean_squared_error"],
+        )
+
+        self.results = (
+            self.window.timeseries_pipeline,
+            model,
+            evaluation_results,
+        )
+
+        logger.info(f"Resulting metrics: {evaluation_results}")
+
         return self
 
     def save_result(self, path: Path) -> None:
         """Save the trained model pipeline to output"""
 
-        pipeline_path = path / "pipe.pkl"
+        timeseries_pipeline_path = path / "timeseries_features_pipe.pkl"
+        model_pipeline_path = path / "model.pkl"
         score_path = path / "scores.csv"
         parameters_path = path / "parameters.json"
+
+        # === Save algorithm run parameters ===
+        with open(parameters_path, "wb") as f:
+            try:
+                f.write(dumps(self._job_details.parameters))
+            except Exception as e:
+                logger.exception(f"Error saving algorithm parameters: {e}")
 
         if self.results:
             import cloudpickle
 
-            pipe, scores = self.results
+            ts_pipe, pipe, scores = self.results
             cloudpickle.register_pickle_by_value(estimators)
 
-            try:
-                with open(pipeline_path, "wb") as f:
-                    f.write(cloudpickle.dumps(pipe))
-                logger.info(f"Saved model to {path}")
-            except Exception as e:
-                logger.exception(f"Error saving model: {e}")
+            # === Save timeseries preprocessing pipeline ===
+            with open(timeseries_pipeline_path, "wb") as f:
+                try:
+                    f.write(cloudpickle.dumps(ts_pipe))
+                    logger.info(f"Saved model to {timeseries_pipeline_path}")
+                except Exception as e:
+                    logger.exception(f"Error saving model: {e}")
 
+            # === Save algorithm resulting pipeline ===
+            with open(model_pipeline_path, "wb") as f:
+                try:
+                    f.write(cloudpickle.dumps(pipe))
+                    logger.info(f"Saved model to {model_pipeline_path}")
+                except Exception as e:
+                    logger.exception(f"Error saving model: {e}")
+
+            # === Save scores to CSV ===
             try:
-                # Save scores into csv
                 scores = pd.DataFrame(scores, index=[0])
                 scores.to_csv(score_path, index=False)
             except Exception as e:
                 logger.exception(f"Error saving scores: {e}")
-
-        try:
-            # Save algorithm parameters
-            with open(parameters_path, "wb") as f:
-                f.write(dumps(self._job_details.parameters))
-        except Exception as e:
-            logger.exception(f"Error saving algorithm parameters: {e}")
 
     @property
     def _df(self) -> pd.DataFrame:
@@ -89,4 +121,4 @@ class Algorithm:
         separator = get(self._dataset_info, "separator", None)
 
         logger.info(f"Getting input data from file: {filepath}")
-        return pd.read_csv(filepath, sep=separator)
+        return pd.read_csv(filepath, sep=separator, index_col=0)

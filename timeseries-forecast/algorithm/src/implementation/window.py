@@ -1,139 +1,96 @@
+from dataclasses import dataclass
 from logging import getLogger
-from typing import Optional, Sequence
+from typing import List, Sequence
 
-import pandas as pd
-from implementation.estimators import (
-    ColumnTransformerWithNames,
-    Imputer,
-    Lagger,
-    Log,
-    LogDifference,
+from implementation.data import ColumnNames
+from implementation.preprocess import (
+    get_prepocessing_pipeline,
+    get_timeseries_pipeline,
 )
+from pandas import DataFrame, Series
 from sklearn import clone
-from sklearn.metrics import mean_squared_error
+from sklearn.base import TransformerMixin
+from sklearn.metrics import get_scorer
+from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import MinMaxScaler, OneHotEncoder
 
 logger = getLogger(__name__)
 
 
-def split(df: pd.DataFrame, target_column: str, train_ratio: float) -> tuple:
-    n = len(df.index)
-
-    train_df = df.iloc[: int(n * train_ratio)]
-    test_df = df.iloc[int(n * train_ratio) :]
-
-    X_train, y_train = (train_df.drop(columns=target_column), train_df[target_column])
-    X_test, y_test = (test_df.drop(columns=target_column), test_df[target_column])
-
-    return X_train, y_train, X_test, y_test
-
-
-def generic_pipeline(
-    categorical_columns: Sequence[str],
-    numeric_columns: Sequence[str],
-    target_column: str,
-    lag: int,
-) -> Pipeline:
-    return Pipeline(
-        [
-            (
-                "imputer",
-                Imputer(
-                    categorical_columns=categorical_columns,
-                    numeric_columns=numeric_columns,
-                ),
-            ),
-            (
-                "encoder",
-                ColumnTransformerWithNames(
-                    transformers=[
-                        ("cat", OneHotEncoder(), categorical_columns),
-                        ("num", MinMaxScaler((0, 1)), numeric_columns),
-                    ],
-                    remainder="passthrough",
-                ),
-            ),
-            # ("log", Log()),
-            # (
-            #     "lag",
-            #     Lagger(
-            #         lag=lag,
-            #     ),
-            # ),
-            # (
-            #     "log-diff",
-            #     LogDifference(
-            #         lag=lag,
-            #         target_column=f"{target_column}_log",
-            #     ),
-            # ),
-        ]
-    )
-
-
-def evaluate_model(model, X_test, y_test) -> float:
-    # Evaluate the model with MSE
-    y_pred = model.predict(X_test)
-    mse = mean_squared_error(y_test, y_pred)
-    return mse
-
-
+@dataclass
 class WindowGenerator:
-    def __init__(
-        self,
-        df: pd.DataFrame,
-        target_column: str,
-        lag: int,
-        preprocessing_pipeline: Optional[Pipeline] = None,
-        train_ratio: float = 0.7,
-    ):
-        self._lag = lag
+    df: DataFrame
+    target_column: str
+    datetime_column: str
+    lags: int = 3
+    train_ratio: float = 0.7
 
-        self.X_train, self.y_train, self.X_test, self.y_test = split(
-            df,
-            target_column,
-            train_ratio,
+    def __post_init__(
+        self,
+    ):
+        self.column_names = ColumnNames(
+            datetime=self.datetime_column,
+            target=self.target_column,
+            categorical=list(self.df.select_dtypes(include="object").columns),
+            numeric=list(self.df.select_dtypes(include="number").columns),
         )
 
-        # Fit the preprocessing pipeline
-        if preprocessing_pipeline is None:
-            categorical_columns = self.X_train.select_dtypes(include="object").columns
-            numeric_columns = self.X_train.select_dtypes(include="number").columns
-            self.preprocessing_pipeline = generic_pipeline(
-                categorical_columns=categorical_columns,
-                numeric_columns=numeric_columns,
-                target_column=target_column,
-                lag=lag,
-            )
-        else:
-            self.preprocessing_pipeline = clone(preprocessing_pipeline)
-        self.preprocessing_pipeline.fit(self.X_train)
+        # Timeseries features pipeline, to apply to the whole data
+        self.timeseries_pipeline = get_timeseries_pipeline(
+            self.column_names,
+            self.lags,
+        )
 
-        logger.info("Successfuly fitted preprocessing pipeline")
+        # Preprocessing pipeline, to apply to the training features
+        self.preprocessing_pipeline = get_prepocessing_pipeline(
+            self.column_names,
+        )
 
-    def train(self, model) -> tuple[Pipeline, dict[str, float]]:
-        X_train = self.preprocessing_pipeline.fit_transform(self.X_train)
-        # Ensure feature names
-        feature_names = self.preprocessing_pipeline.named_steps[
-            "encoder"
-        ].get_feature_names_out()
-        X_train = pd.DataFrame(X_train, columns=feature_names)
+    def preprocess(
+        self,
+    ) -> List:
+        """Preprocess the pipeline on the training features.
 
+        1. Add time periodicity features to the data.
+        1. Split the training and testing data.
+        1. Train the preprocessing pipeline on the training data.
+        """
+
+        # Add time periodicity features to the training data
+        self.df = self.timeseries_pipeline.fit_transform(self.df)
+        logger.info(
+            f"After timeseries feature adding data shape: {self.df.shape}, head: \n{self.df.head()}"
+        )
+
+        # Plot periodicity of the data
+        self.inspect_timedata(self.df)
+
+        # Split the data into training and testing sets
+        X_train, X_test, y_train, y_test = train_test_split(
+            self.df.drop(columns=[self.target_column]),
+            self.df[self.target_column],
+            train_size=self.train_ratio,
+        )
+        logger.info(f"Train shape: {X_train.shape} - Test shape: {X_test.shape}")
+
+        X_train = self.preprocessing_pipeline.fit_transform(X_train)
+        X_test = self.preprocessing_pipeline.transform(X_test)
+
+        return X_train, X_test, y_train, y_test
+
+    def train(
+        self,
+        X_train: DataFrame,
+        y_train: Series,
+        model: TransformerMixin,
+    ) -> Pipeline:
         logger.info("=== After preprocessing")
-        logger.info(f"Shape: {X_train.shape}")
-        logger.info(f"Columns: {list(X_train.columns)}")
-        logger.info(f"Head:\n{X_train.head()}")
-        logger.info(f"Description:\n{X_train.info()}")
+        logger.info(f"Shapes: X {X_train.shape} y {y_train.shape}")
 
         # Train the given model on the training data
-        model.fit(X_train, self.y_train)
+        model.fit(X_train, y_train)
 
         # Evaluate the model on the test data
-        X_test = self.preprocessing_pipeline.transform(self.X_test)
-        mse = evaluate_model(model, X_test, self.y_test)
-        logger.info(f"Mean Squared Error: {mse}")
-
         predicting_pipeline = Pipeline(
             [
                 ("preprocessor", self.preprocessing_pipeline),
@@ -141,4 +98,60 @@ class WindowGenerator:
             ]
         )
 
-        return predicting_pipeline, {"mse": mse}
+        return predicting_pipeline
+
+    def evaluate(
+        self,
+        trained_model,
+        X_test: DataFrame,
+        y_true: Series,
+        metrics: Sequence[str],
+    ) -> float:
+        y_pred = trained_model.predict(X_test.to_numpy())
+        results = {}
+
+        for metric in metrics:
+            try:
+                scorer = get_scorer(metric)
+            except ValueError as e:
+                logger.error(f"Error getting scorer: {e}")
+                continue
+
+            try:
+                results[metric] = scorer._score_func(y_true, y_pred)
+            except Exception as e:
+                logger.error(f"Error calculating metric {metric}: {e}")
+                continue
+
+        return results
+
+    def inspect_timedata(
+        self,
+        df: DataFrame,
+        n_samples: int = 50,
+    ) -> None:
+        import matplotlib.pyplot as plt
+        from seaborn import color_palette, lineplot
+
+        col_template = "sample_{period}_{operation}"
+
+        palette = color_palette("husl", 8)
+        periods = [
+            # "day",
+            # "week",
+            "month",
+            "year",
+        ]
+
+        for i, period in enumerate(periods):
+            cos = col_template.format(period=period, operation="cos")
+            sin = col_template.format(period=period, operation="sin")
+            f = lineplot(
+                data=df[[cos, sin]][:n_samples],
+                palette=palette[i * 2 : i * 2 + 2],
+            ).get_figure()
+            plt.xticks(rotation=90)
+            plt.tight_layout()
+
+        f.savefig(f"/data/outputs/periodicity_{n_samples}.png")
+        logger.info("Periodicity plots saved")
