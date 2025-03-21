@@ -1,3 +1,5 @@
+from typing import List
+
 from implementation.data import ColumnNames
 from implementation.estimators import (
     ColumnTransformerWithNames,
@@ -10,6 +12,7 @@ from sklearn.preprocessing import MinMaxScaler, OneHotEncoder
 
 def get_timeseries_pipeline(
     column_names: ColumnNames,
+    periodicity: List[str],
     lags: int,
 ) -> Pipeline:
     return Pipeline(
@@ -19,6 +22,7 @@ def get_timeseries_pipeline(
                 Periodicity(
                     target_column=column_names.target,
                     datetime_column=column_names.datetime,
+                    periodicity=periodicity,
                     lags=lags,
                 ),
             )

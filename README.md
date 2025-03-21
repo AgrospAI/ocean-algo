@@ -6,7 +6,7 @@ This repository contains a set of algorithms to use inside the Ocean Protocol ec
 
 To develop a new algorithm, head to the `_base` directory and choose a subdirectory with the programming language that you'll use, we recommend using `python` or `python-monolith`.
 
-```PowerShell
+```
 └───_base
     ├───bash
     │   │   docker-compose.yaml
@@ -47,13 +47,16 @@ To develop a new algorithm, head to the `_base` directory and choose a subdirect
 
 Copy the chosen programming language directory in the root path of the repository — with the rest of the implemented algorithms — and follow the instructions in the `README.md` file inside the copied directory. If you want to use another programming language or structure, do it, but keep in mind to test it thoroughly.
 
-To test the algorithm, run the docker-compose inside the copied directory with the `TEST` environment variable set. For testing purposes, there is also a `_data` directory with some mocks of what will be the used directory structure in the Ocean Protocol environment, test your algorithm with them before uploading it to the blockchain to ensure that it will (most likely) run in the first attempt.
+## Testing
+
+To test your algorithm, run the docker-compose inside the copied directory with the `TEST` and `DEV` environment variable set. For testing purposes, there is also a `_data` directory with some mocks of what will be the used directory structure in the Ocean Protocol environment, test your algorithm with them before uploading it to the blockchain to ensure that it will (most likely) run in the first attempt. To do so, you should head to the `_data` directory, in the root of the repository, copy it and place it inside your algorithm (see [base-predictor](https://github.com/AgrospAI/ocean-algo/tree/main/basic-predictor) or [timeseries-forecasting](https://github.com/AgrospAI/ocean-algo/tree/main/timeseries-forecast) for examples).
 
 The upload, test and fix iteration is quite slow, so we recommend that, even locally, you configure the docker-compose with the proper mounted volumes so you only need to build the project when changing dependecies.
 
 ```bash
 $ docker compose up --build
 ```
+
 
 ## Upload your asset to AgrospAI
 

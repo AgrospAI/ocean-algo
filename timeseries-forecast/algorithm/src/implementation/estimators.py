@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import Field, dataclass
 from logging import getLogger
 from typing import Self, Sequence
 
@@ -83,6 +83,9 @@ class Periodicity(BaseEstimator, TransformerMixin):
     target_column: str
     """The name of the target column in the DataFrame."""
 
+    periodicity: Sequence[str]
+    """The periodicity to calculate (day, week, month, year)."""
+
     lags: int = 3
     """The number of lags to calculate (steps into the past)."""
 
@@ -119,23 +122,24 @@ class Periodicity(BaseEstimator, TransformerMixin):
         rate = lambda timestamp, period: timestamp * 2 * pi / period  # noqa
 
         day_s = 24 * 60 * 60
-        week_s = 7 * day_s
-        month_s = 30.4368 * day_s
-        year_s = 365.25 * day_s
+        week_s = 7 * day_s if "week" in self.periodicity else None
+        month_s = 30.4368 * day_s if "month" in self.periodicity else None
+        year_s = 365.25 * day_s if "year" in self.periodicity else None
 
         try:
             # Also, add some periodicity features
             X[self.datetime_column] = to_datetime(X[self.datetime_column])
             timestamp_s = X[self.datetime_column].map(Timestamp.timestamp)
 
-            X["sample_day_sin"] = timestamp_s.apply(lambda x: sin(rate(x, day_s)))
-            X["sample_day_cos"] = timestamp_s.apply(lambda x: cos(rate(x, day_s)))
-            X["sample_week_sin"] = timestamp_s.apply(lambda x: sin(rate(x, week_s)))
-            X["sample_week_cos"] = timestamp_s.apply(lambda x: cos(rate(x, week_s)))
-            X["sample_month_sin"] = timestamp_s.apply(lambda x: sin(rate(x, month_s)))
-            X["sample_month_cos"] = timestamp_s.apply(lambda x: cos(rate(x, month_s)))
-            X["sample_year_sin"] = timestamp_s.apply(lambda x: sin(rate(x, year_s)))
-            X["sample_year_cos"] = timestamp_s.apply(lambda x: cos(rate(x, year_s)))
+            try:
+                for name, period in zip(
+                    self.periodicity,
+                    [day_s, week_s, month_s, year_s],
+                ):
+                    X[f"{name}_sin"] = timestamp_s.apply(lambda x: sin(rate(x, period)))
+                    X[f"{name}_cos"] = timestamp_s.apply(lambda x: cos(rate(x, period)))
+            except ValueError:
+                pass
         except Exception as e:
             logger.error(f"Error processing periodicity: {e}")
 

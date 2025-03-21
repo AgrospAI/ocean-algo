@@ -43,7 +43,7 @@ def test_main_results():
     assert algorithm.results is not None
 
 
-def test_output_can_predict(tmp_path):
+def test_output(tmp_path):
     """Test that the algorithm output contains the necessary files to make predictions
     and that it's possible to load the model and make predictions.
     """
@@ -55,6 +55,7 @@ def test_output_can_predict(tmp_path):
     assert (tmp / "scores.csv").exists()
     assert (tmp / "timeseries_features.pkl").exists()
     assert (tmp / "model.pkl").exists()
+    assert (tmp / "plot.png").exists()
 
 
 @mark.filterwarnings("ignore::FutureWarning")
