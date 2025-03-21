@@ -7,8 +7,7 @@ from pathlib import Path
 from typing import Optional
 
 from oceanprotocol_job_details.job_details import OceanProtocolJobDetails
-from pytest import fixture
-
+from pytest import fixture, mark
 from src.implementation.algorithm import Algorithm
 
 job_details: Optional[OceanProtocolJobDetails]
@@ -49,3 +48,36 @@ def test_output(tmp_path):
     assert (tmp / "pipe.pkl").exists()
     assert (tmp / "scores.csv").exists()
     assert (tmp / "parameters.json").exists()
+
+
+@mark.filterwarnings("ignore::FutureWarning")
+@mark.filterwarnings("error")
+def test_can_predict(tmp_path):
+    import pandas as pd
+
+    def load_model(path: Path):
+        import cloudpickle
+
+        with open(path, "rb") as f:
+            return cloudpickle.load(f)
+
+    tmp = Path(tmp_path)
+    algorithm.save_result(tmp)
+
+    # Load the pipelines
+    model = load_model(tmp / "pipe.pkl")
+
+    # Load the data
+    df: pd.DataFrame = algorithm._df
+
+    # Hardcoded because the end-user should know :)
+    target_column = "species"
+    X_df = df.drop(columns=[target_column])
+
+    # Make predictions
+    try:
+        predictions = model.predict(X_df)
+    except Exception as e:
+        raise Exception("Error predicting") from e
+
+    assert predictions is not None

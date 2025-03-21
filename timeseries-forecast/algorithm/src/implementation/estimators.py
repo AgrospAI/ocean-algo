@@ -10,21 +10,20 @@ from sklearn.compose import ColumnTransformer
 logger = getLogger(__name__)
 
 
-@dataclass
 class Imputer(BaseEstimator, TransformerMixin):
     """Imputes missing values based on a strategy for each column that is decided by it's characteristics."""
 
-    datetime_column: str
-    """The name of the datetime column in the DataFrame."""
-
-    categorical_columns: Sequence[str]
-    """The names of the categorical columns in the DataFrame."""
-
-    numeric_columns: Sequence[str]
-    """The names of the numeric columns in the DataFrame."""
-
-    threshold: float = 0.5
-    """The threshold to consider a column as skewed."""
+    def __init__(
+        self,
+        datetime_column: str,
+        categorical_columns: Sequence[str],
+        numeric_columns: Sequence[str],
+        threshold: float = 0.5,
+    ) -> None:
+        self.datetime_column = datetime_column
+        self.categorical_columns = categorical_columns
+        self.numeric_columns = numeric_columns
+        self.threshold = threshold
 
     def _strategy(self, col: str) -> str:
         # If value is categorical, fill with most frequent value (mode)
@@ -57,6 +56,9 @@ class Imputer(BaseEstimator, TransformerMixin):
 
 class ColumnTransformerWithNames(ColumnTransformer):
     """Wraps ColumnTransformer to return a DataFrame with correct column names."""
+
+    def fit(self, X, y=None):
+        return self
 
     def transform(self, X):
         X_transformed = super().transform(X)

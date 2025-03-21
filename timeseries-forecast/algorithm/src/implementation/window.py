@@ -8,11 +8,10 @@ from implementation.preprocess import (
     get_timeseries_pipeline,
 )
 from pandas import DataFrame, Series
-from sklearn import clone
 from sklearn.base import TransformerMixin
 from sklearn.metrics import get_scorer
 from sklearn.model_selection import train_test_split
-from sklearn.pipeline import Pipeline
+from sklearn.pipeline import Pipeline, make_pipeline
 
 logger = getLogger(__name__)
 
@@ -90,15 +89,7 @@ class WindowGenerator:
         # Train the given model on the training data
         model.fit(X_train, y_train)
 
-        # Evaluate the model on the test data
-        predicting_pipeline = Pipeline(
-            [
-                ("preprocessor", self.preprocessing_pipeline),
-                ("predictor", model),
-            ]
-        )
-
-        return predicting_pipeline
+        return make_pipeline(self.preprocessing_pipeline, model)
 
     def evaluate(
         self,

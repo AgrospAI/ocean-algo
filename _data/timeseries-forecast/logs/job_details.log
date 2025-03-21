@@ -1,0 +1,12 @@
+Starting compute job with the following input information:
+b'{"root":"/algorithm","dids":"[\'8f67E08be5dD941a701c2491E814535522c33bC2\']","files":"{\'8f67E08be5dD941a701c2491E814535522c33bC2\': [PosixPath(\'/algorithm/data/inputs/8f67E08be5dD941a701c2491E814535522c33bC2/0\')]}","secret":"None","algorithm":"None"}'
+Getting input data from file: /algorithm/data/inputs/8f67E08be5dD941a701c2491E814535522c33bC2/0
+Loaded data with shape: (150, 5)
+Fitting `mean` imputer for column sepal_length
+Fitting `mean` imputer for column sepal_width
+Fitting `mean` imputer for column petal_length
+Fitting `mean` imputer for column petal_width
+Creating model: KNeighborsClassifier with params: {'metric': 'l2', 'n_jobs': -1}
+Score for `balanced_accuracy`: 0.9238095238095237
+Score for `accuracy`: 0.9238095238095239
+Saved model to data/outputs

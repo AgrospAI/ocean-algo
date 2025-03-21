@@ -65,10 +65,15 @@ class Algorithm:
     def save_result(self, path: Path) -> None:
         """Save the trained model pipeline to output"""
 
-        timeseries_pipeline_path = path / "timeseries_features_pipe.pkl"
+        timeseries_pipeline_path = path / "timeseries_features.pkl"
         model_pipeline_path = path / "model.pkl"
         score_path = path / "scores.csv"
         parameters_path = path / "parameters.json"
+
+        def check_steps(pipeline):
+            for name, step in ts_pipe.named_steps.items():
+                if hasattr(step, "fit") and not hasattr(step, "transform"):
+                    logger.warning(f"⚠️ Warning: {name} might not be fitted!")
 
         # === Save algorithm run parameters ===
         with open(parameters_path, "wb") as f:
@@ -84,17 +89,19 @@ class Algorithm:
             cloudpickle.register_pickle_by_value(estimators)
 
             # === Save timeseries preprocessing pipeline ===
+            check_steps(ts_pipe)
             with open(timeseries_pipeline_path, "wb") as f:
                 try:
-                    f.write(cloudpickle.dumps(ts_pipe))
+                    cloudpickle.dump(ts_pipe, f)
                     logger.info(f"Saved model to {timeseries_pipeline_path}")
                 except Exception as e:
                     logger.exception(f"Error saving model: {e}")
 
             # === Save algorithm resulting pipeline ===
+            check_steps(pipe)
             with open(model_pipeline_path, "wb") as f:
                 try:
-                    f.write(cloudpickle.dumps(pipe))
+                    cloudpickle.dump(pipe, f)
                     logger.info(f"Saved model to {model_pipeline_path}")
                 except Exception as e:
                     logger.exception(f"Error saving model: {e}")
