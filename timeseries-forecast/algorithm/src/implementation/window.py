@@ -3,16 +3,17 @@ from logging import getLogger
 from pathlib import Path
 from typing import List, Sequence
 
-from implementation.data import ColumnNames, InputParameters, Periodicity
-from implementation.preprocess import (
-    get_prepocessing_pipeline,
-    get_timeseries_pipeline,
-)
 from pandas import DataFrame, Series
 from sklearn.base import TransformerMixin
 from sklearn.metrics import get_scorer
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline, make_pipeline
+
+from implementation.data import ColumnNames, InputParameters, Periodicity
+from implementation.preprocess import (
+    get_preprocessing_pipeline,
+    get_timeseries_pipeline,
+)
 
 logger = getLogger(__name__)
 
@@ -26,8 +27,8 @@ class WindowGenerator:
         self,
     ):
         self.column_names = ColumnNames(
-            datetime=self.params.datetime_column,
-            target=self.params.target_column,
+            datetime=self.params.dataset.datetime_column,
+            target=self.params.dataset.target_column,
             categorical=list(self.df.select_dtypes(include="object").columns),
             numeric=list(self.df.select_dtypes(include="number").columns),
         )
@@ -35,12 +36,12 @@ class WindowGenerator:
         # Timeseries features pipeline, to apply to the whole data
         self.timeseries_pipeline = get_timeseries_pipeline(
             column_names=self.column_names,
-            periodicity=self.params.periodicity,
-            lags=self.params.lags,
+            periodicity=self.params.dataset.periodicity,
+            lags=self.params.dataset.lags,
         )
 
         # Preprocessing pipeline, to apply to the training features
-        self.preprocessing_pipeline = get_prepocessing_pipeline(
+        self.preprocessing_pipeline = get_preprocessing_pipeline(
             column_names=self.column_names,
         )
 
@@ -60,14 +61,14 @@ class WindowGenerator:
             f"After timeseries feature adding data shape: {self.df.shape}, head: \n{self.df.head()}"
         )
 
-        if self.params.periodicity:
-            self.inspect_timedata(self.df, self.params.periodicity)
+        if self.params.dataset.periodicity:
+            self.inspect_timedata(self.df, self.params.dataset.periodicity)
 
         # Split the data into training and testing sets
         X_train, X_test, y_train, y_test = train_test_split(
-            self.df.drop(columns=[self.params.target_column]),
-            self.df[self.params.target_column],
-            train_size=self.params.split,
+            self.df.drop(columns=[self.params.dataset.target_column]),
+            self.df[self.params.dataset.target_column],
+            train_size=self.params.dataset.split,
         )
         logger.info(f"Train shape: {X_train.shape} - Test shape: {X_test.shape}")
 
@@ -112,6 +113,8 @@ class WindowGenerator:
             except Exception as e:
                 logger.error(f"Error calculating metric {metric}: {e}")
                 continue
+
+        logger.info(f"Resulting metrics: {results}")
 
         return results
 

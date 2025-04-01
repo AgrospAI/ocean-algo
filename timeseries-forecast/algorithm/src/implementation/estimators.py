@@ -1,4 +1,4 @@
-from dataclasses import Field, dataclass
+from dataclasses import dataclass
 from logging import getLogger
 from typing import Self, Sequence
 

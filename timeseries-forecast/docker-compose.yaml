@@ -14,5 +14,5 @@ services:
       DEV: 1
       TEST: 1
       DIDS: '["timeseries-example"]'
-      # secret: ""
-      # TRANSFORMATION_DID: ""
+      secret: "1234"
+      TRANSFORMATION_DID: "1234"

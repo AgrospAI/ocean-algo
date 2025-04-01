@@ -1,6 +1,8 @@
 import sys
 from pathlib import Path
 
+from oceanprotocol_job_details.ocean import JobDetails
+
 # Append relative src directory to path
 sys.path.append("src")
 
@@ -10,10 +12,11 @@ from typing import Optional
 from oceanprotocol_job_details.job_details import OceanProtocolJobDetails
 from pytest import fixture, mark
 from src.implementation.algorithm import Algorithm
+from src.implementation.data import InputParameters
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 
-job_details: Optional[OceanProtocolJobDetails]
+job_details: JobDetails[InputParameters]
 algorithm: Optional[Algorithm]
 
 
@@ -23,7 +26,7 @@ def setup():
 
     global job_details, algorithm
 
-    job_details = OceanProtocolJobDetails().load()
+    job_details = OceanProtocolJobDetails(InputParameters).load()
     algorithm = Algorithm(job_details)
 
     yield

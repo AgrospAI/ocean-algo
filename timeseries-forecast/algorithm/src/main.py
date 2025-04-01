@@ -14,12 +14,11 @@ sys.path.append("/algorithm/src")
 # ======
 
 import logging
-from dataclasses import asdict
+from pathlib import Path
 
-import orjson
 from implementation.algorithm import Algorithm
-from oceanprotocol_job_details.dataclasses.constants import Paths
-from oceanprotocol_job_details.dataclasses.job_details import JobDetails
+from implementation.data import InputParameters
+from oceanprotocol_job_details.config import config
 from oceanprotocol_job_details.job_details import OceanProtocolJobDetails
 
 logging.basicConfig(
@@ -29,13 +28,11 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def main():
+def main() -> None:
     # Load the current job details from the environment variables
-    job_details: JobDetails = OceanProtocolJobDetails().load()
+    job_details = OceanProtocolJobDetails(InputParameters).load()
 
     logger.info("Starting compute job with the following input information:")
-    logger.info(orjson.dumps({k: str(v) for k, v in asdict(job_details).items()}))
-
     algorithm = Algorithm(job_details)
 
     try:
@@ -44,7 +41,7 @@ def main():
         logger.exception(f"An error occurred while running the algorithm: {e}")
 
     try:
-        algorithm.save_result(Paths.OUTPUTS)
+        algorithm.save_result(Path(config.path_outputs))
     except Exception as e:
         logger.exception(f"An error occurred while saving the results: {e}")
 

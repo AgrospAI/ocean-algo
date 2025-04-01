@@ -1,13 +1,14 @@
 from typing import List
 
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import MinMaxScaler, OneHotEncoder
+
 from implementation.data import ColumnNames
 from implementation.estimators import (
     ColumnTransformerWithNames,
     Imputer,
     Periodicity,
 )
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import MinMaxScaler, OneHotEncoder
 
 
 def get_timeseries_pipeline(
@@ -30,14 +31,20 @@ def get_timeseries_pipeline(
     )
 
 
-def get_prepocessing_pipeline(
+def get_preprocessing_pipeline(
     column_names: ColumnNames,
 ) -> Pipeline:
     categorical_columns = column_names.categorical
-    categorical_columns.remove(column_names.datetime)
+
+    if column_names.datetime in categorical_columns:
+        # Remove datetime column from categorical columns
+        categorical_columns.remove(column_names.datetime)
 
     numeric_columns = column_names.numeric
-    numeric_columns.remove(column_names.target)
+
+    if column_names.target in numeric_columns:
+        # Remove target column from numeric columns
+        numeric_columns.remove(column_names.target)
 
     return Pipeline(
         [

@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 from typing import List, Optional
 
@@ -27,11 +27,24 @@ class ColumnNames:
     numeric: List[str]
 
 
-@dataclass(frozen=True)
+@dataclass
+class ModelParameters:
+    name: str = "AdaBoostRegressor"
+    parameters: dict[str, any] | None = None
+    metrics: List[str] = field(default_factory=lambda: ["neg_mean_squared_error"])
+
+
+@dataclass
+class DatasetParameters:
+    separator: str | None = None
+    target_column: str | None = None
+    datetime_column: str | None = None
+    split: float | None = 0.7
+    lags: int | None = 3
+    periodicity: List[Periodicity] | None = None
+
+
+@dataclass
 class InputParameters:
-    separator: Optional[str] = None
-    target_column: Optional[str] = None
-    datetime_column: Optional[str] = None
-    split: Optional[float] = None
-    lags: Optional[int] = None
-    periodicity: Optional[List[Periodicity]] = None
+    model: ModelParameters
+    dataset: DatasetParameters
