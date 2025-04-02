@@ -74,7 +74,7 @@ class Algorithm:
         # === Save algorithm run parameters ===
         with open(parameters_path, "wb") as f:
             try:
-                f.write(orjson.dumps(self._job_details.input_parameters.to_json()))
+                f.write(orjson.dumps(self._job_details.input_parameters))
             except Exception as e:
                 logger.exception(f"Error saving algorithm parameters: {e}")
 
