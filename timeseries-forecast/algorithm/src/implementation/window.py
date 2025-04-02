@@ -36,7 +36,7 @@ class WindowGenerator:
         # Timeseries features pipeline, to apply to the whole data
         self.timeseries_pipeline = get_timeseries_pipeline(
             column_names=self.column_names,
-            periodicity=self.params.dataset.periodicity,
+            periodicity=[p.value for p in self.params.dataset.periodicity],
             lags=self.params.dataset.lags,
         )
 
@@ -132,8 +132,8 @@ class WindowGenerator:
         palette = color_palette("husl", 8)
 
         for i, period in enumerate(periods):
-            cos = col_template.format(period=period, operation="cos")
-            sin = col_template.format(period=period, operation="sin")
+            cos = col_template.format(period=period.value, operation="cos")
+            sin = col_template.format(period=period.value, operation="sin")
             f = lineplot(
                 data=df[[cos, sin]][:n_samples],
                 palette=palette[i * 2 : i * 2 + 2],

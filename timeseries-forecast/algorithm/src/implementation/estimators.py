@@ -122,9 +122,12 @@ class Periodicity(BaseEstimator, TransformerMixin):
         rate = lambda timestamp, period: timestamp * 2 * pi / period  # noqa
 
         day_s = 24 * 60 * 60
-        week_s = 7 * day_s if "week" in self.periodicity else None
-        month_s = 30.4368 * day_s if "month" in self.periodicity else None
-        year_s = 365.25 * day_s if "year" in self.periodicity else None
+        periods = {
+            "day": 1,
+            "week": 7,
+            "month": 30.4368,
+            "year": 365.25,
+        }
 
         try:
             # Also, add some periodicity features
@@ -132,10 +135,8 @@ class Periodicity(BaseEstimator, TransformerMixin):
             timestamp_s = X[self.datetime_column].map(Timestamp.timestamp)
 
             try:
-                for name, period in zip(
-                    self.periodicity,
-                    [day_s, week_s, month_s, year_s],
-                ):
+                for name in self.periodicity:
+                    period = periods[name] * day_s
                     X[f"{name}_sin"] = timestamp_s.apply(lambda x: sin(rate(x, period)))
                     X[f"{name}_cos"] = timestamp_s.apply(lambda x: cos(rate(x, period)))
             except ValueError:

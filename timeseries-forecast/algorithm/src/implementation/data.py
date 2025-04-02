@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import List, Optional
+from typing import List
 
 
 class Periodicity(Enum):
@@ -8,6 +8,10 @@ class Periodicity(Enum):
     WEEK = "week"
     MONTH = "month"
     YEAR = "year"
+
+    @property
+    def value(self) -> str:
+        return self.name.lower()
 
     @classmethod
     def from_str(cls, value: str) -> "Periodicity":
