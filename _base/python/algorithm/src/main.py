@@ -17,10 +17,11 @@ import logging
 from dataclasses import asdict
 
 from implementation.algorithm import Algorithm
-from oceanprotocol_job_details.dataclasses.constants import Paths
-from oceanprotocol_job_details.dataclasses.job_details import JobDetails
 from oceanprotocol_job_details.job_details import OceanProtocolJobDetails
+from oceanprotocol_job_details.ocean import JobDetails
+from oceanprotocol_job_details.config import config
 from orjson import dumps
+from pathlib import Path
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -44,7 +45,7 @@ def main():
         logger.exception(f"An error occurred while running the algorithm: {e}")
 
     try:
-        algorithm.save_result(Paths.OUTPUTS)
+        algorithm.save_result(Path(config.path_outputs))
     except Exception as e:
         logger.exception(f"An error occurred while saving the results: {e}")
 
