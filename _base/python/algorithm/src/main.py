@@ -15,13 +15,14 @@ sys.path.append("/algorithm/src")
 
 import logging
 from dataclasses import asdict
+from pathlib import Path
 
-from implementation.algorithm import Algorithm
+from oceanprotocol_job_details.config import config
 from oceanprotocol_job_details.job_details import OceanProtocolJobDetails
 from oceanprotocol_job_details.ocean import JobDetails
-from oceanprotocol_job_details.config import config
 from orjson import dumps
-from pathlib import Path
+
+from implementation.algorithm import Algorithm
 
 logging.basicConfig(
     level=logging.DEBUG,

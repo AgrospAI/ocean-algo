@@ -1,7 +1,6 @@
 from logging import getLogger
 from pathlib import Path
-from typing import Any, Optional, TypeVar, Value
-import pathlib
+from typing import Any, Optional, TypeVar
 from oceanprotocol_job_details.ocean import JobDetails
 
 T = TypeVar("T")
