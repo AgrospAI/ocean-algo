@@ -1,0 +1,9 @@
+numpy
+pandas
+opencv-python-headless
+ydata_profiling
+pathlib
+torch
+torchvision
+psutil
+oceanprotocol-job-details==0.0.12
