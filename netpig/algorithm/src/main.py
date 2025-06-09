@@ -17,9 +17,12 @@ import logging
 from dataclasses import asdict
 from pathlib import Path
 
+from oceanprotocol_job_details.config import config
+from oceanprotocol_job_details.job_details import OceanProtocolJobDetails
+from oceanprotocol_job_details.ocean import JobDetails
 from orjson import dumps
 
-from implementation.algorithm import NetPigAlgorithm
+from implementation.algorithm import Algorithm
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -29,9 +32,13 @@ logger = logging.getLogger(__name__)
 
 
 def main():
-    input_path = Path("../_data/inputs/CEP-2021-S1-ENVCOMFORT.csv")
-    logo_path = Path("src/img/netpig-logo.png")
-    algorithm = NetPigAlgorithm(input_path, logo_path)
+    # Load the current job details from the environment variables
+    job_details: JobDetails = OceanProtocolJobDetails().load()
+
+    logger.info("Starting compute job with the following input information:")
+    logger.info(dumps({k: str(v) for k, v in asdict(job_details).items()}))
+
+    algorithm = Algorithm(job_details)
 
     try:
         algorithm.run()
@@ -39,7 +46,7 @@ def main():
         logger.exception(f"An error occurred while running the algorithm: {e}")
 
     try:
-        algorithm.save_result(Path("../_data/outputs/result.pdf"))
+        algorithm.save_result(Path(config.path_outputs))
     except Exception as e:
         logger.exception(f"An error occurred while saving the results: {e}")
 

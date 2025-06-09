@@ -24,3 +24,11 @@ typing-extensions==4.13.2
     # via typing-inspect
 typing-inspect==0.9.0
     # via dataclasses-json
+reportlab
+    # via pytest
+numpy
+    # via oceanprotocol-job-details
+    # via algorithm (pyproject.toml)
+matplotlib
+    # via pytest
+pandas

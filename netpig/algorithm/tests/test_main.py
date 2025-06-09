@@ -8,6 +8,8 @@ from typing import Optional
 from oceanprotocol_job_details.job_details import OceanProtocolJobDetails
 from pytest import fixture, raises
 from src.implementation.algorithm import Algorithm
+from pathlib import Path
+from oceanprotocol_job_details.config import config
 
 job_details: Optional[OceanProtocolJobDetails]
 algorithm: Optional[Algorithm]
@@ -32,14 +34,13 @@ def test_details():
 
 
 def test_main():
-    with raises(NotImplementedError):
         algorithm.run()
 
 
 def test_main_results():
-    assert algorithm.results is None
+    assert algorithm.results is not None
 
 
 def test_output(tmp_path):
-    with raises(NotImplementedError):
-        algorithm.save_result(tmp_path)
+    print(Path(config.path_outputs))
+    algorithm.save_result(Path(config.path_outputs) / "report.pdf")

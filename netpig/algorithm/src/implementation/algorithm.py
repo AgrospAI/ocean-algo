@@ -15,30 +15,29 @@ from datetime import datetime
 from io import BytesIO
 from oceanprotocol_job_details.ocean import JobDetails
 
-T = TypeVar("T")
-
 logger = getLogger(__name__)
 
+class Algorithm:
+    def __init__(self, job_details: JobDetails):
+        self._job_details = job_details
+        self.results: Optional[_ResultType] = None
+        self.logo_path = "src/img/netpig-logo.png"
 
-class NetPigAlgorithm:
-    """
-    Generates a sustainability report for agri-food certification based on CO2 and NH3 data.
-    The report includes thresholds, evolution plots, data distribution, summary tables, and a final diagnosis.
-    """
-    def __init__(self, input_path: Path, logo_path: Path):
-        self.input_path = input_path
-        self.logo_path = logo_path
-        self.results = None
-        self.df = None
         self.thresholds = {
             "CO2": {"recommended": "3000 ppm", "alert": "> 6000 ppm"},
             "NH3": {"recommended": "10 ppm", "alert": "> 20 ppm"}
         }
 
-    def run(self) -> "NetPigAlgorithm":
-        """Load and preprocess the dataset."""
+    def _validate_input(self) -> None:
+        if not self._job_details.files:
+            logger.warning("No files found")
+            raise ValueError("No files found")
+        
+    def run(self) -> "Algorithm":
+        self._validate_input()
+
         try:
-            self.df = pd.read_csv(self.input_path)
+            self.df = pd.read_csv(self._job_details.files.files[0].input_files[0], sep=None, engine="python")
             self.df.columns = self.df.columns.str.strip()
             self.df["CO2"] = pd.to_numeric(self.df["CO2"], errors="coerce")
             self.df["NH3"] = pd.to_numeric(self.df["NH3"], errors="coerce")
@@ -49,13 +48,16 @@ class NetPigAlgorithm:
             self.results = None
             raise
         return self
+    
+        # self.results = "ALGO RESULTS"
+        # return self
 
     def save_result(self, output_path: Path) -> None:
         """Generate the PDF report with all required sections and graphics."""
         if self.df is None:
             logger.error("No data loaded. Cannot save result.")
             return
-        c = canvas.Canvas(str(output_path), pagesize=A4)
+        c = canvas.Canvas(str(output_path)+"report.pdf", pagesize=A4)
         width, height = A4
         left_margin, right_margin, top_margin = 70, 70, height - 70
         frame_width = width - left_margin - right_margin
