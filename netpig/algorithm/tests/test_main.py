@@ -43,4 +43,4 @@ def test_main_results():
 
 def test_output(tmp_path):
     print(Path(config.path_outputs))
-    algorithm.save_result(Path(config.path_outputs) / "report.pdf")
+    algorithm.save_result(Path(config.path_outputs))

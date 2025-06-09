@@ -57,7 +57,7 @@ class Algorithm:
         if self.df is None:
             logger.error("No data loaded. Cannot save result.")
             return
-        c = canvas.Canvas(str(output_path)+"report.pdf", pagesize=A4)
+        c = canvas.Canvas(str(output_path / "report.pdf"), pagesize=A4)
         width, height = A4
         left_margin, right_margin, top_margin = 70, 70, height - 70
         frame_width = width - left_margin - right_margin
@@ -248,7 +248,7 @@ class Algorithm:
         plt.xlabel(variable)
         plt.ylabel('Frequency')
         plt.subplot(1, 2, 2)
-        plt.boxplot(df[variable].dropna(), vert=True)
+        plt.boxplot(df[variable].dropna(), orientation='vertical')
         plt.title(title_box)
         plt.ylabel(variable)
         plt.tight_layout()
