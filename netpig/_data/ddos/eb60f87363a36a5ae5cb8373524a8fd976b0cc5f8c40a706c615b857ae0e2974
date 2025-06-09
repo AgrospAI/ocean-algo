@@ -1,0 +1,128 @@
+{
+  "id": "did:op:75afadb65591ca977344fa598c2b42c0ca5c7e8620b7c8bf47533e8f222d7997",
+  "@context": [
+    "https://w3id.org/did/v1"
+  ],
+  "nftAddress": "0xBDF9f2D64D4d77FD65942FD9012997fCCaC29947",
+  "chainId": 32457,
+  "version": "4.1.0",
+  "metadata": {
+    "type": "dataset",
+    "name": "CEP - Environment and Comfort - 2021 S1",
+    "author": "Centre of Swine Studies of Catalonia (CEP)",
+    "description": "Environment and comfort data collected by sensors at the CEP ([Centre of Swine Studies of Catalonia](https://www.elcep.net)) experimental pig farm, a consortium made up of the Diputació de Lleida, the Regional Council of La Noguera, the Torrelameu Town Hall and the Universitat de Lleida.\n\nThe environment and comfort data includes:\n\n* **Date Time**: the date and time the data was collected, in the format `YYYY-MM-DDTHH:MM:SS`.\n* **Avg. Temp.**: the average temperature in the Fattening 5 area, measured in Celsius degrees (ºC).\n* **Ext. Temp.**: the external temperature at the CEP experimental pig farm, measured in Celsius degrees (ºC).\n* **Rel. Hum.**: the relative humidity in the Fattening 5 area, measured in percentage (%).\n* **Ext. Rel. Hum.**: the external relative humidity, measured in percentage (%).\n* **CO2**: the carbon dioxide concentration in the Fattening 5 area, measured in parts per million (PPM).\n* **NH3**: the ammonia concentration in the Fattening 5 area, measured in parts per million (PPM).\n* **Wind Speed**: the external wind speed at the CEP experimental pig farm, measured in meters per second (m/s).\n* **Wind Direc.**: the external wind direction at the CEP experimental pig farm, measured in degrees (º).\n",
+    "tags": [
+      "agriculture",
+      "livestock",
+      "feed",
+      "automatic-feeding",
+      "weight",
+      "pig",
+      "agrospai",
+      "cep",
+      "tabular-data"
+    ],
+    "license": "unlicensed",
+    "links": [
+      "https://rhizomik.net/html/angliru/data/samples/CEP-2021-S1-ENVCOMFORT-sample.csv"
+    ],
+    "created": "2025-03-08T15:48:00Z",
+    "updated": "2025-04-26T21:21:19Z",
+    "additionalInformation": {
+      "gaiaXInformation": {
+        "serviceSD": {
+          "url": "https://compliance.agrospai.udl.cat/.well-known/CEP/CEP-ENV_testnet.vp.json",
+          "isVerified": true
+        }
+      }
+    }
+  },
+  "services": [
+    {
+      "id": "ff3f08b4b84f664a4db7975ffc6e28eb72718232073c055ab4b60b78cb7bfb06",
+      "datatokenAddress": "0xa676c1918CC6a3D8B97Cb0Da7fe2eba3AeFd2373",
+      "type": "compute",
+      "serviceEndpoint": "https://provider.agrospai.udl.cat",
+      "timeout": 0,
+      "files": "0x04d4812844d1ba4afb5baa02b7c8e052fd888cf4c0478b9761bc869d08127e29ebf95a2531d05b8fbf376208386347b6b383dbaa0de46bbddf0ed17089527e824fa2331bd3c04006f5ff19f4496b886528af6ed1a6313b44b196e188a2124bf8221b5ded0a2bf550d0453f21187bb163853286b1569019517f987762e44ff8b805bdd464b04e02524a116f62ef9860b76d2aad53ee67da081ec1d5826452c2773672e18d7c40362f979e1788482f39ed3459637505a6fa0cf2b352892ba24665eac2be6f03afb6dab171bb71ab162cbd204cb13fc028d015a3c08434e07d49784366eb91b08df49f6bac7c83d99421dd3eaa8d099920dd578a6bf8dc8f84b297728a64d67d222cd536da25d1468b2b419866885cbfd49dbeda55aea9ebc3f6533d7280635e7e8ae8474ad2e8be239ee0ee08bfe29a640df07f63a32048350d228a53cd12157222a1fad5b49a2b75db7a021a8f3e1422",
+      "compute": {
+        "allowNetworkAccess": false,
+        "allowRawAlgorithm": false,
+        "publisherTrustedAlgorithmPublishers": [
+          "0xD999bAaE98AC5246568FD726be8832c49626867D"
+        ],
+        "publisherTrustedAlgorithms": [
+          {
+            "did": "did:op:80d669824854177e42fe4e23f42ba5f7e9823d8ac6f9f224fec157e25d5f04da",
+            "containerSectionChecksum": "70f77f0ed73b681ad9fc9a7911559632bbfcfa8f8d4783c0ab03f24ab09217d8",
+            "filesChecksum": "e53582e19cb54a8ce0613a1c3c33aeef9283bfa8c292a1ab39c73cd9b481bfdd"
+          },
+          {
+            "did": "did:op:ffa62c4e6306d24c68d3a0f0825804045abb91f27a12f5452403cf6b804ca519",
+            "containerSectionChecksum": "731fe7451c37c734f06e100f302ebfd873949fbab89f3beac1197b8e1a0c93b8",
+            "filesChecksum": "69475491ae60d4ab7e64c7c54b15ce910e7c7941b6e09c4118746cc9b03128f0"
+          }
+        ]
+      }
+    }
+  ],
+  "credentials": {
+    "allow": [],
+    "deny": []
+  },
+  "event": {
+    "tx": "0x95816633cd9f75ff2d63c98e4c6758613a659de3248110b29842c0170ea835be",
+    "block": 4912066,
+    "from": "0xDf7a37EA1f42588Ea219Ec19328757F67BaBCeCD",
+    "contract": "0xBDF9f2D64D4d77FD65942FD9012997fCCaC29947",
+    "datetime": "2025-04-26T21:21:35"
+  },
+  "nft": {
+    "address": "0xBDF9f2D64D4d77FD65942FD9012997fCCaC29947",
+    "name": "CEP-2021-S1-ENV",
+    "symbol": "CEP-ENV",
+    "state": 0,
+    "tokenURI": "https://www.elcep.net/site-logo/logo_cep.png",
+    "owner": "0xDf7a37EA1f42588Ea219Ec19328757F67BaBCeCD",
+    "created": "2025-03-08T15:48:02"
+  },
+  "datatokens": [
+    {
+      "address": "0xa676c1918CC6a3D8B97Cb0Da7fe2eba3AeFd2373",
+      "name": "CEP-2021-S1-ENV",
+      "symbol": "CEP-ENV",
+      "serviceId": "ff3f08b4b84f664a4db7975ffc6e28eb72718232073c055ab4b60b78cb7bfb06"
+    }
+  ],
+  "stats": {
+    "allocated": 0,
+    "orders": 1,
+    "price": {
+      "value": 4.5,
+      "tokenAddress": "0xdd0a0278f6BAF167999ccd8Aa6C11A9e2fA37F0a",
+      "tokenSymbol": "EUROe"
+    }
+  },
+  "purgatory": {
+    "state": false
+  },
+  "accessDetails": {
+    "templateId": 2,
+    "publisherMarketOrderFee": "0",
+    "type": "fixed",
+    "addressOrId": "0x57fd1203764bf497a58ef67373e57ef5ab9fa8f6f155f2790a3893a5e173d564",
+    "price": "4.5",
+    "isPurchasable": true,
+    "baseToken": {
+      "address": "0xdd0a0278f6baf167999ccd8aa6c11a9e2fa37f0a",
+      "name": "EUROe Stablecoin",
+      "symbol": "EUROe",
+      "decimals": 6
+    },
+    "datatoken": {
+      "address": "0xa676c1918cc6a3d8b97cb0da7fe2eba3aefd2373",
+      "name": "CEP-2021-S1-ENV",
+      "symbol": "CEP-ENV"
+    }
+  }
+}
