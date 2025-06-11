@@ -18,6 +18,9 @@ from oceanprotocol_job_details.ocean import JobDetails
 logger = getLogger(__name__)
 
 class Algorithm:
+
+    """ Generates a sustainability report based on CO2 and NH3 data"""
+
     def __init__(self, job_details: JobDetails):
         self._job_details = job_details
         self.results: Optional[_ResultType] = None
@@ -25,7 +28,7 @@ class Algorithm:
 
         self.thresholds = {
             "CO2": {"recommended": "3000 ppm", "alert": "> 6000 ppm"},
-            "NH3": {"recommended": "10 ppm", "alert": "> 20 ppm"}
+            "NH3": {"recommended": "20 ppm", "alert": "> 40 ppm"}
         }
 
     def _validate_input(self) -> None:
