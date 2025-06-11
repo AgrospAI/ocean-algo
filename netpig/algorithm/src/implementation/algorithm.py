@@ -51,9 +51,6 @@ class Algorithm:
             self.results = None
             raise
         return self
-    
-        # self.results = "ALGO RESULTS"
-        # return self
 
     def save_result(self, output_path: Path) -> None:
         """Generate the PDF report with all required sections and graphics."""
@@ -75,6 +72,7 @@ class Algorithm:
         self._add_distribution_section(c, left_margin, width, height, self.df, img_width, img_height)
         current_y = self._add_summary_section(c, left_margin, top_margin, width, self.df)
         current_y = self._add_diagnosis(c, self.df, current_y, width, left_margin)
+        self._add_reference_after_diagnosis(c, left_margin, width, current_y)
         self._add_footer(c, width, right_margin)
         c.save()
 
@@ -110,7 +108,7 @@ class Algorithm:
         c.drawString(left_margin, current_y, "Defined Limits for Certification")
         current_y -= 10
         style_small = ParagraphStyle(name="SmallJustified", fontName="Helvetica", fontSize=9, leading=12, alignment=TA_JUSTIFY)
-        cert_text = ("To obtain the certification, the farm must maintain pollutant levels within the recommended limits and must never exceed the alert values.")
+        cert_text = ("To obtain the certification, the farm must maintain pollutant levels within the recommended limits and must never exceed the alert values [1].")
         paragraph_cert = Paragraph(cert_text, style_small)
         frame_cert = Frame(left_margin, current_y - 40, frame_width, 40, showBoundary=0)
         frame_cert.addFromList([paragraph_cert], c)
@@ -166,6 +164,14 @@ class Algorithm:
         c.setFillColor(colors.black)
         c.setFont("Helvetica", 9)
         c.drawCentredString(width / 2, 30, "2")
+
+    def _add_reference_after_diagnosis(self, c, left_margin, width, current_y):
+        style_ref = ParagraphStyle(name="Reference", fontName="Helvetica-Oblique", fontSize=8, leading=10, alignment=TA_JUSTIFY)
+        ref_text = ("[1] Rotecna (2023). Ammonia and CO2 limits in pig farming: recommendations for optimal welfare. https://www.rotecna.com/en/blog/ammonia-and-co2-levels-in-pig-farming/")
+        paragraph_ref = Paragraph(ref_text, style_ref)
+        y_ref = current_y - 20 if current_y - 20 > 50 else 60
+        paragraph_ref.wrapOn(c, width - 2 * left_margin, 30)
+        paragraph_ref.drawOn(c, left_margin, y_ref)
 
     def _add_thresholds_section(self, c, thresholds, current_y, width, left_margin):
         c.setFont("Helvetica-Bold", 11)
