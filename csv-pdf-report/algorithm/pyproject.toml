@@ -10,6 +10,12 @@ dependencies = [
     "pytest>=8.3.4,<9",
     "oceanprotocol-job-details==0.1.1",
     "orjson>=3.10.15,<4",
+    "pandas>=2.3.0",
+    "numpy>=2.2.6",
+    "matplotlib>=3.10.3",
+    "seaborn>=0.13.2",
+    "reportlab>=4.4.1",
+    "datetime>=5.5",
 ]
 
 [tool.uv]
