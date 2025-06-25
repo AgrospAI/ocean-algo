@@ -1,7 +1,9 @@
-.git/
-__pycache__/
-**/__pycache__/
-*.py[cod]
-*$py.class
-.venv/
-**/.venv/
+.git
+.gitignore
+.vscode
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
