@@ -1,7 +1,6 @@
 from logging import getLogger
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
-from oceanprotocol_job_details.ocean import JobDetails
 
 import pandas as pd
 import numpy as np
@@ -24,7 +23,6 @@ from reportlab.lib.units import cm
 
 from datetime import datetime
 
-
 # ─── Constants ─────────────────────────────────────────────────────────────────
 ANOMALY_MULTIPLIER: float = 4.0     # |Δvalue| > 4×std → anomaly
 FORECAST_ROLL_WINDOW: int = 6       # 6-hour rolling average for constant forecast
@@ -34,28 +32,12 @@ DEFAULT_HUM_THRESHOLD: Tuple[float, float] = (30.0, 90.0)
 MIN_POINTS_FOR_FORECAST: int = 24   # need at least 24 hourly points to run forecast
 # ────────────────────────────────────────────────────────────────────────────────
 
-logger = getLogger(__name__)
-_ResultType = Any
+from oceanprotocol_job_details.ocean import JobDetails
+from implementation.data import InputParameters
 
+logger = getLogger(__name__)
 
 class Algorithm:
-    def __init__(self, job_details: JobDetails):
-        self._job_details = job_details
-        self.results: Optional[_ResultType] = None
-
-    def _validate_input(self) -> None:
-        if not self._job_details.files:
-            logger.warning("No files found")
-            raise ValueError("No files found")
-
-    def run(self) -> "Algorithm":
-        raise NotImplementedError()
-
-    def save_result(self, path: Path) -> None:
-        raise NotImplementedError()
-
-
-class GenericCsvPdfReportAlgorithm(Algorithm):
     """
     Examines any CSV with:
       1. At least one column convertible to datetime,
@@ -75,46 +57,56 @@ class GenericCsvPdfReportAlgorithm(Algorithm):
       - Appendix: Raw Data Preview (first 10 rows)
     """
 
-    def run(self) -> "GenericCsvPdfReportAlgorithm":
+    def __init__(
+        self,
+        job_details: Optional[JobDetails[InputParameters]] = None,
+    ):
+        # You must supply exactly one of these:
+        self._job_details = job_details
+        self.results: Optional[str] = None
+
+    def _validate_input(self):
+        if self._job_details:
+            if not getattr(self._job_details, "files", None):
+                raise ValueError("Ocean JobDetails contains no input files.")
+
+    def run(self, temp_path: Path) -> "Algorithm":
         self._validate_input()
 
-        # 1) Paths
-        csv_path = Path(self._job_details.files[0])
-        job_dir = csv_path.parent
-        output_dir = job_dir.parent / "report_outputs"
-        output_dir.mkdir(exist_ok=True, parents=True)
+        # 1) Determine CSV path
+        csv_path = self._job_details.files.files[0].input_files[0]
 
-        # 1a) Optional logo
-        logo_path = job_dir / "logo.png"
-        if not logo_path.is_file():
-            logo_path = None
+        if not csv_path.is_file():
+            raise FileNotFoundError(f"CSV not found: {csv_path}")
+        
+        # 3) Optional logo alongside CSV
+        logo = csv_path.parent / "logo.png"
+        logo_path = logo if logo.is_file() else None
 
-        report_pdf = output_dir / "data_report.pdf"
-
-        # 2) Load & parse CSV
+        # 4) Load & parse CSV
         df = pd.read_csv(csv_path, dtype=str)
         datetime_col = self._find_datetime_column(df)
         df[datetime_col] = pd.to_datetime(df[datetime_col], infer_datetime_format=True)
         df = df.sort_values(datetime_col).reset_index(drop=True)
 
-        # 2a) Numeric columns
+        # 4a) Numeric columns
         numeric_cols = self._find_numeric_columns(df, datetime_col)
         if not numeric_cols:
             raise ValueError("No numeric columns found in CSV.")
 
-        # 3) Metadata
+        # 5) Metadata
         date_min = df[datetime_col].min().strftime("%Y-%m-%d %H:%M")
         date_max = df[datetime_col].max().strftime("%Y-%m-%d %H:%M")
 
-        # 4) Data Quality → time diffs
+        # 6) Data Quality → time diffs
         df["__time_diff__"] = df[datetime_col].diff().dt.total_seconds().fillna(0)
         median_interval = df["__time_diff__"].median()
         missing_gaps = df[df["__time_diff__"] > 1.5 * median_interval][[datetime_col, "__time_diff__"]]
 
-        # 5) Summary statistics
+        # 7) Summary statistics
         summary_stats = df[numeric_cols].describe()
 
-        # 6) Daily aggregates (only used if you decide to include them later)
+        # 8) Daily aggregates (only used if you decide to include them later)
         daily_agg = (
             df.set_index(datetime_col).resample("D")[numeric_cols].agg(["min", "mean", "max"])
         )
@@ -122,20 +114,19 @@ class GenericCsvPdfReportAlgorithm(Algorithm):
         daily_agg = daily_agg.reset_index()
         daily_agg["date_str"] = daily_agg[datetime_col].dt.strftime("%Y-%m-%d")
 
-        # 7) Generate all plots
+        # 9) Generate all plots
         win = max(5, min(int(len(df) * 0.1), 50))
-        hist_paths = self._generate_histograms(df, numeric_cols, output_dir)
-        ts_paths = self._generate_time_series_plots(df, numeric_cols, datetime_col, win, output_dir)
-        scatter_matrix_path, corr_matrix_path = self._generate_correlation_plots(df, numeric_cols, output_dir)
-        diurnal_paths = self._generate_diurnal_plots(df, numeric_cols, datetime_col, output_dir)
-        forecast_paths, forecast_summaries = self._generate_forecasts(df, numeric_cols, datetime_col, output_dir)
+        hist_paths = self._generate_histograms(df, numeric_cols, temp_path)
+        ts_paths = self._generate_time_series_plots(df, numeric_cols, datetime_col, win, temp_path)
+        scatter_matrix_path, corr_matrix_path = self._generate_correlation_plots(df, numeric_cols, temp_path)
+        diurnal_paths = self._generate_diurnal_plots(df, numeric_cols, datetime_col, temp_path)
+        forecast_paths, forecast_summaries = self._generate_forecasts(df, numeric_cols, datetime_col, temp_path)
         anomalies_info = self._detect_anomalies(df, numeric_cols, datetime_col)
-
-        # 8) Build PDF
+        
         self._build_pdf(
             csv_path=csv_path,
             logo_path=logo_path,
-            report_pdf=report_pdf,
+            report_pdf="temp_report.pdf",
             date_min=date_min,
             date_max=date_max,
             numeric_cols=numeric_cols,
@@ -153,19 +144,24 @@ class GenericCsvPdfReportAlgorithm(Algorithm):
             anomalies_info=anomalies_info,
             df=df,
             datetime_col=datetime_col,
+            output_dir=temp_path,
         )
 
-        self.results = str(report_pdf)
-        logger.info(f"PDF report written to {report_pdf}")
+        self.results = str(temp_path / "temp_report.pdf")
+        logger.info(f"PDF report written to {self.results}")
         return self
 
     def save_result(self, path: Path) -> None:
+        """Save the PDF report directly to the specified path."""
         if self.results is None:
             logger.error("No results to save.")
             raise ValueError("No results to save.")
+        
+        path.parent.mkdir(parents=True, exist_ok=True)
+        
+        # Move the file directly to the final destination
         import shutil
-
-        shutil.copy(self.results, path)
+        shutil.move(self.results, path)
         logger.info(f"Saved PDF report to {path}")
 
     # ────────────── Helper Methods ─────────────────────────────────────────────
@@ -315,7 +311,11 @@ class GenericCsvPdfReportAlgorithm(Algorithm):
                 hourly_avg = df.groupby("__hour__")[col].mean().reset_index()
                 fig, ax = plt.subplots(figsize=(6, 2.8))
                 ax.plot(hourly_avg["__hour__"], hourly_avg[col], marker="o", color="tab:green")
-                ax.set_xticks(DIURNAL_XTICKS)
+                ax.set_xticks(range(
+                    self._job_details.input_parameters.diurnal_xticks.min,
+                    self._job_details.input_parameters.diurnal_xticks.max,
+                    self._job_details.input_parameters.diurnal_xticks.step
+                ))
                 ax.set_xlabel("Hour of Day")
                 ax.set_ylabel(f"Avg {col}")
                 ax.set_title(f"Diurnal Pattern of {col}")
@@ -358,7 +358,7 @@ class GenericCsvPdfReportAlgorithm(Algorithm):
                     .mean()
                     .ffill()
                 )
-                if df_hour.dropna().shape[0] < MIN_POINTS_FOR_FORECAST:
+                if df_hour.dropna().shape[0] < self._job_details.input_parameters.min_points_for_forecast:
                     logger.info(f"Skipping forecast for '{col}'—not enough data points.")
                     continue
 
@@ -370,7 +370,7 @@ class GenericCsvPdfReportAlgorithm(Algorithm):
                 lin_forecast = m * future_ord + b
 
                 # 6h rolling avg
-                roll_avg = df_hour.rolling(window=FORECAST_ROLL_WINDOW, min_periods=1).mean().iloc[-1]
+                roll_avg = df_hour.rolling(window=self._job_details.input_parameters.forecast_roll_window, min_periods=1).mean().iloc[-1]
                 const_forecast = np.full(shape=len(future_times), fill_value=roll_avg)
 
                 # Plot
@@ -436,7 +436,7 @@ class GenericCsvPdfReportAlgorithm(Algorithm):
         for col in numeric_cols:
             col_std = df[col].std()
             df[f"__delta_{col}__"] = df[col].diff().abs().fillna(0)
-            threshold = ANOMALY_MULTIPLIER * col_std
+            threshold = self._job_details.input_parameters.anomaly_multiplier * col_std
             jumps = df[df[f"__delta_{col}__"] > threshold][[datetime_col, col, f"__delta_{col}__"]]
             anomalies_info[col] = jumps.to_dict(orient="records")
         return anomalies_info
@@ -782,7 +782,7 @@ class GenericCsvPdfReportAlgorithm(Algorithm):
                 story.append(Paragraph(f"<b><font size=13 color='#1D3557'>Sudden Jumps in {col}</font></b>", styles["SubHeader"]))
                 story.append(
                     Paragraph(
-                        f"Values where |Δ{col}| > {ANOMALY_MULTIPLIER:.0f}× std (≈ {df[col].std():.2f})",
+                        f"Values where |Δ{col}| > {self._job_details.input_parameters.anomaly_multiplier:.0f}× std (≈ {df[col].std():.2f})",
                         styles["BodyTextSmall"],
                     )
                 )
@@ -833,9 +833,11 @@ class GenericCsvPdfReportAlgorithm(Algorithm):
 
             lower_warn, upper_warn = (None, None)
             if "temp" in col.lower():
-                lower_warn, upper_warn = DEFAULT_TEMP_THRESHOLD
+                lower_warn = self._job_details.input_parameters.default_temp_threshold.min
+                upper_warn = self._job_details.input_parameters.default_temp_threshold.max
             elif "hum" in col.lower():
-                lower_warn, upper_warn = DEFAULT_HUM_THRESHOLD
+                lower_warn = self._job_details.input_parameters.default_hum_threshold.min
+                upper_warn = self._job_details.input_parameters.default_hum_threshold.max
 
             if lower_warn is not None and upper_warn is not None:
                 if col_min < lower_warn or col_max > upper_warn:
@@ -899,7 +901,7 @@ class GenericCsvPdfReportAlgorithm(Algorithm):
         self,
         csv_path: Path,
         logo_path: Optional[Path],
-        report_pdf: Path,
+        report_pdf: str,
         date_min: str,
         date_max: str,
         numeric_cols: List[str],
@@ -917,6 +919,7 @@ class GenericCsvPdfReportAlgorithm(Algorithm):
         anomalies_info: Dict[str, List[dict[str, Any]]],
         df: pd.DataFrame,
         datetime_col: str,
+        output_dir: Path,
     ) -> None:
         """Assemble all sections into a multi-page PDF via ReportLab."""
         styles = self._get_report_styles()
@@ -949,7 +952,7 @@ class GenericCsvPdfReportAlgorithm(Algorithm):
 
         # Build PDF with header/footer
         doc = SimpleDocTemplate(
-            str(report_pdf),
+            str(output_dir / report_pdf),
             pagesize=A4,
             rightMargin=1.5 * cm,
             leftMargin=1.5 * cm,
