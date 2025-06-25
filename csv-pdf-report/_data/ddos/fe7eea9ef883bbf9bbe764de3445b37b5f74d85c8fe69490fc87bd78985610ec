@@ -1,0 +1,104 @@
+{
+    "id": "did:op:fe7eea9ef883bbf9bbe764de3445b37b5f74d85c8fe69490fc87bd78985610ec",
+    "@context": [
+      "https://w3id.org/did/v1"
+    ],
+    "nftAddress": "0x068Bb05d968669F169E6Ea5cB244F14851C49274",
+    "chainId": 32457,
+    "version": "4.1.0",
+    "metadata": {
+      "type": "dataset",
+      "name": "Temperature and humidity sensor dataset",
+      "author": "Universidad de Córdoba (UCO)",
+      "description": "Temperature and humidity sensor dataset produced by the [FIWARE Digital Transformation Classroom](https://www.uco.es/atdfiware/), Universidad de Córdoba, Spain. The data is updated every 15 minutes and is available in CSV format. The dataset contains the following columns:\n\n* **entity_id**: Unique identifier for the entity (e.g., urn:ngsi-ld:atd.id1).\n* **entity_ts**: Timestamp of the data point in ISO 8601 format (e.g., 2025-04-27T15:37:51.856Z).\n* **temperature**: Temperature value in degrees Celsius (e.g., 13).\n* **humidity**: Humidity value in percentage (e.g., 79.5).\n\nAnd example of the data is as follows:\n\n```csv\n\"entity_id\",\"entity_ts\",\"temperature\",\"humidity\"\n\"urn:ngsi-ld:atd.id1\",\"2025-04-27T15:37:51.856Z\",13,79.5\n```\n",
+      "tags": [
+        "sensor",
+        "humidity",
+        "temperature",
+        "fiware",
+        "uco",
+        "agrospai"
+      ],
+      "license": "unlicensed",
+      "created": "2025-04-29T14:08:30Z",
+      "updated": "2025-04-29T20:42:45Z",
+      "additionalInformation": {
+        "gaiaXInformation": {
+          "serviceSD": {
+            "url": "https://compliance.agrospai.udl.cat/.well-known/UCO/UCO-T-H_testnet.vp.json",
+            "isVerified": true
+          }
+        }
+      }
+    },
+    "services": [
+      {
+        "id": "81e6904d43e2653bfa2227cbb4fcb83f99ef9e17ce156527b650aa27c1d7173a",
+        "datatokenAddress": "0xe5601470FC795ec15e0198F79D21D43E55A74dc8",
+        "type": "compute",
+        "serviceEndpoint": "https://provider.agrospai.udl.cat",
+        "timeout": 0,
+        "files": "0x04527d169b0decf65c3194837deefc183ff0e3972f49d396435ec700d320200a71fa1917eea74759778e3de13a9c7894c84f06fc3060f2dd72fff378860807d0ac89bbf654d105ae38ad98bcd20c196b620500eed1f113dc2a5511b13746d5b6e66e2431c412fca62495b5ab85e67c182c1c8de5467237cce2cefa39ff4ee39e26b767ce8d2c9db1b0cbf3686942e3c7e1a70679da59550f73f7233ea8b2d0cf791d919aecc52504e400f0ef1e0e770f7a2f9933c4e7751d796fa047defe8bacaafd36bf865ee68c994354778a4409f118158fcf06ee62f856f3eb5cac9079f0d5251cb744c728517ffbf2a29549f1fd4e49e9d5d406440cc539b9db7bffbc230cc0ec66aa270d5cc49bb060d2b1e512d256a18f4b5e0c48c7ca14a54c31186124504e85028f0b926cddf258266acfc2ac113b979a462b8993d183d833269e3eaa3e4b92704495655b27ddb88f008231923ad404b039795281a785e6f1b45fb941e4",
+        "compute": {
+          "allowNetworkAccess": false,
+          "allowRawAlgorithm": false,
+          "publisherTrustedAlgorithmPublishers": [
+            "0x62078F05Eb4450272D7E492F3660835826906822",
+            "0xD999bAaE98AC5246568FD726be8832c49626867D"
+          ],
+          "publisherTrustedAlgorithms": []
+        }
+      }
+    ],
+    "credentials": {
+      "allow": [],
+      "deny": []
+    },
+    "event": {
+      "tx": "0x90c8a7658d34280533a33864bec4fe79dcda8f39a9c09f33db805e2212f450e6",
+      "block": 4956298,
+      "from": "0x9A5F6f589171d55216cb1278Faf2701cfC4ab1F2",
+      "contract": "0x068Bb05d968669F169E6Ea5cB244F14851C49274",
+      "datetime": "2025-04-29T20:42:50"
+    },
+    "nft": {
+      "address": "0x068Bb05d968669F169E6Ea5cB244F14851C49274",
+      "name": "UCO-TEMP-HUMID",
+      "symbol": "UCO-T-H",
+      "state": 0,
+      "tokenURI": "https://www.uco.es/atdfiware/images/logo-iron-atdfiware.png",
+      "owner": "0x9A5F6f589171d55216cb1278Faf2701cfC4ab1F2",
+      "created": "2025-04-29T14:08:34"
+    },
+    "datatokens": [
+      {
+        "address": "0xe5601470FC795ec15e0198F79D21D43E55A74dc8",
+        "name": "UCO-TEMP-HUMID",
+        "symbol": "UCO-T-H",
+        "serviceId": "81e6904d43e2653bfa2227cbb4fcb83f99ef9e17ce156527b650aa27c1d7173a"
+      }
+    ],
+    "stats": {
+      "allocated": 0,
+      "orders": 2,
+      "price": {
+        "value": 0
+      }
+    },
+    "purgatory": {
+      "state": false
+    },
+    "accessDetails": {
+      "templateId": 2,
+      "publisherMarketOrderFee": "0",
+      "type": "free",
+      "addressOrId": "0xe5601470fc795ec15e0198f79d21d43e55a74dc8",
+      "price": "0",
+      "isPurchasable": true,
+      "datatoken": {
+        "address": "0xe5601470fc795ec15e0198f79d21d43e55a74dc8",
+        "name": "UCO-TEMP-HUMID",
+        "symbol": "UCO-T-H"
+      }
+    }
+  }

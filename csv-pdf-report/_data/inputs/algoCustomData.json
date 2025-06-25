@@ -1,20 +1,18 @@
 {
-    "dataset": {
-        "separator": ",",
-        "target_column": "species",
-        "split": 0.7,
-        "random_state": 42,
-        "stratify": true
+    "anomaly_multiplier": 4.0,
+    "forecast_roll_window": 6,
+    "diurnal_xticks": {
+        "min": 0,
+        "max": 24,
+        "step": 3
     },
-    "model": {
-        "name": "KNeighborsClassifier",
-        "params": {
-            "metric": "l2",
-            "n_jobs": -1
-        },
-        "metrics": [
-            "balanced_accuracy",
-            "accuracy"
-        ]
-    }
+    "default_temp_threshold": {
+        "min": 5.0,
+        "max": 30.0
+    },
+    "default_hum_threshold": {
+        "min": 30.0,
+        "max": 90.0
+    },
+    "min_points_for_forecast": 24
 }
