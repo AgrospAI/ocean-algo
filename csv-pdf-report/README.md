@@ -94,15 +94,19 @@ timestamp,temperature,humidity
 ```
 
 ## Configuration Parameters
+The algorithm includes several configurable parameters, which can be set in the `algoCustomData.json` file located in the `_data/inputs/` directory:
 
-The algorithm includes several configurable parameters:
-```python
-ANOMALY_MULTIPLIER = 4.0        # Threshold for anomaly detection
-FORECAST_ROLL_WINDOW = 6        # Window size for rolling average forecast
-DEFAULT_TEMP_THRESHOLD = (5.0, 30.0)    # Temperature range thresholds
-DEFAULT_HUM_THRESHOLD = (30.0, 90.0)    # Humidity range thresholds
-MIN_POINTS_FOR_FORECAST = 24    # Minimum points needed for forecasting
+```json
+{
+  "anomaly_multiplier": 4.0,
+  "forecast_roll_window": 6,
+  "default_temp_threshold": [5.0, 30.0],
+  "default_hum_threshold": [30.0, 90.0],
+  "min_points_for_forecast": 24
+}
 ```
+
+To customize these parameters, edit the values in the JSON file as needed.
 
 ## Usage
 
@@ -129,7 +133,7 @@ docker run -v /path/to/data:/data csv-pdf-report
 ## Output
 
 The algorithm generates:
-1. A comprehensive PDF report in the `report_outputs` directory
+1. A comprehensive PDF report in the `temp_report.pdf` directory
 2. Individual visualization files for each analysis
 3. Statistical summaries and anomaly reports
 
