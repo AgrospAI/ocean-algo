@@ -64,39 +64,39 @@ class Algorithm:
     def run(self, temp_path: Path) -> "Algorithm":
         self._validate_input()
 
-        # 1) Determine CSV path
+        # Determine CSV path
         csv_path = self._job_details.files.files[0].input_files[0]
         if not csv_path.is_file():
             raise FileNotFoundError(f"CSV not found: {csv_path}")
         
-        # 3) Optional logo alongside CSV
+        # Optional logo alongside CSV
         logo = csv_path.parent / "logo.png"
         logo_path = logo if logo.is_file() else None
 
-        # 4) Load & parse CSV
+        # Load & parse CSV
         df = pd.read_csv(csv_path, dtype=str)
         datetime_col = self._find_datetime_column(df)
         df[datetime_col] = pd.to_datetime(df[datetime_col])
         df = df.sort_values(datetime_col).reset_index(drop=True)
 
-        # 4a) Numeric columns
+        # Numeric columns
         numeric_cols = self._find_numeric_columns(df, datetime_col)
         if not numeric_cols:
             raise ValueError("No numeric columns found in CSV.")
 
-        # 5) Metadata
+        # Metadata
         date_min = df[datetime_col].min().strftime("%Y-%m-%d %H:%M")
         date_max = df[datetime_col].max().strftime("%Y-%m-%d %H:%M")
 
-        # 6) Data Quality → time diffs
+        # Data Quality → time diffs
         df["__time_diff__"] = df[datetime_col].diff().dt.total_seconds().fillna(0)
         median_interval = df["__time_diff__"].median()
         missing_gaps = df[df["__time_diff__"] > 1.5 * median_interval][[datetime_col, "__time_diff__"]]
 
-        # 7) Summary statistics
+        # Summary statistics
         summary_stats = df[numeric_cols].describe()
 
-        # 8) Daily aggregates (only used if you decide to include them later)
+        # Daily aggregates (only used if you decide to include them later)
         daily_agg = (
             df.set_index(datetime_col).resample("D")[numeric_cols].agg(["min", "mean", "max"])
         )
@@ -104,7 +104,7 @@ class Algorithm:
         daily_agg = daily_agg.reset_index()
         daily_agg["date_str"] = daily_agg[datetime_col].dt.strftime("%Y-%m-%d")
 
-        # 9) Generate all plots
+        # Generate all plots
         win = max(5, min(int(len(df) * 0.1), 50))
         hist_paths = self._generate_histograms(df, numeric_cols, temp_path)
         ts_paths = self._generate_time_series_plots(df, numeric_cols, datetime_col, win, temp_path)
@@ -142,17 +142,21 @@ class Algorithm:
         return self
 
     def save_result(self, path: Path) -> None:
-        """Save the PDF report directly to the specified path."""
+        """Save the PDF report directly to the specified path.
+        If a file already exists at the destination, it will be overwritten.
+        The temporary file is deleted after copying.
+        """
         if self.results is None:
             logger.error("No results to save.")
             raise ValueError("No results to save.")
         
+        # Ensure the parent directory exists
         path.parent.mkdir(parents=True, exist_ok=True)
         
-        # Copy the file directly to the final destination
+        # Overwrite the destination file if it exists, then copy the result
         import shutil
-        shutil.copy(self.results, path)
-        os.remove(self.results)  # Clean up the temporary file
+        shutil.copy(self.results, path)  # Copy the generated PDF to the final destination
+        os.remove(self.results)  # Remove the temporary file to clean up
         logger.info(f"Saved PDF report to {path}")
 
     # ────────────── Helper Methods ─────────────────────────────────────────────
