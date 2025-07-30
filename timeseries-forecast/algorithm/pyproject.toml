@@ -3,21 +3,18 @@ name = "algorithm"
 version = "0.1.0"
 description = ""
 authors = [{ name = "AgrospAI", email = "<your-name>@udl.cat" }]
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 readme = "README.md"
 license = { file = "LICENSE" }
 dependencies = [
     "pytest>=8.3.4,<9",
-    "oceanprotocol-job-details==0.1.0",
     "scikit-learn>=1.6.1,<2",
     "pandas>=2.2.3,<3",
     "cloudpickle>=3.1.1,<4",
     "seaborn>=0.13.2",
     "orjson>=3.10.16",
+    "oceanprotocol-job-details>=0.1.2",
 ]
 
 [tool.uv]
 package = false
-
-[mypy]
-ignore-missing-imports = true

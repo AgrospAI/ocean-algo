@@ -117,7 +117,7 @@ class Algorithm:
     def _df(self) -> pd.DataFrame:
         # Right now we only support passing one DID with one file.
         try:
-            filepath = self._job_details.files.files[0].input_files[0]
+            filepath = self._job_details.files[0].input_files[0]
         except IndexError:
             logger.error("No input files found")
             raise ValueError("No input files found")
