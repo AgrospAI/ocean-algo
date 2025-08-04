@@ -104,15 +104,16 @@ class Algorithm:
         with zipfile.ZipFile(zip_file_full_path, 'r') as zipf:
             zipf.extractall(ALGORITHM_DATA_DIR)
 
-        all_files = os.listdir(ALGORITHM_DATA_DIR)
+        config_files = os.listdir(ALGORITHM_DATA_DIR)
+        annotations_file = next(file for file in config_files if file.endswith('.json'))
+        print(f'Annotations file found: {annotations_file}')
 
-        annotations_file = next(file for file in all_files if file.endswith('.json'))
-        images = list(filter(lambda file: file != annotations_file, all_files))
+        images = list(os.listdir(ALGORITHM_DATA_DIR + '/images'))
 
         TEST_SIZE = len(images)
 
         for image in images:
-            image_to_send = os.path.join(ALGORITHM_DATA_DIR, image)
+            image_to_send = os.path.join(ALGORITHM_DATA_DIR + '/images', image)
 
             new_image_to_send = os.path.splitext(image_to_send)[0] + '.png'
             
