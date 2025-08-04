@@ -148,6 +148,7 @@ class Algorithm:
                                     masks.append(mask_file_path)
                         else:
                             logger.error(f'No predictions were found in {predict_path}')
+                    subproc.terminate()
                     break
                 else:
                     sleep(5)
