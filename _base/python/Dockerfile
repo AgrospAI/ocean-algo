@@ -2,14 +2,15 @@ FROM python:3.10-alpine
 
 WORKDIR /algorithm
 
-# Copy the algorithm code (with the same depth)
+# Install the dependencies from the requirements.txt file
+COPY algorithm/requirements.txt /algorithm/requirements.txt
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir -r /algorithm/requirements.txt
+
+# Copy the algorithm code (with the same depth), and the virtual environment from the previous image
 COPY algorithm/src /algorithm/src
 COPY algorithm/tests /algorithm/tests
-COPY algorithm/requirements.txt /algorithm/requirements.txt
 COPY entrypoint.sh /algorithm/entrypoint.sh
-
-# Install the dependencies from the requirements.txt file
-RUN pip install --no-cache-dir -r /algorithm/requirements.txt
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
