@@ -1,0 +1,3 @@
+numpy
+pathlib
+oceanprotocol-job-details==0.0.12
