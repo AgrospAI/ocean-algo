@@ -67,7 +67,7 @@ class AppleSegmentationDataset(Dataset):
 
     @staticmethod
     def load_annotations(type: str):
-        path = f'../../02-annotated_data_fuji/gt_json/train/via_region_data_{type}.json'
+        path = f'../02-annotated_data_fuji/gt_json/train/via_region_data_{type}.json'
             
         with open(path, 'r') as annotations:
             return json.load(annotations)

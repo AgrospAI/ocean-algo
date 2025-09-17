@@ -1,8 +1,8 @@
 [project]
-name = "algorithm"
+name = "eda"
 version = "0.1.0"
 description = ""
-authors = [{ name = "AgrospAI", email = "<your-name>@udl.cat" }]
+authors = [{ name = "AgrospAI", email = "agrospai@udl.cat" }]
 requires-python = ">=3.12"
 readme = "README.md"
 license = { file = "LICENSE" }

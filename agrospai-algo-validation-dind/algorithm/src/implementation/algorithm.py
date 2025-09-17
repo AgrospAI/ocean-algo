@@ -2,24 +2,23 @@ import os
 import re
 import cv2
 import json
-import shutil
 import zipfile
 import subprocess
 import numpy as np
-from time import sleep
 from pathlib import Path
-from pandas import DataFrame
 from logging import getLogger
 from typing import Tuple, Any, Optional
 from implementation.metrics import IoU, dice_coeff, precision_recall_f1, accuracy
 from oceanprotocol_job_details.dataclasses.job_details import JobDetails
 from oceanprotocol_job_details.dataclasses.constants import Paths
 
+# Dataset data
+SOURCE_VOLUME    = '/workspace'
+RECOVER_VOLUME   = '/predictions/runs/segment'
 
-IMAGES_DIR             = '/workspace'
-PREDICTIONS_DIR        = f'{IMAGES_DIR}/runs/segment'
-ALGORITHM_DATA_DIR     = './algorithm_data'
-
+# Algorithm data
+CONTAINER_NAME     = 'agrospai_algo_validation'
+MODEL              = 'Fine Tuned DeepLabV3'
 
 logger = getLogger(__name__)
 
@@ -27,6 +26,7 @@ logger = getLogger(__name__)
 class Algorithm:
     def __init__(self, job_details: JobDetails):
         self._job_details = job_details
+        self.dataset_data: str = None
         self.gt_masks = None
         self.pred_masks = None
         self.metrics = None
@@ -45,7 +45,7 @@ class Algorithm:
 
 
     def load_annotations(self, annotations_file: str):
-        with open(f'{ALGORITHM_DATA_DIR}/{annotations_file}', 'r') as annotations:
+        with open(f'{SOURCE_VOLUME}/{annotations_file}', 'r') as annotations:
             return json.load(annotations)
 
 
@@ -55,18 +55,29 @@ class Algorithm:
             cv2.fillPoly(mask, [points], 1)
 
 
-    def add_regions_to_mask(self, annotations, image_size: Tuple[int, int], match: str):
-
+    def add_regions_to_mask_scaled(self, annotations, image_size: Tuple[int, int], 
+                                match: str, scale_x: float, scale_y: float):
+        
         mask = np.zeros(image_size, dtype=np.uint8)
-    
+        
+        if not match or match not in annotations:
+            logger.info(f'No matching annotation found for key: {match}')
+            return mask
+
         apple_regions = max(map(int, list(annotations[match]['regions'].keys())))
 
         for region in range(apple_regions + 1):
             str_region = str(region)
 
             if str_region in annotations[match]['regions']:
-                x_coords = np.array(annotations[match]['regions'][str_region]['shape_attributes']['all_points_x'])
-                y_coords = np.array(annotations[match]['regions'][str_region]['shape_attributes']['all_points_y'])
+                x_coords_orig = np.array(annotations[match]['regions'][str_region]['shape_attributes']['all_points_x'])
+                y_coords_orig = np.array(annotations[match]['regions'][str_region]['shape_attributes']['all_points_y'])
+                
+                x_coords = (x_coords_orig * scale_x).astype(np.int32)
+                y_coords = (y_coords_orig * scale_y).astype(np.int32)
+                
+                x_coords = np.clip(x_coords, 0, image_size[1] - 1)
+                y_coords = np.clip(y_coords, 0, image_size[0] - 1)
             else:
                 x_coords, y_coords = np.array([]), np.array([])
 
@@ -75,16 +86,21 @@ class Algorithm:
         return mask
     
 
-    def get_image_ground_truth(self, image_name: str, image_size: Tuple[int, int], annotations_file: str):
+    def get_image_ground_truth(self, image_name: str, image_size: Tuple[int, int], 
+                            annotations_file: str, original_size: Tuple[int, int] = (1300, 1300)):
+
         annotations = self.load_annotations(annotations_file)
 
         pattern = re.compile(rf'^{re.escape(image_name)}\d*$')
         match = next((k for k in annotations.keys() if pattern.match(k)), None)
 
-        mask = self.add_regions_to_mask(annotations, image_size, match)
+        scale_x = image_size[1] / original_size[1]
+        scale_y = image_size[0] / original_size[0]
+        
+        mask = self.add_regions_to_mask_scaled(annotations, image_size, match, scale_x, scale_y)
 
         return mask
-
+    
 
     def run(self) -> "Algorithm":
         self._validate_input()
@@ -97,62 +113,37 @@ class Algorithm:
         zip_file = os.listdir(INPUT_DIR)[0]
         zip_file_full_path = os.path.join(INPUT_DIR, zip_file)
 
-        os.makedirs(IMAGES_DIR, exist_ok=True)
-
-        os.makedirs(ALGORITHM_DATA_DIR, exist_ok=True)
-
         with zipfile.ZipFile(zip_file_full_path, 'r') as zipf:
-            zipf.extractall(ALGORITHM_DATA_DIR)
+            zipf.extractall(SOURCE_VOLUME)
 
-        config_files = os.listdir(ALGORITHM_DATA_DIR)
-        annotations_file = next(file for file in config_files if file.endswith('.json'))
-        print(f'Annotations file found: {annotations_file}')
+        all_files = os.listdir(SOURCE_VOLUME)
 
-        images = list(os.listdir(ALGORITHM_DATA_DIR + '/images'))
+        logger.info(f"Found a total of {len(all_files)} elements in the input directory.")
 
-        TEST_SIZE = len(images)
+        config_file = next(os.path.join(SOURCE_VOLUME, file) for file in all_files if file.endswith('.txt'))
+        self.dataset_data = config_file
 
-        for image in images:
-            image_to_send = os.path.join(ALGORITHM_DATA_DIR + '/images', image)
+        annotations_file = next(file for file in all_files if file.endswith('.json'))
+        images = list(filter(lambda file: file not in ['config.txt', annotations_file], all_files))
 
-            new_image_to_send = os.path.splitext(image_to_send)[0] + '.png'
-            
-            if os.path.isfile(image_to_send):
-                os.rename(image_to_send, new_image_to_send)
-                shutil.copy2(new_image_to_send, IMAGES_DIR)
+        try:
+            result = subprocess.run([
+                'docker', 'exec', f'{CONTAINER_NAME}',
+                'python3', 'inference.py'
+            ], check=True)
+        except subprocess.CalledProcessError as e:
+            logger.error(f'Error launching prediction algorithm. Error code = {e.returncode}')
+            exit(1)
 
+        logger.info(f" Prediction path exists in FS? {os.path.exists(f'{RECOVER_VOLUME}/predict')}")
+        logger.info(f"{os.listdir(f'{RECOVER_VOLUME}/predict')}")
 
-        subproc = subprocess.Popen(['bash', '/algorithm/src/predictor.sh'])
+        masks = [os.path.join(RECOVER_VOLUME, 'predict', mask_name) for mask_name in os.listdir(f'{RECOVER_VOLUME}/predict')]
 
-        masks = []
+        logger.info(f"{os.listdir(f'{RECOVER_VOLUME}/predict')}")
 
-        while True:
-            if not os.path.exists(PREDICTIONS_DIR):
-                print(f'{PREDICTIONS_DIR} does still not exist')
-                sleep(5)
-            else:
-                predictions_made = len(os.listdir(PREDICTIONS_DIR))
-
-                if predictions_made == TEST_SIZE:
-                    print(f'Prediction folders = {os.listdir(PREDICTIONS_DIR)}')
-                    for predict_folder in os.listdir(PREDICTIONS_DIR):
-                        predict_path = os.path.join(PREDICTIONS_DIR, predict_folder)
-                        
-                        if os.path.isdir(predict_path) and predict_folder.startswith('predict'):
-                            logger.info(f'Scanning dir: {predict_path}')
-
-                            for mask_file in os.listdir(predict_path):
-                                if mask_file.endswith('.jpg') or mask_file.endswith('.png'):
-                                    mask_file_path = os.path.join(predict_path, mask_file) 
-                                    logger.info(f'Mask found: {mask_file_path}')
-                                    masks.append(mask_file_path)
-                        else:
-                            logger.error(f'No predictions were found in {predict_path}')
-                    subproc.terminate()
-                    break
-                else:
-                    sleep(5)
-                    logger.info(f'Waiting for the predictions. Predictions made = {predictions_made}, Test dataset size = {TEST_SIZE}, {TEST_SIZE - predictions_made} remaining')
+        logger.info(f'Found a total of {len(masks)} masks.')
+        logger.info(f'Sample of masks: {masks[:5]}.')
 
         masks_np = []
 
@@ -164,15 +155,16 @@ class Algorithm:
             else:
                 logger.error(f'Error loading mask: {mask_file}')
         
-        logger.info(f'Converted image predictions to binary numpy arrays')
+        logger.info(f'Converted image predictions to binary numpy arrays.')
 
         masks_gt_np = []
 
-        for img in images:
-            img_gt = self.get_image_ground_truth(img, masks_np[0].shape, annotations_file)
+        for image in images:
+            current_size = masks_np[0].shape
+            img_gt = self.get_image_ground_truth(image, current_size, annotations_file)
             masks_gt_np.append(img_gt)
         
-        logger.info(f'Obtained ground truth for test dataset')
+        logger.info(f'Obtained ground truth for test dataset.')
 
         self.gt_masks = masks_gt_np
         self.pred_masks = masks_np
@@ -192,6 +184,10 @@ class Algorithm:
             precision, recall, f1 = precision_recall_f1(masks_np[i], masks_gt_np[i])
             accuracy_ = accuracy(masks_np[i], masks_gt_np[i])
 
+            print(iou, dice_coefficient, precision, recall, f1, accuracy_)
+            if iou == 0 and dice_coefficient == 0 and precision == 0 and recall == 0 and f1 == 0: 
+                continue
+
             metrics['IoU'].append(iou)
             metrics['Dice Coefficient'].append(dice_coefficient)
             metrics['Precision'].append(precision)
@@ -201,16 +197,22 @@ class Algorithm:
         
         self.metrics = metrics
 
-        logger.info(f'Generated evaluation with different metrics for test dataset')
+        logger.info(f'Generated evaluation with different metrics for test dataset.')
 
         return self
 
 
+    def convert(self, o):
+        if isinstance(o, np.int64):
+            return int(o)
+        raise TypeError(f'Object of type {type(o)} is not JSON serializable.')
+
     def save_result(self, path: Path) -> None:
-        with open(path, 'w') as metrics_file:
-            json.dump(self.metrics, metrics_file)
+        with open(path, 'w', encoding='utf-8') as metrics_file:
+            json.dump(self.metrics, metrics_file, default=self.convert)
         logger.info(f'Metrics file saved at {path}')
         self.build_template()
+
 
     def generate_executive_summary(self) -> str:
         iou       = np.round(np.mean(self.metrics['IoU']), 2)
@@ -278,7 +280,7 @@ class Algorithm:
             '__DICE_ARRAY__'     : f"[{self.metrics['Dice Coefficient'][rand_images_idxs[0]]}, {self.metrics['Dice Coefficient'][rand_images_idxs[1]]}, {self.metrics['Dice Coefficient'][rand_images_idxs[2]]}, {self.metrics['Dice Coefficient'][rand_images_idxs[3]]}, {self.metrics['Dice Coefficient'][rand_images_idxs[4]]}]",
             '__PRECISION_ARRAY__': f"[{self.metrics['Precision'][rand_images_idxs[0]]}, {self.metrics['Precision'][rand_images_idxs[1]]}, {self.metrics['Precision'][rand_images_idxs[2]]}, {self.metrics['Precision'][rand_images_idxs[3]]}, {self.metrics['Precision'][rand_images_idxs[4]]}]",
             '__RECALL_ARRAY__'   : f"[{self.metrics['Recall'][rand_images_idxs[0]]}, {self.metrics['Recall'][rand_images_idxs[1]]}, {self.metrics['Recall'][rand_images_idxs[2]]}, {self.metrics['Recall'][rand_images_idxs[3]]}, {self.metrics['Recall'][rand_images_idxs[4]]}]",
-            '__F1_ARRAY__'       : f"[{self.metrics['F1'][rand_images_idxs[0]]}, {self.metrics['F1'][rand_images_idxs[1]]}, {self.metrics['F1'][rand_images_idxs[2]]}, {self.metrics['F1'][rand_images_idxs[3]]}, {self.metrics['IoU'][rand_images_idxs[4]]}]",
+            '__F1_ARRAY__'       : f"[{self.metrics['F1'][rand_images_idxs[0]]}, {self.metrics['F1'][rand_images_idxs[1]]}, {self.metrics['F1'][rand_images_idxs[2]]}, {self.metrics['F1'][rand_images_idxs[3]]}, {self.metrics['F1'][rand_images_idxs[4]]}]",
             '__ACCURACY_ARRAY__' : f"[{self.metrics['Accuracy'][rand_images_idxs[0]]}, {self.metrics['Accuracy'][rand_images_idxs[1]]}, {self.metrics['Accuracy'][rand_images_idxs[2]]}, {self.metrics['Accuracy'][rand_images_idxs[3]]}, {self.metrics['Accuracy'][rand_images_idxs[4]]}]"
         }
 
@@ -298,21 +300,28 @@ class Algorithm:
             
             total += tp + tn + fp + fn
 
-        total_pixels_label = f'{str(total / 1e6)}M' if total >= 1e6 else f'{str(total % 1e6)}'
+        total_pixels_label = f'{total / 1e6:.1f}M' if total >= 1e6 else str(total)
 
         confusion_matrix_data = {
-            '__TN_PERCENT__': round(total_tn / total, 2) * 100,
-            '__FP_PERCENT__': round(total_fp / total, 2) * 100,
-            '__FN_PERCENT__': round(total_fn / total, 2) * 100,
-            '__TP_PERCENT__': round(total_tp / total, 2) * 100,
+            '__TN_PERCENT__': round(total_tn / total * 100, 1),
+            '__FP_PERCENT__': round(total_fp / total * 100, 1),
+            '__FN_PERCENT__': round(total_fn / total * 100, 1),
+            '__TP_PERCENT__': round(total_tp / total * 100, 1),
             '__TOTAL_PIXELS__': total_pixels_label,
-            '__CORRECT_PERCENT__': round((total_tp + total_tn) / total, 2) * 100
+            '__CORRECT_PERCENT__': round((total_tp + total_tn) / total * 100, 1)
         }
 
+        with open(self.dataset_data, 'r', encoding='utf-8') as dd:
+            dataset_data = {
+                key.strip(): value.strip()
+                for line in dd
+                for key, value in [line.split('=', 1)]
+            }
+                
         metadata = {
-            '__ALGO_NAME__': 'YOLOv8s-seg',
-            '__DATASET_NAME__': 'AmodalAppleSize_RGB-D (1.1)',
-            '__DATASET_URL__': 'https://dataverse.csuc.cat/dataset.xhtml?persistentId=doi:10.34810/data916'
+            '__ALGO_NAME__': os.path.splitext(MODEL)[0],
+            '__DATASET_NAME__': dataset_data['DATASET_NAME'],
+            '__DATASET_URL__': dataset_data['DATASET_URL']
         }
 
 

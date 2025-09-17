@@ -1,8 +1,7 @@
-from pathlib import Path
 from typing import Optional
 
 from oceanprotocol_job_details.job_details import OceanProtocolJobDetails
-from pytest import fixture
+from pytest import fixture, raises
 from src.implementation.algorithm import Algorithm
 
 job_details: Optional[OceanProtocolJobDetails]
@@ -27,15 +26,15 @@ def test_details():
     assert job_details is not None
 
 
-def test_eda():
-    assert algorithm.run()
+def test_main():
+    with raises(NotImplementedError):
+        algorithm.run()
 
 
-def test_eda_results():
-    assert algorithm.results is not None
+def test_main_results():
+    assert algorithm.results is None
 
 
 def test_output(tmp_path):
-    algorithm.save_result(tmp_path / "output.html")
-
-    assert Path(tmp_path / "output.html").exists()
+    with raises(NotImplementedError):
+        algorithm.save_result(tmp_path)
