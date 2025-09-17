@@ -12,7 +12,7 @@ services:
       - ./entrypoint.sh:/algorithm/entrypoint.sh
     environment:
       DEV: 1
-      # TEST: 1
+      TEST: 1
       DIDS: '["timeseries-example"]'
       secret: "1234"
       TRANSFORMATION_DID: "1234"

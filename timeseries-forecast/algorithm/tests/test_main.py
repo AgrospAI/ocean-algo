@@ -11,8 +11,9 @@ from typing import Optional
 
 from oceanprotocol_job_details.job_details import OceanProtocolJobDetails
 from pytest import fixture, mark
-from src.implementation.algorithm import Algorithm
-from src.implementation.data import InputParameters
+
+from implementation.algorithm import Algorithm
+from implementation.data import InputParameters
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 
