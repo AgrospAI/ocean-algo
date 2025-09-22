@@ -46,6 +46,7 @@ class DatasetParameters:
     split: float | None = 0.7
     lags: int | None = 3
     periodicity: List[Periodicity] | None = None
+    is_zipped: bool = False
 
 
 @dataclass

@@ -40,9 +40,6 @@ COPY algorithm/src /algorithm/src
 COPY algorithm/tests /algorithm/tests
 COPY entrypoint.sh /algorithm/entrypoint.sh
 
-# Install the dependencies from the requirements.txt file
-# RUN pip install --no-cache-dir -r /algorithm/requirements.txt
-
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 

@@ -44,7 +44,7 @@ def test_main():
 
 
 def test_main_results():
-    assert algorithm.results is not None
+    assert algorithm._results is not None
 
 
 def test_output(tmp_path):

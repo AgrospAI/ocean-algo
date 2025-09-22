@@ -65,7 +65,7 @@ class Algorithm:
             self.job_details.input_parameters.model.metrics,
         )
 
-        self.results = ResultType(
+        self._results = ResultType(
             window_pipeline=self.window.timeseries_pipeline,
             model=model,
             metrics=evaluation_results,
@@ -89,22 +89,22 @@ class Algorithm:
             lambda f: f.write(orjson.dumps(self.job_details.input_parameters)),
         )
 
-        if self.results:
+        if self._results:
 
             cloudpickle.register_pickle_by_value(estimators)
 
             fs_store.store(
                 # === Save timeseries preprocessing pipeline ===
                 timeseries_pipeline_path,
-                lambda f: cloudpickle.dump(self.results.window_pipeline, f),
+                lambda f: cloudpickle.dump(self._results.window_pipeline, f),
             ).store(
                 # === Save algorithm resulting pipeline ===
                 model_pipeline_path,
-                lambda f: cloudpickle.dump(self.results.model, f),
+                lambda f: cloudpickle.dump(self._results.model, f),
             ).store(
                 # === Save scores to CSV ===
                 score_path,
-                lambda f: pd.DataFrame(self.results.metrics, index=[0]).to_csv(
+                lambda f: pd.DataFrame(self._results.metrics, index=[0]).to_csv(
                     f, index=False
                 ),
             ).store(
@@ -121,6 +121,19 @@ class Algorithm:
         except IndexError:
             logger.error("No input files found")
             raise ValueError("No input files found")
+
+        if self.job_details.input_parameters.dataset.is_zipped:
+            import zipfile
+
+            with zipfile.ZipFile(filepath, "r") as z:
+                # Assuming there's only one file in the zip
+                with z.open(z.namelist()[0]) as f:
+                    logger.info(f"Getting input data from zipped file: {filepath}")
+                    return pd.read_csv(
+                        f,
+                        sep=self.job_details.input_parameters.dataset.separator,
+                        index_col=0,
+                    )
 
         logger.info(f"Getting input data from file: {filepath}")
         return pd.read_csv(
