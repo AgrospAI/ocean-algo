@@ -1,16 +1,22 @@
 import sys
+from dataclasses import dataclass
 
 # Append relative src directory to path
 sys.path.append("src")
 
-from typing import Optional
-
 from oceanprotocol_job_details.job_details import OceanProtocolJobDetails
 from pytest import fixture, raises
+
 from src.main import Algorithm
 
-job_details: Optional[OceanProtocolJobDetails]
-algorithm: Optional[Algorithm]
+job_details: OceanProtocolJobDetails | None
+algorithm: Algorithm | None
+
+
+@dataclass
+class InputParameters:
+    name: str
+    age: int
 
 
 @fixture(scope="session", autouse=True)
@@ -19,7 +25,7 @@ def setup():
 
     global job_details, algorithm
 
-    job_details = OceanProtocolJobDetails().load()
+    job_details = OceanProtocolJobDetails(InputParameters).load()
     algorithm = Algorithm(job_details)
 
     yield
@@ -37,9 +43,10 @@ def test_main():
 
 
 def test_main_results():
-    assert algorithm.results is None
+    with raises(ValueError):
+        algorithm.results
 
 
 def test_output(tmp_path):
     with raises(NotImplementedError):
-        algorithm.save_result(tmp_path)
+        algorithm.save_results(tmp_path)
