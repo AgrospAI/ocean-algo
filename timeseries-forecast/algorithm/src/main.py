@@ -32,7 +32,6 @@ def main() -> None:
     # Load the current job details from the environment variables
     job_details = OceanProtocolJobDetails(InputParameters).load()
 
-    logger.info("Starting compute job with the following input information:")
     algorithm = Algorithm(job_details)
 
     try:

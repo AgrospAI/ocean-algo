@@ -97,7 +97,7 @@ class WindowGenerator:
         X_test: DataFrame,
         y_true: Series,
         metrics: Sequence[str],
-    ) -> float:
+    ) -> dict[str, float]:
         y_pred = trained_model.predict(X_test.to_numpy())
         results = {}
 
