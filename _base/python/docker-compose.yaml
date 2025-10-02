@@ -8,6 +8,7 @@ services:
       - ../../_data/ddos:/data/ddos:ro
       - ../../_data/outputs:/data/outputs:rw
       - ../../_data/logs:/data/logs:rw
+      # For local dev speed, mount the algorithm code
       - ./algorithm/src:/algorithm/src/
       - ./algorithm/tests:/algorithm/tests/
       - ./entrypoint.sh:/algorithm/entrypoint.sh
