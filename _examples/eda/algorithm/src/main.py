@@ -16,8 +16,8 @@ sys.path.append("/algorithm/src")
 import logging
 
 from implementation.algorithm import Algorithm
-from oceanprotocol_job_details.config import config
-from oceanprotocol_job_details.job_details import OceanProtocolJobDetails
+
+from oceanprotocol_job_details.ocean import JobDetails
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 
 def main() -> None:
-    job_details = OceanProtocolJobDetails().load()
+    job_details = JobDetails.load()
 
     logger.info("Starting compute job with the following input information:")
     algorithm = Algorithm(job_details)
@@ -38,7 +38,7 @@ def main() -> None:
         logger.exception(f"An error occurred while running the algorithm: {e}")
 
     try:
-        algorithm.save_result(config.path_outputs)
+        algorithm.save_result(job_details.paths.outputs)
     except Exception as e:
         logger.exception(f"An error occurred while saving the results: {e}")
 

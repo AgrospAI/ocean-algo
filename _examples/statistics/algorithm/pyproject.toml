@@ -3,13 +3,13 @@ name = "algorithm"
 version = "0.1.0"
 description = ""
 authors = [{ name = "AgrospAI", email = "<your-name>@udl.cat" }]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 readme = "README.md"
 license = { file = "LICENSE" }
 dependencies = [
     "pytest>=8.3.4,<9",
     "pandas>=2.2.3,<3",
-    "oceanprotocol-job-details>=0.0.9",
+    "oceanprotocol-job-details==0.2.0",
 ]
 
 [tool.uv]

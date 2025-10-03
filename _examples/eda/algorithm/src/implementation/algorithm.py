@@ -2,7 +2,7 @@ from logging import getLogger
 from pathlib import Path
 from typing import Self
 
-from oceanprotocol_job_details.job_details import JobDetails
+from oceanprotocol_job_details.ocean import JobDetails
 from pandas import read_csv
 from ydata_profiling import ProfileReport
 

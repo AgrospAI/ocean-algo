@@ -1,11 +1,9 @@
-from typing import Optional
-
-from oceanprotocol_job_details.job_details import OceanProtocolJobDetails
-from pytest import fixture, raises
+from oceanprotocol_job_details.ocean import JobDetails
+from pytest import fixture
 from src.implementation.algorithm import Algorithm
 
-job_details: Optional[OceanProtocolJobDetails]
-algorithm: Optional[Algorithm]
+job_details: JobDetails | None
+algorithm: Algorithm | None
 
 
 @fixture(scope="session", autouse=True)
@@ -14,7 +12,7 @@ def setup():
 
     global job_details, algorithm
 
-    job_details = OceanProtocolJobDetails().load()
+    job_details = JobDetails.load()
     algorithm = Algorithm(job_details)
 
     yield
@@ -36,8 +34,6 @@ def test_main_results():
 
 def test_output(tmp_path):
     path = tmp_path / "output"
-    
+
     algorithm.save_result(path)
     assert path.exists()
-        
-    

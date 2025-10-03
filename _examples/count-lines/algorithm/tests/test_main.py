@@ -1,8 +1,8 @@
-from oceanprotocol_job_details.job_details import OceanProtocolJobDetails
+from oceanprotocol_job_details.ocean import JobDetails
 from pytest import fixture
 from src.implementation.algorithm import Algorithm
 
-job_details: OceanProtocolJobDetails | None
+job_details: JobDetails | None
 algorithm: Algorithm | None
 
 
@@ -12,7 +12,7 @@ def setup():
 
     global job_details, algorithm
 
-    job_details = OceanProtocolJobDetails().load()
+    job_details = JobDetails.load()
     algorithm = Algorithm(job_details)
 
     yield
