@@ -1,42 +1,40 @@
+import subprocess
 from logging import getLogger
 from pathlib import Path
-from typing import Any, Optional
+from typing import Self
 
-from oceanprotocol_job_details.dataclasses.job_details import JobDetails
+from oceanprotocol_job_details.ocean import JobDetails
 
 logger = getLogger(__name__)
 
 
 class Algorithm:
-    def __init__(self, job_details: JobDetails):
+    def __init__(self, job_details: JobDetails) -> None:
         self._job_details = job_details
-        self.results: Optional[Any] = None
+        self._results: int = 0
 
-    def _validate_input(self) -> "Algorithm":
-        if not self._job_details.dids or len(self._job_details.dids) == 0:
-            logger.warning("No DIDs found")
-            raise ValueError("No DIDs found")
+    @property
+    def results(self) -> int:
+        return self._results
+
+    def _validate_input(self) -> None:
+        if not self._job_details.ddos:
+            logger.warning("No DDOs found")
+            raise ValueError("No DDOs found")
 
         if not self._job_details.files:
             logger.warning("No files found")
             raise ValueError("No files found")
 
-    def run(self) -> "Algorithm":
+    def run(self) -> Self:
         self._validate_input()
-        
-        first_did = self._job_details.dids[0]
-        filename = self._job_details.files[first_did][0]
-        
-        self.results = 0
-        with open(filename, "r") as infp:
-            for line in infp:
-                if line.strip():
-                    self.results += 1
-        
-        logger.info(f"Number of non-blank lines found {self.results}")
-        
+
+        filename = self._job_details.files[0].input_files[0]
+
+        self._results = int(subprocess.check_output(["wc", "-l", filename]).split()[0])
+        logger.info(f"Number of non-blank lines found {self._results}")
+
         return self
-    
 
     def save_result(self, path: Path) -> None:
         with open(path, "w") as f:

@@ -1,44 +1,47 @@
-# --- Install dependencies (with poetry) ---
-    FROM python:3.10-alpine AS builder
+# Step 1 : Build the environment with dependencies
+FROM python:3.12 AS builder
 
-    WORKDIR /algorithm
-    
-    COPY algorithm/pyproject.toml algorithm/poetry.lock algorithm/LICENSE algorithm/README.md /algorithm/
-    
-    # Install needed dependecies for poetry
-    RUN apk add build-base libffi-dev
-    
-    # Install poetry and dependencies
-    RUN pip install poetry
-    RUN poetry config virtualenvs.in-project true
-    RUN poetry install --no-ansi
-    
-    # --- Running the algorithm ---
-    FROM python:3.10-alpine
-    
-    # Refresh the argument 
-    ARG WORKDIR
-    
-    WORKDIR /algorithm
-    
-    # Copy the algorithm code (with the same depth), and the virtual environment from the previous image
-    COPY algorithm/src /algorithm/src
-    COPY algorithm/tests /algorithm/tests
-    COPY entrypoint.sh /algorithm/entrypoint.sh
-    
-    COPY --from=builder /algorithm/.venv /algorithm/.venv   
-    
-    # Create a new group `algorithm` with Group ID `1000`.
-    # Create a new user `algorithm`, sets home directory to `/algorithm`, User ID `1000`, in
-    # the group `algorithm`. The `-DH` option results in a system account, own the directory
-    RUN addgroup --gid 1000 algorithm && \
-        adduser algorithm -h /algorithm -u 1000 -G algorithm -DH && \
-        chown -R algorithm:algorithm /algorithm
-    # # Change the user for subsequent commands in Dockerfile to the user with ID `1000`.
-    USER 1000
-    
-    ENV PYTHONDONTWRITEBYTECODE=1
-    ENV PYTHONUNBUFFERED=1
-    
-    # Check if running tests 
-    CMD ["/bin/sh", "/algorithm/entrypoint.sh"]
+ENV PYTHONUNBUFFERED=1
+
+WORKDIR /algorithm/
+
+# Install uv
+# Ref: https://docs.astral.sh/uv/guides/integration/docker/#installing-uv
+COPY --from=ghcr.io/astral-sh/uv:0.5.11 /uv /uvx /bin/
+
+# Place executables in the environment at the front of the path
+# Ref: https://docs.astral.sh/uv/guides/integration/docker/#using-the-environment
+ENV PATH="/algorithm/.venv/bin:$PATH"
+
+# Compile bytecode
+# Ref: https://docs.astral.sh/uv/guides/integration/docker/#compiling-bytecode
+ENV UV_COMPILE_BYTECODE=1
+
+# uv Cache
+# Ref: https://docs.astral.sh/uv/guides/integration/docker/#caching
+ENV UV_LINK_MODE=copy
+
+# Install dependencies
+# Ref: https://docs.astral.sh/uv/guides/integration/docker/#intermediate-layers
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=algorithm/uv.lock,target=uv.lock \
+    --mount=type=bind,source=algorithm/pyproject.toml,target=pyproject.toml \
+    uv sync --frozen --no-install-project
+
+FROM python:3.12-slim
+
+WORKDIR /algorithm
+
+# Copy the algorithm code (with the same depth)
+COPY --from=builder /algorithm/.venv /algorithm/.venv
+COPY algorithm/src /algorithm/src
+COPY algorithm/tests /algorithm/tests
+COPY entrypoint.sh /algorithm/entrypoint.sh
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+ENV PATH="/algorithm/.venv/bin:$PATH"
+
+# Check if running dev & tests
+CMD ["sh", "/algorithm/entrypoint.sh"]
