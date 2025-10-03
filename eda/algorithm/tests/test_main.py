@@ -1,8 +1,11 @@
-from pathlib import Path
+import sys
+
+# Append relative src directory to path
+sys.path.append("src")
+
 from typing import Optional
 
 from oceanprotocol_job_details.job_details import OceanProtocolJobDetails
-from oceanprotocol_job_details.config import config
 from pytest import fixture, raises
 from src.implementation.algorithm import Algorithm
 
@@ -33,6 +36,7 @@ def test_main_results():
     assert algorithm.results is not None
 
 
-def test_output():
-    algorithm.save_result(Path(config.path_outputs) / "profiling_report.html")
-    assert (Path(config.path_outputs) / "profiling_report.html").exists()
+def test_output(tmp_path):
+    save_path = tmp_path / "profiling_report.html"
+    algorithm.save_result(save_path)
+    assert save_path.exists()

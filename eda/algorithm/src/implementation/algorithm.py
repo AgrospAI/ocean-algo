@@ -1,6 +1,6 @@
 from logging import getLogger
 from pathlib import Path
-from typing import Optional, Self
+from typing import Self
 
 from oceanprotocol_job_details.job_details import JobDetails
 from pandas import read_csv
@@ -12,7 +12,13 @@ logger = getLogger(__name__)
 class Algorithm:
     def __init__(self, job_details: JobDetails):
         self._job_details = job_details
-        self.results: Optional[ProfileReport] = None
+        self._results: ProfileReport | None = None
+
+    @property
+    def results(self) -> ProfileReport:
+        if self._results is None:
+            assert False, "Run the algorithm first"
+        return self._results
 
     def _validate_input(self) -> Self:
         assert self._job_details.files, "No files found"
@@ -32,10 +38,12 @@ class Algorithm:
         input_path = self._job_details.files[0].input_files[0]
         df = read_csv(input_path, sep=None, engine="python")
 
-        self.results = ProfileReport(df, title="Profiling Report", sensitive=False)
+        self._results = ProfileReport(df, title="Profiling Report", sensitive=False)
         logger.info(f"Generated profiling report for {input_path.name}")
 
         return self
 
     def save_result(self, path: Path) -> None:
+        if path.is_dir():
+            path /= "profiling_report.html"
         self.results.to_file(path)

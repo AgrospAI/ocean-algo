@@ -9,17 +9,15 @@
 # This step is not needed if this file contains the whole implementation of your algorithm, in which case
 # you could use the `python-monolith` version.
 import sys
-from pathlib import Path
 
 sys.path.append("/algorithm/src")
 # ======
 
 import logging
 
+from implementation.algorithm import Algorithm
 from oceanprotocol_job_details.config import config
 from oceanprotocol_job_details.job_details import OceanProtocolJobDetails
-
-from implementation.algorithm import Algorithm
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -40,7 +38,7 @@ def main() -> None:
         logger.exception(f"An error occurred while running the algorithm: {e}")
 
     try:
-        algorithm.save_result(Path(config.path_outputs) / "profiling_report.html")
+        algorithm.save_result(config.path_outputs)
     except Exception as e:
         logger.exception(f"An error occurred while saving the results: {e}")
 
