@@ -3,7 +3,6 @@ services:
   algorithm:
     build: .
     volumes:
-      # Change relative path accordingly !!
       - ./_data/inputs:/data/inputs:ro
       - ./_data/ddos:/data/ddos:ro
       - ./_data/outputs:/data/outputs:rw
