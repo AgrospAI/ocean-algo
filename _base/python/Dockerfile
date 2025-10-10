@@ -36,12 +36,10 @@ WORKDIR /algorithm
 COPY --from=builder /algorithm/.venv /algorithm/.venv
 COPY algorithm/src /algorithm/src
 COPY algorithm/tests /algorithm/tests
-COPY entrypoint.sh /algorithm/entrypoint.sh
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 ENV PATH="/algorithm/.venv/bin:$PATH"
+CMD ["python", "-m", "src.algorithm"]
 
-# Check if running dev & tests
-CMD ["sh", "/algorithm/entrypoint.sh"]

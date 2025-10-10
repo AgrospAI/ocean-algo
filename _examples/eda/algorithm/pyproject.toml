@@ -8,10 +8,10 @@ readme = "README.md"
 license = { file = "LICENSE" }
 dependencies = [
     "pytest>=8.3.4,<9",
-    "oceanprotocol-job-details==0.2.0",
     "pandas>=2.3.3",
     "ydata-profiling>=4.17.0",
     "setuptools>=80.9.0",
+    "ocean-runner>=0.2.14",
 ]
 
 [tool.uv]

@@ -9,7 +9,7 @@ license = { file = "LICENSE" }
 dependencies = [
     "pytest>=8.3.4,<9",
     "pandas>=2.2.3,<3",
-    "oceanprotocol-job-details==0.2.0",
+    "ocean-runner>=0.2.14",
 ]
 
 [tool.uv]

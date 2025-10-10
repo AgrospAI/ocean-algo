@@ -6,10 +6,10 @@ authors = [{ name = "AgrospAI", email = "<your-name>@udl.cat" }]
 requires-python = ">=3.10"
 readme = "README.md"
 license = { file = "LICENSE" }
-dependencies = [
-    "oceanprotocol-job-details==0.2.0",
-    "pytest>=8.3.4,<9",
-]
+dependencies = ["ocean-runner>=0.2.14", "pytest>=8.3.4,<9"]
 
 [tool.uv]
 package = false
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]

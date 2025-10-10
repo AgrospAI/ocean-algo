@@ -6,7 +6,10 @@ authors = [{ name = "AgrospAI", email = "agrospai@udl.cat" }]
 requires-python = ">=3.10,<3.13"
 readme = "README.md"
 license = { file = "LICENSE" }
-dependencies = ["pytest>=8.3.4,<9", "oceanprotocol-job-details==0.1.5"]
+dependencies = [
+    "ocean-runner>=0.2.14",
+    "pytest>=8.3.4,<9",
+]
 
 [tool.uv]
 package = false
