@@ -1,0 +1,9 @@
+{
+    "is_zipped": false,
+    "separator": ",",
+    "datetime_col": "Date",
+    "target_col": "Sales",
+    "lag_diff": 1,
+    "lag_type": "days",
+    "predict_steps": 7
+}

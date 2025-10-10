@@ -1,46 +1,31 @@
-import sys
+import pandas as pd
+from ocean_runner import Algorithm, Config
+from pytest import fixture
 
-# Append relative src directory to path
-sys.path.append("src")
-
-from typing import Optional
-
-from oceanprotocol_job_details.job_details import OceanProtocolJobDetails
-from pytest import fixture, raises
-from src.implementation.algorithm import Algorithm
-
-job_details: Optional[OceanProtocolJobDetails]
-algorithm: Optional[Algorithm]
+from src.implementation import InputParameters, run, save_data, validate
 
 
 @fixture(scope="session", autouse=True)
-def setup():
-    """Setup code that will run before the first test in this module."""
+def algorithm():
+    algorithm = Algorithm(
+        Config(custom_input=InputParameters),
+    )
 
-    global job_details, algorithm
-
-    job_details = OceanProtocolJobDetails().load()
-    algorithm = Algorithm(job_details)
-
-    yield
-
-    print("End of testing session ...")
+    yield algorithm
 
 
-def test_details():
-    assert job_details is not None
+def test_validation(algorithm):
+    assert algorithm.validate(validate)
 
 
-def test_main():
-    with raises(NotImplementedError):
-        algorithm.run()
+def test_main(algorithm):
+    algorithm.run(run)
 
 
-def test_main_results():
-    with raises(ValueError):
-        assert algorithm.results is None
+def test_output(algorithm, tmp_path):
+    algorithm.save_results(save_data, override_path=tmp_path)
 
 
-def test_output(tmp_path):
-    with raises(NotImplementedError):
-        algorithm.save_results(tmp_path)
+def test_main_result(algorithm):
+    assert algorithm.result is not None
+    assert isinstance(algorithm.result, pd.DataFrame)

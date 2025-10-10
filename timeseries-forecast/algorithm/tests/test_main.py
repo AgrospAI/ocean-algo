@@ -1,101 +1,55 @@
-import sys
-from pathlib import Path
+import cloudpickle
+from ocean_runner import Algorithm, Config
+from pytest import fixture, raises
 
-from oceanprotocol_job_details.ocean import JobDetails
-
-# Append relative src directory to path
-sys.path.append("src")
-
-import warnings
-from typing import Optional
-
-from oceanprotocol_job_details.job_details import OceanProtocolJobDetails
-from pytest import fixture, mark
-
-from implementation.algorithm import Algorithm
-from implementation.data import InputParameters
-
-warnings.filterwarnings("ignore", category=FutureWarning)
-
-job_details: JobDetails[InputParameters]
-algorithm: Optional[Algorithm]
+from src.implementation.algorithm import load_data, run, save_results
+from src.implementation.data import InputParameters
 
 
 @fixture(scope="session", autouse=True)
-def setup():
-    """Setup code that will run before the first test in this module."""
+def algorithm():
+    algorithm = Algorithm(Config(InputParameters))
 
-    global job_details, algorithm
-
-    job_details = OceanProtocolJobDetails(InputParameters).load()
-    algorithm = Algorithm(job_details)
-
-    yield
-
-    print("End of testing session ...")
+    yield algorithm
 
 
-def test_details():
-    assert job_details is not None
+@fixture()
+def model_path(algorithm):
+    yield algorithm.job_details.paths.outputs / "model.pkl"
 
 
-def test_main():
-    assert algorithm.run() is not None
+@fixture()
+def model(algorithm, model_path):
+    algorithm.save_results(save_results)
+
+    with open(model_path, "rb") as f:
+        yield cloudpickle.load(f)
 
 
-def test_main_results():
-    assert algorithm._results is not None
+def test_details(algorithm):
+    assert algorithm.job_details is not None
 
 
-def test_output(tmp_path):
-    """Test that the algorithm output contains the necessary files to make predictions
-    and that it's possible to load the model and make predictions.
-    """
-
-    tmp = Path(tmp_path)
-    algorithm.save_result(tmp)
-
-    assert (tmp / "parameters.json").exists()
-    assert (tmp / "scores.csv").exists()
-    assert (tmp / "timeseries_features.pkl").exists()
-    assert (tmp / "model.pkl").exists()
-    assert (tmp / "plot.png").exists()
+def test_main(algorithm):
+    assert algorithm.run(run) is not None
 
 
-@mark.filterwarnings("ignore::FutureWarning")
-@mark.filterwarnings("error")
-def test_can_predict(tmp_path):
-    import pandas as pd
+def test_main_results(algorithm):
+    assert algorithm.result is not None
 
-    def load_model(path: Path):
-        import cloudpickle
 
-        with open(path, "rb") as f:
-            return cloudpickle.load(f)
+def test_output(algorithm, model_path):
+    assert (algorithm.job_details.paths.outputs / "scores.csv").exists()
+    assert (model_path).exists()
 
-    tmp = Path(tmp_path)
-    algorithm.save_result(tmp)
 
-    # Load the pipelines
-    ts_features = load_model(tmp / "timeseries_features.pkl")
-    model = load_model(tmp / "model.pkl")
-
-    # Load the data
-    df: pd.DataFrame = algorithm._df
-
-    try:
-        df = ts_features.transform(df)
-    except Exception as e:
-        raise Exception("Error transforming the data") from e
-
-    # Hardcoded because the end-user should know :)
-    target_column = "Sales"
-    X_df = df.drop(columns=[target_column])
-
-    # Make predictions
-    try:
-        predictions = model.predict(X_df.to_numpy())
-    except Exception as e:
-        raise Exception("Error predicting") from e
+def test_predict(algorithm, model):
+    df = load_data(algorithm)
+    predictions = model.predict(df)
 
     assert predictions is not None
+
+
+def test_wrong_predict_data(model):
+    with raises((ValueError, KeyError)):
+        model.predict({"test": ["data"]})

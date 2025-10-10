@@ -32,16 +32,15 @@ FROM python:3.12-slim
 
 WORKDIR /algorithm
 
+COPY _data/algorithm /algorithm/data
+
 # Copy the algorithm code (with the same depth)
 COPY --from=builder /algorithm/.venv /algorithm/.venv
 COPY algorithm/src /algorithm/src
 COPY algorithm/tests /algorithm/tests
-COPY entrypoint.sh /algorithm/entrypoint.sh
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 ENV PATH="/algorithm/.venv/bin:$PATH"
-
-# Check if running dev & tests
-CMD ["sh", "/algorithm/entrypoint.sh"]
+CMD ["python", "-u", "/algorithm/src/main.py"]

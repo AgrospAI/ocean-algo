@@ -1,4 +1,3 @@
-# Use this docker-compose to test the algorithm locally
 services:
   algorithm:
     build: .
@@ -9,11 +8,8 @@ services:
       - ./_data/logs:/data/logs:rw
       - ./algorithm/src:/algorithm/src/
       - ./algorithm/tests:/algorithm/tests/
-      - ./entrypoint.sh:/algorithm/entrypoint.sh
+    entrypoint: [ "pytest" ]
     environment:
-      DEV: 1
-      # TEST: 1
-      # DIDS: '["timeseries-example"]'
-      DIDS: '["abc"]'
+      DIDS: '["timeseries-example"]'
       secret: "1234"
       TRANSFORMATION_DID: "1234"

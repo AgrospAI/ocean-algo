@@ -1,44 +1,88 @@
-from logging import getLogger
+import pickle
+from datetime import timedelta
 from pathlib import Path
-from typing import Any, Self, TypeVar
 
-from oceanprotocol_job_details.ocean import JobDetails
+import pandas as pd
+from ocean_runner import Algorithm
 
-from implementation.data import InputParameters
+from .data import InputParameters
 
-logger = getLogger(__name__)
-_ResultType = TypeVar("_ResultType", bound=Any)
+# === Constants ===
+BASE_ALGORITHM = Path("/algorithm") / "data"
+MODEL = BASE_ALGORITHM / "model.pkl"
+# =================
 
 
-class Algorithm:
-    def __init__(self, job_details: JobDetails[InputParameters]) -> None:
-        self._job_details = job_details
-        self._results: _ResultType | None = None
+def validate(_):
+    assert MODEL.exists() and MODEL.is_file()
 
-    @property
-    def results(self) -> _ResultType:
-        if self._results is None:
-            raise ValueError("No results available. Please run the algorithm first.")
-        return self._results
 
-    def _validate_input(self) -> None:
-        if not self._job_details.files:
-            logger.warning("No files found")
-            raise ValueError("No files found")
+def forecast_next_days(
+    df,
+    preprocessor,
+    model,
+    target_col,
+    datetime_col,
+    steps,
+    lag_diff,
+    lag_type,
+    logger,
+):
+    """
+    Generate recursive forecasts for the next N days using the trained preprocessor + model.
+    """
 
-    def run(self) -> Self:
-        raise NotImplementedError()
+    df = df.copy()
+    df[datetime_col] = pd.to_datetime(df[datetime_col])
+    df = df.sort_values(datetime_col)
 
-        # self._validate_input()
-        # self._results = "ALGO RESULTS"
-        # return self
+    for idx in range(steps + 1):
+        X = preprocessor.transform(df)
+        y_pred = model.predict(X[-1:])[0]
 
-    def save_results(self, path: Path) -> None:
-        raise NotImplementedError()
+        # Compute next date
+        next_date = df[datetime_col].iloc[-1] + timedelta(**{f"{lag_type}": lag_diff})
 
-        # with(path.open("w", encoding="utf-8") as f):
-        #     try:
-        #         f.write(self._results)
-        #         logger.info(f"Saved results to {path}")
-        #     except:
-        #         logger.error(f"Failed to save results to {path}")
+        # Append prediction as next day's sales
+        df = pd.concat(
+            [df, pd.DataFrame({datetime_col: [next_date], target_col: [y_pred]})],
+            ignore_index=True,
+        )
+
+        logger.info(f"Predicted {idx}/{lag_diff}")
+
+    return df.tail(steps + 2).set_index(datetime_col)
+
+
+def run(algorithm: Algorithm) -> pd.DataFrame:
+
+    params: InputParameters = algorithm.job_details.input_parameters
+
+    # Load the forecasting transformer and model
+    with open(MODEL, "rb") as f:
+        pipeline = pickle.load(f)
+
+    # Load the prediction data
+    _, data_path = next(algorithm.job_details.next_path())
+    data = pd.read_csv(
+        data_path,
+        index_col=0,
+        sep=params.separator,
+        compression=("zip" if params.is_zipped else "infer"),
+    )
+
+    return forecast_next_days(
+        df=data,
+        preprocessor=pipeline[:-1],
+        model=pipeline.named_steps["model"],
+        target_col="Sales",
+        datetime_col="Date",
+        steps=params.predict_steps,
+        lag_diff=params.lag_diff,
+        lag_type=params.lag_type,
+        logger=algorithm.logger,
+    )
+
+
+def save_data(results: pd.DataFrame, base_path: Path, **kwargs):
+    results.to_csv(base_path / "predictions.csv")
