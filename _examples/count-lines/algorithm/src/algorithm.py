@@ -6,7 +6,7 @@ algorithm = Algorithm()
 
 
 @algorithm.run
-def run(algorithm: Algorithm) -> int:
+def run() -> int:
     _, filename = next(algorithm.job_details.next_path())
     return int(subprocess.check_output(["wc", "-l", filename]).split()[0])
 
