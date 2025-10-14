@@ -1,143 +1,109 @@
-from functools import cached_property
-from logging import getLogger
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Optional
+from typing import Callable
 
-import orjson
+import cloudpickle
 import pandas as pd
-from implementation import estimators
-from implementation.data import InputParameters
-from implementation.window import WindowGenerator
-from oceanprotocol_job_details.ocean import JobDetails
+from ocean_runner import Algorithm
+from sklearn.base import BaseEstimator
+from sklearn.model_selection import cross_val_score
+from sklearn.pipeline import Pipeline
 from sklearn.utils import all_estimators
 
-logger = getLogger(__name__)
+from . import estimators
+from .data import InputParameters
+from .window import WindowGenerator
 
 
-class Algorithm:
-    def __init__(self, job_details: JobDetails[InputParameters]) -> None:
-        self._job_details: JobDetails[InputParameters] = job_details
-        self.results: Optional[Any] = None
+@dataclass(frozen=True)
+class ResultType:
+    window: WindowGenerator
+    pipeline: Pipeline
+    metrics: dict[str, float]
 
-    def _validate_input(self) -> None:
-        assert self._job_details.files, "No files found"
-        assert self._job_details.input_parameters, "No input parameters found"
 
-    def run(self) -> "Algorithm":
-        """The algorithm entry point. This method does the following:
+def load_data(algo: Algorithm) -> pd.DataFrame:
+    _, filepath = next(algo.job_details.next_path())
+    input_parameters: InputParameters = algo.job_details.input_parameters
+    return pd.read_csv(
+        filepath,
+        index_col=0,
+        sep=input_parameters.data_separator,
+        compression=("zip" if input_parameters.data_is_zipped else "infer"),
+    )
 
-        1. Load the input data from the given files.
-        1. Preprocess the data using a scikit-learn pipeline.
-        1. Train the model using the preprocessed data.
-        1. Evaluate the model using the test data.
 
-        """
+def get_model(algorithm: Algorithm) -> BaseEstimator:
+    """Returns an untrained instance of the specified scikit-learn model."""
 
-        # Validates the given JobDetails instance
-        self._validate_input()
+    input_parameters: InputParameters = algorithm.job_details.input_parameters
 
-        # Loads the input data from the given files
-        df = self._df
-        logger.info(f"Data shape: {df.shape}")
-        logger.debug(f"Data head: \n{df.head()}")
+    model = input_parameters.model_name
+    algorithm.logger.info(f"Creating model: {model}")
 
-        # Window generator in charge of splitting the data and preprocessing it
-        self.window = WindowGenerator(df, self._job_details.input_parameters)
-        X_train, X_test, y_train, y_test = self.window.preprocess()
+    estimators = {estimator[0]: estimator[1] for estimator in all_estimators()}
+    if model not in estimators:
+        raise ValueError(f"Model {model} not found in scikit-learn estimators")
 
-        # Get the scikit-learn model
-        model = self._model
-        self.window.train(X_train, y_train, model)
-        evaluation_results = self.window.evaluate(
-            model,
-            X_test,
-            y_test,
-            self._job_details.input_parameters.model.metrics,
-        )
+    return estimators[model](**input_parameters.model_params)
 
-        self.results = (
-            self.window.timeseries_pipeline,
-            model,
-            evaluation_results,
-        )
-        return self
 
-    def save_result(self, path: Path) -> None:
-        """Save the trained model pipeline to output"""
+def run(algorithm: Algorithm) -> ResultType:
+    """The algorithm entry point. This method does the following:
 
-        timeseries_pipeline_path = path / "timeseries_features.pkl"
-        model_pipeline_path = path / "model.pkl"
-        score_path = path / "scores.csv"
-        parameters_path = path / "parameters.json"
-        plotting_path = path / "plot.png"
+    1. Load the input data from the given files.
+    1. Preprocess the data using a scikit-learn pipeline.
+    1. Train the model using the preprocessed data.
+    1. Evaluate the model using the test data.
+    """
 
-        # === Save algorithm run parameters ===
-        with open(parameters_path, "wb") as f:
-            try:
-                f.write(orjson.dumps(self._job_details.input_parameters))
-            except Exception as e:
-                logger.exception(f"Error saving algorithm parameters: {e}")
+    input_parameters: InputParameters = algorithm.job_details.input_parameters
 
-        if self.results:
-            import cloudpickle  # type: ignore
+    algorithm.logger.info(f"Training with {input_parameters.data_lags} lags")
 
-            ts_pipe, pipe, scores = self.results
-            cloudpickle.register_pickle_by_value(estimators)
+    # Loads the input data from the given files
+    df = load_data(algorithm)
+    algorithm.logger.info(f"Data shape: {df.shape}")
 
-            # === Save timeseries preprocessing pipeline ===
-            with open(timeseries_pipeline_path, "wb") as f:
-                try:
-                    cloudpickle.dump(ts_pipe, f)
-                    logger.info(f"Saved model to {timeseries_pipeline_path}")
-                except Exception as e:
-                    logger.exception(f"Error saving model: {e}")
+    # Window generator in charge of splitting the data and preprocessing it
+    window = WindowGenerator(df, algorithm.job_details.input_parameters)
 
-            # === Save algorithm resulting pipeline ===
-            with open(model_pipeline_path, "wb") as f:
-                try:
-                    cloudpickle.dump(pipe, f)
-                    logger.info(f"Saved model to {model_pipeline_path}")
-                except Exception as e:
-                    logger.exception(f"Error saving model: {e}")
+    # Get the scikit-learn model
+    model = get_model(algorithm)
+    full_pipeline = window.build_full_pipeline(model)
+    cv, X_train, X_test, y_train, y_test = window.split()
 
-            # === Save scores to CSV ===
-            try:
-                scores = pd.DataFrame(scores, index=[0])
-                scores.to_csv(score_path, index=False)
-            except Exception as e:
-                logger.exception(f"Error saving scores: {e}")
+    full_pipeline.fit(X_train, y_train)
 
-            # === Save periodicity plot ===
-            try:
-                self.window.save_figure(plotting_path)
-            except Exception as e:
-                logger.exception(f"Error saving periodicity plot: {e}")
-
-    @property
-    def _df(self) -> pd.DataFrame:
-        # Right now we only support passing one DID with one file.
+    evaluation_results = {}
+    for metric in input_parameters.metrics:
         try:
-            filepath = self._job_details.files.files[0].input_files[0]
-        except IndexError:
-            logger.error("No input files found")
-            raise ValueError("No input files found")
+            evaluation_results[metric] = cross_val_score(
+                full_pipeline, X_test, y_test, cv=cv, scoring=metric
+            )
+        except Exception as e:
+            algorithm.logger.error(f"Error computing {metric}: {e}")
 
-        logger.info(f"Getting input data from file: {filepath}")
-        return pd.read_csv(
-            filepath,
-            sep=self._job_details.input_parameters.dataset.separator,
-            index_col=0,
-        )
+    return ResultType(window=window, pipeline=full_pipeline, metrics=evaluation_results)
 
-    @cached_property
-    def _model(self) -> Any:
-        """Returns an untrained instance of the specified scikit-learn model."""
 
-        model = self._job_details.input_parameters.model
-        logger.info(f"Creating model: {model}")
+def save_results(results: ResultType, base_path: Path, algorithm: Algorithm) -> None:
+    if not results:
+        return
 
-        estimators = {estimator[0]: estimator[1] for estimator in all_estimators()}
-        if model.name not in estimators:
-            raise ValueError(f"Model {model} not found in scikit-learn estimators")
+    def store(path: Path, store_function: Callable[[any], None]):
+        with open(path, "wb") as f:
+            try:
+                store_function(f)
+            except Exception as e:
+                algorithm.logger.info(f"Error in the saving process: {e}")
 
-        return estimators[model.name](**model.parameters)
+    cloudpickle.register_pickle_by_value(estimators)
+    store(
+        base_path / "model.pkl",
+        lambda f: cloudpickle.dump(results.pipeline, f),
+    )
+    store(
+        base_path / "scores.csv",
+        lambda f: pd.DataFrame(results.metrics).to_csv(f),
+    )

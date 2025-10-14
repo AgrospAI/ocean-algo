@@ -1,0 +1,16 @@
+# Use this docker-compose to test the algorithm locally
+services:
+  algorithm:
+    build: .
+    volumes:
+      - ./_data/inputs:/data/inputs:ro
+      - ./_data/ddos:/data/ddos:ro
+      - ./_data/outputs:/data/outputs:rw
+      - ./_data/logs:/data/logs:rw
+      - ./algorithm/src:/algorithm/src/
+      - ./algorithm/tests:/algorithm/tests/
+    entrypoint: [ "pytest" ]
+    environment:
+      DIDS: '["timeseries-example"]'
+      SECRET: "1234"
+      TRANSFORMATION_DID: "1234"

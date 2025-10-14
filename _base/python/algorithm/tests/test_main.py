@@ -37,9 +37,10 @@ def test_main():
 
 
 def test_main_results():
-    assert algorithm.results is None
+    with raises(ValueError):
+        assert algorithm.results is None
 
 
 def test_output(tmp_path):
     with raises(NotImplementedError):
-        algorithm.save_result(tmp_path)
+        algorithm.save_results(tmp_path)

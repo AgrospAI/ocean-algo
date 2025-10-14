@@ -1,54 +1,49 @@
-from dataclasses import dataclass
-from logging import getLogger
-from typing import Self, Sequence
+from dataclasses import dataclass, field
 
-from numpy import cos, log, pi, sin
-from pandas import DataFrame, Timestamp, to_datetime
+import numpy as np
+from pandas import DataFrame, Series, to_datetime
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.compose import ColumnTransformer
 
-logger = getLogger(__name__)
+from .data import PeriodicityT
 
 
+@dataclass
 class Imputer(BaseEstimator, TransformerMixin):
     """Imputes missing values based on a strategy for each column that is decided by it's characteristics."""
 
-    def __init__(
-        self,
-        datetime_column: str,
-        categorical_columns: Sequence[str],
-        numeric_columns: Sequence[str],
-        threshold: float = 0.5,
-    ) -> None:
-        self.datetime_column = datetime_column
-        self.categorical_columns = categorical_columns
-        self.numeric_columns = numeric_columns
-        self.threshold = threshold
-
-    def _strategy(self, col: str) -> str:
-        # If value is categorical, fill with most frequent value (mode)
-        if col in self.categorical_columns:
-            return "mode"
-        if col not in self.skewness:
-            logger.warning(f"Column {col} not found in skewness")
-            return "mode"
-        return "mean" if self.skewness.get(col, 0) < self.threshold else "median"
+    cat_cols: list[str]
+    threshold: float = field(default=0.5)
+    _num_cols: list[str] = field(default_factory=lambda: [])
 
     def fit(self, X, y=None):
         X = DataFrame(X)
-        self.skewness = X[self.numeric_columns].skew().abs().T
+        self._num_cols.extend(X.select_dtypes(include="number").columns.to_list())
+        self.skewness = X[self._num_cols].skew().abs().T
         return self
 
     def transform(self, X):
-        X = DataFrame(X) if not isinstance(X, DataFrame) else X
-        for col in set([x for x in self.categorical_columns + self.numeric_columns]):
-            strat = self._strategy(col)
-            value = getattr(X[col], strat)()
-            X[col] = X[col].fillna(value)
-            logger.info(f"Imputed column {col} with: {value} [strategy: {strat}]")
+        X = DataFrame(X)
 
-        logger.info("Imputation transformation done")
-        return X
+        for col in set(self.cat_cols + self._num_cols):
+            if col in self.cat_cols:
+                value = (
+                    X[col].mode(dropna=True).iloc[0]
+                    if not X[col].mode(dropna=True).empty
+                    else np.nan
+                )
+            else:
+                skew_value = self.skewness.get(col, 0)
+
+                if isinstance(skew_value, Series):
+                    skew_value = skew_value.iloc[1]
+
+                strat = "mean" if skew_value < self.threshold else "median"
+                value = getattr(X[col], strat)()
+
+            X[col] = X[col].fillna(value)
+
+        return DataFrame(X, columns=X.columns, index=X.index)
 
     def get_feature_names_out(self, input_features=None):
         return input_features
@@ -57,92 +52,73 @@ class Imputer(BaseEstimator, TransformerMixin):
 class ColumnTransformerWithNames(ColumnTransformer):
     """Wraps ColumnTransformer to return a DataFrame with correct column names."""
 
-    def fit(self, X, y=None):
-        return self
-
     def transform(self, X):
         X_transformed = super().transform(X)
-
         column_names = self.get_feature_names_out()
-        logger.info(f"Column transformation done with columns {column_names}")
         return DataFrame(X_transformed, columns=column_names, index=X.index)
 
+    def fit_transform(self, X, y=None):
+        X_t = super().fit_transform(X, y)
+        return DataFrame(X_t, columns=self.get_feature_names_out(), index=X.index)
+
     def get_feature_names_out(self, input_features=None):
-        column_names = super().get_feature_names_out(input_features)
-        return ["".join(name.split("__")[1:]) for name in column_names]
+        return [
+            "".join(name.split("__")[1:])
+            for name in super().get_feature_names_out(input_features)
+        ]
 
 
-# https://stackoverflow.com/questions/63517126/any-way-to-predict-monthly-time-series-with-scikit-learn-in-python
-@dataclass(frozen=True)
+@dataclass
 class Periodicity(BaseEstimator, TransformerMixin):
-    """Processes the datetime column to extract extra features such as its' variance and mean to help forecasting processes."""
 
-    datetime_column: str
-    """The name of the datetime column in the DataFrame."""
+    datetime_col: str
+    target_col: str
+    periodicity: list[PeriodicityT]
 
-    target_column: str
-    """The name of the target column in the DataFrame."""
+    lags: int = field(default=3)
 
-    periodicity: Sequence[str]
-    """The periodicity to calculate (day, week, month, year)."""
+    _n_drop: int = field(default=0, init=False)
 
-    lags: int = 3
-    """The number of lags to calculate (steps into the past)."""
-
-    def fit(self, X, y=None) -> Self:
+    def fit(self, X, y=None):
+        self._n_drop = self.lags
         return self
 
     def transform(self, X) -> DataFrame:
-        X = DataFrame(X) if not isinstance(X, DataFrame) else X
-        X = X.copy()
+        X = DataFrame(X).copy()
 
-        # Calculates some extra features based on the target column
+        # Always ensure datetime column is datetime
+        X[self.datetime_col] = to_datetime(X[self.datetime_col])
 
-        # Logarithm of the target column
-        # Needs that the target column is positive (MinMax before)
-        X[f"log_{self.target_column}"] = log(X[self.target_column])
+        # If target_col not in X, skip lag/log features (e.g. in prediction mode)
+        if self.target_col in X.columns:
+            X[f"log_{self.target_col}"] = np.log(X[self.target_col])
 
-        # Check past values
-        for i in range(self.lags):
-            # Add previous values of the target column
-            X[f"{self.target_column}_lag_{i + 1}"] = X[self.target_column].shift(i + 1)
+            for i in range(self.lags):
+                X[f"{self.target_col}_lag_{i + 1}"] = X[self.target_col].shift(i + 1)
+                X[f"log_{self.target_col}_lag_{i + 1}"] = np.log(
+                    X[f"{self.target_col}_lag_{i + 1}"]
+                )
+                X[f"log_diff_{i + 1}"] = (
+                    X[f"log_{self.target_col}"]
+                    - X[f"log_{self.target_col}_lag_{i + 1}"]
+                )
 
             X.dropna(inplace=True)
 
-            # Add logarithm values of lags
-            X[f"log_{self.target_column}_lag_{i + 1}"] = log(
-                X[f"{self.target_column}_lag_{i + 1}"]
-            )
-
-            X[f"log_diff_{i + 1}"] = (
-                X[f"log_{self.target_column}"]
-                - X[f"log_{self.target_column}_lag_{i + 1}"]
-            )
-
-        rate = lambda timestamp, period: timestamp * 2 * pi / period  # noqa
-
-        day_s = 24 * 60 * 60
+        # Generate periodic features (works both for training and prediction)
+        ts_sec = X[self.datetime_col].astype(np.int64) // 10**9
         periods = {
-            "day": 1,
-            "week": 7,
-            "month": 30.4368,
-            "year": 365.25,
+            "minutes": 60,
+            "hours": 3600,
+            "days": 86400,
+            "weeks": 7 * 86400,
+            "months": 30.4368 * 86400,
+            "years": 365.25 * 86400,
         }
 
-        try:
-            # Also, add some periodicity features
-            X[self.datetime_column] = to_datetime(X[self.datetime_column])
-            timestamp_s = X[self.datetime_column].map(Timestamp.timestamp)
+        for name in self.periodicity:
+            per = periods[name]
+            X[f"{name}_sin"] = np.sin(2 * np.pi * ts_sec / per)
+            X[f"{name}_cos"] = np.cos(2 * np.pi * ts_sec / per)
 
-            try:
-                for name in self.periodicity:
-                    period = periods[name] * day_s
-                    X[f"{name}_sin"] = timestamp_s.apply(lambda x: sin(rate(x, period)))
-                    X[f"{name}_cos"] = timestamp_s.apply(lambda x: cos(rate(x, period)))
-            except ValueError:
-                pass
-        except Exception as e:
-            logger.error(f"Error processing periodicity: {e}")
-
-        logger.info("Periodicity processing done")
-        return X.set_index(self.datetime_column)
+        return X.set_index(self.datetime_col)

@@ -1,54 +1,22 @@
+from __future__ import annotations
+
 from dataclasses import dataclass, field
-from enum import Enum
-from typing import List
+from typing import Literal
 
-
-class Periodicity(Enum):
-    DAY = "day"
-    WEEK = "week"
-    MONTH = "month"
-    YEAR = "year"
-
-    @property
-    def value(self) -> str:
-        return self.name.lower()
-
-    @classmethod
-    def from_str(cls, value: str) -> "Periodicity":
-        if value not in cls._value2member_map_:
-            raise ValueError(f"Invalid periodicity: {value}")
-        return cls(value)
-
-    def __repr__(self) -> str:
-        return f"Periodicity('{self.value}')"
-
-
-@dataclass(frozen=True)
-class ColumnNames:
-    datetime: str
-    target: str
-    categorical: List[str]
-    numeric: List[str]
-
-
-@dataclass
-class ModelParameters:
-    name: str = "AdaBoostRegressor"
-    parameters: dict[str, any] | None = None
-    metrics: List[str] = field(default_factory=lambda: ["neg_mean_squared_error"])
-
-
-@dataclass
-class DatasetParameters:
-    separator: str | None = None
-    target_column: str | None = None
-    datetime_column: str | None = None
-    split: float | None = 0.7
-    lags: int | None = 3
-    periodicity: List[Periodicity] | None = None
+PeriodicityT = Literal["minutes", "hours", "days", "weeks", "months", "years"]
 
 
 @dataclass
 class InputParameters:
-    model: ModelParameters
-    dataset: DatasetParameters
+    data_separator: str | None = None
+    data_target_column: str | None = None
+    data_datetime_column: str | None = None
+    data_splits: int | None = 2
+    data_lags: int | None = 3
+    data_periodicity: list[PeriodicityT] | None = None
+    data_is_zipped: bool = False
+
+    model_name: str = "AdaBoostRegressor"
+    model_params: dict[str, any] | None = None
+
+    metrics: list[str] = field(default_factory=lambda: ["neg_mean_squared_error"])

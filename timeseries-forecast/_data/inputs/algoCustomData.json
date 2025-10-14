@@ -1,26 +1,21 @@
 {
-    "dataset": {
-        "separator": ",",
-        "target_column": "Sales",
-        "datetime_column": "Date",
-        "split": 0.7,
-        "lags": 3,
-        "periodicity": [
-            "day",
-            "week",
-            "month",
-            "year"
-        ]
+    "data_separator": ",",
+    "data_target_column": "Sales",
+    "data_datetime_column": "Date",
+    "data_splits": 3,
+    "data_lags": 5,
+    "data_periodicity": [
+        "weeks",
+        "months"
+    ],
+    "data_is_zipped": false,
+    "model_name": "AdaBoostRegressor",
+    "model_params": {
+        "learning_rate": 0.05,
+        "loss": "linear"
     },
-    "model": {
-        "name": "AdaBoostRegressor",
-        "parameters": {
-            "n_estimators": 500,
-            "learning_rate": 0.05,
-            "loss": "linear"
-        },
-        "metrics": [
-            "neg_mean_squared_error"
-        ]
-    }
+    "metrics": [
+        "neg_mean_squared_error",
+        "neg_mean_absolute_percentage_error"
+    ]
 }

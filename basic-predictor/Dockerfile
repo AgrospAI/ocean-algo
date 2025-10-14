@@ -1,7 +1,7 @@
 FROM python:3.10-alpine
 
 # Install scikit-learn specific dependencies
-RUN apk add libgomp libstdc++ build-base
+RUN apk add libgomp libstdc++ build-base openblas-dev cmake pkgconf
 
 WORKDIR /algorithm
 
