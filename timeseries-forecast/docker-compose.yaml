@@ -9,7 +9,3 @@ services:
       - ./algorithm/src:/algorithm/src/
       - ./algorithm/tests:/algorithm/tests/
     entrypoint: [ "pytest" ]
-    environment:
-      DIDS: '["timeseries-example"]'
-      secret: "1234"
-      TRANSFORMATION_DID: "1234"

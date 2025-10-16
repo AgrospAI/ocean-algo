@@ -10,8 +10,8 @@ dependencies = [
     "pytest>=8.3.4,<9",
     "pandas>=2.3.3",
     "scikit-learn==1.6.1",
-    "ocean-runner>=0.2.11",
     "cloudpickle>=3.1.1",
+    "ocean-runner>=0.2.14",
 ]
 
 [tool.uv]

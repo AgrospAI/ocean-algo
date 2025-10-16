@@ -4,64 +4,53 @@ This repository contains a set of algorithms to use inside the Ocean Protocol ec
 
 ## New algorithm implementation
 
-To develop a new algorithm, head to the `_base` directory and choose a subdirectory with the programming language that you'll use, we recommend using `python` or `python-monolith`.
+To develop a new algorithm, head to the `_base` directory and choose a subdirectory with the programming language that you'll use, we recommend using `python`.
 
 ```
-└───_base
-    ├───bash
-    │   │   docker-compose.yaml
-    │   │   entrypoint.sh
-    │   │   
-    │   └───algorithm
-    │           README.md
-    │           Dockerfile
-    │           test.sh
-    │           run.sh
-    │
-    └───python
-        │   .dockerignore
-        │   docker-compose.yaml
-        │   Dockerfile
-        │   entrypoint.sh
-        │
-        └───algorithm
-            │   .gitignore
-            │   LICENSE
-            │   poetry.lock
-            │   pyproject.toml
-            │   README.md
-            │
-            ├───src
-            │   │   main.py
-            │   │   __init__.py
-            │   │
-            │   └───implementation
-            │           algorithm.py
-            │           __init__.py
-            │
-            └───tests
-                    test_main.py
-                    __init__.py
+_base
+├── bash
+│   ├── algorithm
+│   │   ├── Dockerfile
+│   │   ├── README.md
+│   │   ├── run.sh
+│   │   └── test.sh
+│   ├── docker-compose.yaml
+│   └── entrypoint.sh
+└── python
+    ├── Dockerfile
+    ├── algorithm
+    │   ├── LICENSE
+    │   ├── README.md
+    │   ├── pyproject.toml
+    │   ├── src
+    │   │   ├── __init__.py
+    │   │   ├── algorithm.py
+    │   │   └── data.py
+    │   ├── tests
+    │   │   ├── __init__.py
+    │   │   └── test_main.py
+    │   └── uv.lock
+    └── docker-compose.yaml
     
 ```
 
-Copy the chosen programming language directory in the root path of the repository — with the rest of the implemented algorithms — and follow the instructions in the `README.md` file inside the copied directory. If you want to use another programming language or structure, do it, but keep in mind to test it thoroughly.
+## Running the Algorithm
 
-## Testing
+To run and test an algorithm that comes from one of our templates, run the `docker-compose.yaml` file using `docker-compose up --build`. This file, configures the run to be as similar as the one it will run on in our provider.
 
-To test your algorithm, run the docker-compose inside the copied directory with the `TEST` and `DEV` environment variable set. For testing purposes, there is also a `_data` directory with some mocks of what will be the used directory structure in the Ocean Protocol environment, test your algorithm with them before uploading it to the blockchain to ensure that it will (most likely) run in the first attempt. To do so, you should head to the `_data` directory, in the root of the repository, copy it and place it inside your algorithm (see [base-predictor](https://github.com/AgrospAI/ocean-algo/tree/main/basic-predictor) or [timeseries-forecasting](https://github.com/AgrospAI/ocean-algo/tree/main/timeseries-forecast) for examples).
+To run in normal mode (not test), comment out the entrypoint line in the `docker-compose.yaml` file. 
 
-The upload, test and fix iteration is quite slow, so we recommend that, even locally, you configure the docker-compose with the proper mounted volumes so you only need to build the project when changing dependecies.
+The upload, test and fix iteration is quite slow, so we recommend that, even locally, you keep the template's configured mounted volumes as they are, matching the final environment directory structure.
+
+
+## Publishng your Asset in AgrospAI
+
+Foremost, you need to obtain your Gaia-X Compliance credentials to gain access to the marketplace and all other Gaia-X services. To do so, follow the steps provided in [Agrospai's Incorporation Guide](https://agrospai.udl.cat/docs/guides/incorporation) or contact us via email at *agrospai@udl.cat*.
+
+While you are waiting for your credentials, for the next step you will need to have your code or data in a public docker registry, API, GraphQL or IPFS; as of *13-10-2025*. In this repository, under the `_examples` directory, you can see a few examples on how to containerize and publish an algorithm or, in short, just use the following command. (assuming that you want to publish your algorithm as a public docker in dockerhub).
 
 ```bash
-$ docker compose up --build
+$ docker buildx build --platform linux/amd64,linux/arm64 -t {ALGORITHM_TAG}:{ALGORITHM_VERSION} . --push
 ```
 
-
-## Upload your asset to AgrospAI
-
-Foremost, you need to obtain your Gaia-X Compliance credentials to gain access to the marketplace and all other Gaia-X services. To do so, contact us via email.
-
-To upload your asset to AgrospAI's marketplace. you can do so programmatically with the `pontus-x_cli` library, which you can install with `npm` or any other JavaScript package manager. To do so, follow the instructions at [PontusX CLI](https://github.com/AgrospAI/pontus-x_cli), alongside with the given examples.
-
-Alternatively you need to follow the instructions in the *<ins>PUBLISH</ins>* section of the header.
+Once you have your credentials, to upload an asset to AgrospAI's marketplace, you can do it manually via the marketplace's UI at [Portal AgrospAI](https://portal.agrospai.udl.cat) or programmatically (recommended) using the [PontusX-cli](https://github.com/AgrospAI/pontus-x_cli), which provides documentation and guideline on how to do so.

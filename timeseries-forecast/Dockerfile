@@ -43,4 +43,5 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 ENV PATH="/algorithm/.venv/bin:$PATH"
-CMD ["python", "-u", "/algorithm/src/main.py"]
+CMD ["python", "-m", "src.algorithm"]
+

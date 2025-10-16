@@ -12,14 +12,14 @@ name = "algorithm"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
-    { name = "oceanprotocol-job-details" },
+    { name = "ocean-runner" },
     { name = "pandas" },
     { name = "pytest" },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "oceanprotocol-job-details", specifier = "==0.2.0" },
+    { name = "ocean-runner", specifier = ">=0.2.15" },
     { name = "pandas", specifier = ">=2.2.3,<3" },
     { name = "pytest", specifier = ">=8.3.4,<9" },
 ]
@@ -265,17 +265,30 @@ wheels = [
 ]
 
 [[package]]
+name = "ocean-runner"
+version = "0.2.15"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "oceanprotocol-job-details" },
+    { name = "pytest" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/03/f8/adfbd61d1b0ba1cfbfb867fd6e7058daf16f40d31606f492e844c18b14fe/ocean_runner-0.2.15.tar.gz", hash = "sha256:59ffd46832e9b3187dc368077165bba22bc96a1760f36c0763f82d190fe15fe1", size = 5322, upload-time = "2025-10-13T10:14:34.672Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/22/20/19d679dee5c2a0f58c4925160f7606e89defba7dfe35228df841fd1d8161/ocean_runner-0.2.15-py3-none-any.whl", hash = "sha256:b3bda025b2ef1172ddafb30fbb264516e5b3614123f290934a005d37c48b97a5", size = 7135, upload-time = "2025-10-13T10:14:33.878Z" },
+]
+
+[[package]]
 name = "oceanprotocol-job-details"
-version = "0.2.0"
+version = "0.2.7"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "dataclasses-json" },
     { name = "dependency-injector" },
     { name = "orjson" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/30/12/a824f5bbe43ecd8017ba53a85d6e7d6eefc253ad3b4477bd0ccaaf4ad9d0/oceanprotocol_job_details-0.2.0.tar.gz", hash = "sha256:2604e411468c6fd41136dddb50e8f52e26e565c89687fe4d883eb35415996be0", size = 5579, upload-time = "2025-10-03T11:44:13.205Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/11/fa/0035d19f6c5547cd8a0b281b12a1524725d40d7e2787e54c9e496c937401/oceanprotocol_job_details-0.2.7.tar.gz", hash = "sha256:1e490532f89c30045fc29ff42e8d5a8d09ba92a8d319a90359c6826aab2f8240", size = 6270, upload-time = "2025-10-10T08:08:02.874Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/77/dc/ad9c113180f83f721c8c0ad8f83730afe0ef372ed15a0aa6b93985dbceca/oceanprotocol_job_details-0.2.0-py3-none-any.whl", hash = "sha256:7452422f336686e72e5f31ca32d6b53f29f8e0aa0262616ed15ed1097e937964", size = 9405, upload-time = "2025-10-03T11:44:11.946Z" },
+    { url = "https://files.pythonhosted.org/packages/63/66/8704a600b7f3153b913bafd8cc67697f320925dfe7be2cca3d61b0d17875/oceanprotocol_job_details-0.2.7-py3-none-any.whl", hash = "sha256:1b97b82a754da7e90e251c4a3118a4d5059fd017b0c1e49fd4dc1be64a4a2f43", size = 10191, upload-time = "2025-10-10T08:08:01.606Z" },
 ]
 
 [[package]]
