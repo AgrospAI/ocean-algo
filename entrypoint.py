@@ -1,3 +1,7 @@
 import subprocess
 
-subprocess.run(["python", "-m", "algorithm.src.algorithm"], check=True)
+subprocess.run(
+    ["python", "-m", "src.algorithm"],
+    cwd="/algorithm",
+    check=True,
+)
