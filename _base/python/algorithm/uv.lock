@@ -13,7 +13,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "ocean-runner", specifier = ">=0.2.14" },
+    { name = "ocean-runner", specifier = ">=0.2.16" },
     { name = "pytest", specifier = ">=8.3.4,<9" },
 ]
 
@@ -109,15 +109,15 @@ wheels = [
 
 [[package]]
 name = "ocean-runner"
-version = "0.2.14"
+version = "0.2.16"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "oceanprotocol-job-details" },
     { name = "pytest" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/3e/03/2e41d023c1f22ec0bde09ae363869b53f0af5b1a55c124fb5ea59fa90d28/ocean_runner-0.2.14.tar.gz", hash = "sha256:f9a7549741dc615c00a19bbeb3cc0779078eae3cd88937cbe16eddabfe23b2a8", size = 5187, upload-time = "2025-10-10T12:04:40.522Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/4e/d9/b955ebdbed32228124954c8566161e2f6259a35765240f17df1dcd8f3cb0/ocean_runner-0.2.16.tar.gz", hash = "sha256:060a84f895dd826b6da8d7426a19d10664c91175bd41fd3f1d402033ef17028b", size = 5320, upload-time = "2025-10-13T10:21:45.589Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/fd/f7/9c5196e3880bcc1aff82400545deac321ae814519d0e8e0624f1a96a60b8/ocean_runner-0.2.14-py3-none-any.whl", hash = "sha256:eb3f4cf54e36aaf6140e6863c244fe57e06da34e13af53895119346a7afca3c8", size = 6948, upload-time = "2025-10-10T12:04:39.39Z" },
+    { url = "https://files.pythonhosted.org/packages/7f/bf/10b980ae90f161a3a9417c5e3ff889f4c36de2a96bb683c7049fa5ed6ffe/ocean_runner-0.2.16-py3-none-any.whl", hash = "sha256:c98990fe83846f99d65b927a834d07502bdaba15285a8d43f5bef7a7abe817e8", size = 7136, upload-time = "2025-10-13T10:21:44.559Z" },
 ]
 
 [[package]]

@@ -7,7 +7,7 @@ requires-python = ">=3.10,<3.13"
 readme = "README.md"
 license = { file = "LICENSE" }
 dependencies = [
-    "ocean-runner>=0.2.14",
+    "ocean-runner>=0.2.16",
     "pytest>=8.3.4,<9",
 ]
 
