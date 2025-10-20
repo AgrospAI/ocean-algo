@@ -16,12 +16,12 @@ algorithm = Algorithm(config=Config(custom_input=InputParameters))
 
 
 @algorithm.validate
-def validate(*args, **kwargs):
+def validate():
     assert MODEL.exists() and MODEL.is_file()
 
 
 @algorithm.run
-def run(algorithm: Algorithm) -> pd.DataFrame:
+def run() -> pd.DataFrame:
     params: InputParameters = algorithm.job_details.input_parameters
 
     # Load the forecasting transformer and model
@@ -69,7 +69,7 @@ def run(algorithm: Algorithm) -> pd.DataFrame:
 
 
 @algorithm.save_results
-def save(result: pd.DataFrame, base: Path, *args, **kwargs):
+def save(result: pd.DataFrame, base: Path, *args):
     result.to_csv(base / "predictions.csv")
 
 

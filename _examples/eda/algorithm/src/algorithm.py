@@ -13,6 +13,11 @@ def run():
 
     return ProfileReport(df, title="Profiling Report", sensitive=False)
 
+
 @algorithm.save_results
 def save(result: ProfileReport, path: Path):
     result.to_file(path / "profiling_report.html")
+
+
+if __name__ == "__main__":
+    algorithm()

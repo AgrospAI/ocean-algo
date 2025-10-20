@@ -11,7 +11,7 @@ dependencies = [
     "pandas>=2.3.3",
     "scikit-learn==1.6.1",
     "cloudpickle>=3.1.1",
-    "ocean-runner>=0.2.14",
+    "ocean-runner>=0.2.16",
 ]
 
 [tool.uv]
