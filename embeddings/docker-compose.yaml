@@ -7,5 +7,5 @@ services:
       - ./_data/outputs:/data/outputs:rw
       - ./_data/logs:/data/logs:rw
       - ./algorithm/src:/algorithm/src/
-      - ./algorithm/tests:/algorithm/tests/
+      - ./algorithm/tests:/algorithm/tests/ 
     # entrypoint: [ "pytest" ]

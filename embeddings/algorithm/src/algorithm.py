@@ -1,4 +1,5 @@
 import json
+import zipfile
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -102,20 +103,47 @@ def run() -> ResultsT:
         for path in file.input_files:
             algorithm.logger.info(f"Adding file [{path.name}] for {file.did}")
 
-            with open(path, "r") as f:
-                embeddings = embed_content(model, f.read())
+            if algorithm.job_details.input_parameters.is_zipped:
+                # Unzip and read its contents
+                with zipfile.ZipFile(path, "r") as zip_ref:
+                    for member in zip_ref.namelist():
+                        if member.endswith("/"):
+                            continue  # Skip directories
 
-                results.append(
-                    Result(
-                        embeddings=embeddings,
-                        metadata={
-                            "filepath": str(path),
-                            "did": file.did,
-                            "idx": path.name,
-                            # Maybe add more metadata, like file type,
-                        },
+                        with zip_ref.open(member) as extracted_file:
+                            try:
+                                content = extracted_file.read().decode("utf-8")
+                            except UnicodeDecodeError:
+                                algorithm.logger.warning(
+                                    f"Skipping non-text file [{member}] inside zip for {file.did}"
+                                )
+                                continue
+
+                            results.append(
+                                Result(
+                                    embeddings=embed_content(model, content),
+                                    metadata={
+                                        "filepath": f"{path}:{member}",
+                                        "did": file.did,
+                                        "idx": path.name,
+                                    },
+                                )
+                            )
+            else:
+                with open(path, "r") as f:
+                    embeddings = embed_content(model, f.read())
+
+                    results.append(
+                        Result(
+                            embeddings=embeddings,
+                            metadata={
+                                "filepath": f"{path}",
+                                "did": file.did,
+                                "idx": path.name,
+                                # Maybe add more metadata, like file type,
+                            },
+                        )
                     )
-                )
 
     return results
 

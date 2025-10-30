@@ -5,8 +5,9 @@ from dataclasses import asdict, dataclass
 class InputParameters:
     token: str
     embedding_url: str
-    models_url: str | None
-    model: str
+    is_zipped: bool = False
+    models_url: str | None = None
+    model: str | None = None
 
 
 @dataclass(frozen=True)
