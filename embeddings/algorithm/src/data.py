@@ -1,10 +1,11 @@
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 
 
 @dataclass
 class InputParameters:
     token: str
-    model_url: str
+    embedding_url: str
+    models_url: str | None
     model: str
 
 
@@ -14,3 +15,9 @@ class Result:
     metadata: dict[str, any]
 
     asdict = asdict
+
+
+@dataclass
+class ModelSpecification:
+    name: str
+    url: str
