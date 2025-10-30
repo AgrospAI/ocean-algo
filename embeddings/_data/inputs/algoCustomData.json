@@ -1,5 +1,0 @@
-{
-    "token": "",
-    "model": "nomic-embed-text:latest",
-    "model_url": "https://chat.agrospai.udl.cat/ollama/api/embed"
-}
