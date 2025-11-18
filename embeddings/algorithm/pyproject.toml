@@ -7,11 +7,9 @@ requires-python = ">=3.10,<3.13"
 readme = "README.md"
 license = { file = "LICENSE" }
 dependencies = [
-    "pytest>=8.3.4,<9",
-    "pandas>=2.3.3",
-    "scikit-learn==1.6.1",
-    "cloudpickle>=3.1.1",
     "ocean-runner>=0.2.16",
+    "pytest>=8.3.4,<9",
+    "requests>=2.32.5",
 ]
 
 [tool.uv]

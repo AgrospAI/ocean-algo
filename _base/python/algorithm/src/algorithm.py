@@ -11,20 +11,19 @@ algorithm = Algorithm(config=Config(custom_input=InputParameters))
 
 
 @algorithm.validate
-def validate(algorithm: Algorithm) -> None:
+def validate() -> None:
     # Can remove this function to use the default behaviour. DEFAULT: Check DDOs and input files
     raise NotImplementedError()
 
 
 @algorithm.run
-def run(algorithm: Algorithm, **kwargs) -> ResultsT:
+def run() -> ResultsT:
     raise NotImplementedError()
 
 
 @algorithm.save_results
 def save(
     results: ResultsT,
-    algorithm: Algorithm,
     base_path: Path,
 ) -> None:
     # Can remove this function to use the default behaviour. DEFAULT: Save to results.txt

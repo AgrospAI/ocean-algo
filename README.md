@@ -43,7 +43,7 @@ To run in normal mode (not test), comment out the entrypoint line in the `docker
 The upload, test and fix iteration is quite slow, so we recommend that, even locally, you keep the template's configured mounted volumes as they are, matching the final environment directory structure.
 
 
-## Publishng your Asset in AgrospAI
+## Publishng your Asset to AgrospAI
 
 Foremost, you need to obtain your Gaia-X Compliance credentials to gain access to the marketplace and all other Gaia-X services. To do so, follow the steps provided in [Agrospai's Incorporation Guide](https://agrospai.udl.cat/docs/guides/incorporation) or contact us via email at *agrospai@udl.cat*.
 
@@ -54,3 +54,25 @@ $ docker buildx build --platform linux/amd64,linux/arm64 -t {ALGORITHM_TAG}:{ALG
 ```
 
 Once you have your credentials, to upload an asset to AgrospAI's marketplace, you can do it manually via the marketplace's UI at [Portal AgrospAI](https://portal.agrospai.udl.cat) or programmatically (recommended) using the [PontusX-cli](https://github.com/AgrospAI/pontus-x_cli), which provides documentation and guideline on how to do so.
+
+When publishing an *algorithm*, the entrypoint should point to the `entrypoint.py` file located in this repository, as in the following example publishing a YAML with `pontus-x_cli`:
+
+```yaml
+...
+service:
+  serviceType: compute
+  fileType: url
+  serviceEndpoint: "https://provider.pontus-x.eu"
+  timeout: 0
+  files:
+    - method: GET
+      type: url
+      url: >-
+        https://raw.githubusercontent.com/AgrospAI/ocean-algo/refs/heads/v2-ocean-runner/entrypoint.py
+  pricing:
+    type: free
+  datatoken:
+    name: [YOUR_ALGORITHM_NAME]
+    symbol: [YOUR_ALGORITHM_SYMBOL]
+...
+```
