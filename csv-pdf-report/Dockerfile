@@ -1,36 +1,46 @@
-FROM python:3.11-alpine
+# Step 1 : Build the environment with dependencies
+FROM python:3.12 AS builder
 
-# Install dependencies for PDF generation and plotting
-RUN apk add --no-cache \
-    libgomp \
-    libstdc++ \
-    build-base \
-    # Additional dependencies for matplotlib and reportlab
-    freetype \
-    freetype-dev \
-    libpng \
-    libpng-dev \
-    jpeg \
-    jpeg-dev \
-    zlib \
-    zlib-dev \
-    # Font dependencies for PDF generation
-    fontconfig \
-    ttf-dejavu
+ENV PYTHONUNBUFFERED=1
+
+WORKDIR /algorithm/
+
+# Install uv
+# Ref: https://docs.astral.sh/uv/guides/integration/docker/#installing-uv
+COPY --from=ghcr.io/astral-sh/uv:0.5.11 /uv /uvx /bin/
+
+# Place executables in the environment at the front of the path
+# Ref: https://docs.astral.sh/uv/guides/integration/docker/#using-the-environment
+ENV PATH="/algorithm/.venv/bin:$PATH"
+
+# Compile bytecode
+# Ref: https://docs.astral.sh/uv/guides/integration/docker/#compiling-bytecode
+ENV UV_COMPILE_BYTECODE=1
+
+# uv Cache
+# Ref: https://docs.astral.sh/uv/guides/integration/docker/#caching
+ENV UV_LINK_MODE=copy
+
+# Install dependencies
+# Ref: https://docs.astral.sh/uv/guides/integration/docker/#intermediate-layers
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=algorithm/uv.lock,target=uv.lock \
+    --mount=type=bind,source=algorithm/pyproject.toml,target=pyproject.toml \
+    uv sync --frozen --no-install-project
+
+FROM python:3.12-slim
 
 WORKDIR /algorithm
 
-# Copy the algorithm code
+COPY _data/algorithm /algorithm/data
+
+# Copy the algorithm code (with the same depth)
+COPY --from=builder /algorithm/.venv /algorithm/.venv
 COPY algorithm/src /algorithm/src
 COPY algorithm/tests /algorithm/tests
-COPY algorithm/requirements.txt /algorithm/requirements.txt
-COPY entrypoint.sh /algorithm/entrypoint.sh
-
-# Install the dependencies
-RUN pip install --no-cache-dir -r /algorithm/requirements.txt
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# Check if running dev & tests
-CMD ["sh", "/algorithm/entrypoint.sh"]
+ENV PATH="/algorithm/.venv/bin:$PATH"
+CMD ["python", "-m", "src.algorithm"]
