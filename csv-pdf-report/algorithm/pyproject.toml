@@ -8,7 +8,6 @@ readme = "README.md"
 license = { file = "LICENSE" }
 dependencies = [
     "pytest>=8.3.4,<9",
-    "oceanprotocol-job-details==0.1.1",
     "orjson>=3.10.15,<4",
     "pandas>=2.3.0",
     "numpy>=2.2.6",
@@ -16,6 +15,7 @@ dependencies = [
     "seaborn>=0.13.2",
     "reportlab>=4.4.1",
     "datetime>=5.5",
+    "ocean-runner>=0.2.14",
 ]
 
 [tool.uv]
