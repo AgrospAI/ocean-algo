@@ -1,163 +1,179 @@
-import json
+import logging
 import zipfile
 from pathlib import Path
+from typing import AsyncGenerator, Dict, List, Tuple
 from urllib.parse import urlparse
 
-import requests
+import aiofiles
+import httpx
+import orjson
 from ocean_runner import Algorithm, Config
+from pydantic import BaseModel
 
-from .data import InputParameters, ModelSpecification, Result
+from .data import InputParameters, Metadata, ModelSpecification, Result
+
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("httpcore").setLevel(logging.WARNING)
 
 ResultsT = list[Result]
-algorithm = Algorithm(config=Config(custom_input=InputParameters))
+algorithm = Algorithm[InputParameters, ResultsT](Config(custom_input=InputParameters))
 
 
-def headers(parameters: InputParameters) -> dict[str, str]:
-    if not parameters.token:
-        raise ValueError("API token is required for authentication.")
+def headers(parameters: InputParameters) -> Dict[str, str]:
+    assert parameters.token, "API token is required for authentication"
     return {"Authorization": f"Bearer {parameters.token}"}
 
 
-def get_model_specifications() -> ModelSpecification:
-    parameters: InputParameters = algorithm.job_details.input_parameters
+async def get_model_specifications(parameters: InputParameters) -> ModelSpecification:
+    class ResponseData(BaseModel):
+        name: str
+
+    class EmbeddingModelResponse(BaseModel):
+        data: List[ResponseData]
 
     def infer_url(embedding_url: str) -> str:
         parsed = urlparse(embedding_url)
         return f"{parsed.scheme}://{parsed.netloc}/api/models"
 
-    models_url = parameters.models_url or infer_url(parameters.embedding_url)
-
-    request = requests.get(models_url, headers=headers(parameters))
-
-    if request.status_code != 200:
-        raise RuntimeError(
-            f"Models endpoint returned status code {request.status_code}: {request.text}"
-        )
-
-    response = request.json()
-
-    # Model not specified -> log available models and select the first that contains word "embed"
-    # Model specified but not found -> log warning, and choose first that contains word "embed"
-    # Model specified and found -> use it
-
-    def list_models(models_response: dict) -> list[str]:
-        return [model["name"] for model in models_response["data"]]
+    def list_models(response: EmbeddingModelResponse) -> list[str]:
+        return [model.name for model in response.data]
 
     def filter_models(models: list[str], included_word: str = "embed") -> list[str]:
         return [m for m in models if included_word in m]
 
-    available_models = list_models(response)
+    async with httpx.AsyncClient(
+        headers=headers(parameters),
+        timeout=parameters.timeout,
+    ) as client:
+        models_url = parameters.models_url or infer_url(parameters.embedding_url)
+        response = await client.get(models_url, headers=headers(parameters))
 
-    algorithm.logger.info(f"Available models: {available_models}")
-    if not parameters.model or parameters.model not in available_models:
-        if parameters.model:
-            algorithm.logger.warning(
-                f"Model {parameters.model} not found in available models. Selecting the first found embedding model."
+        try:
+            response.raise_for_status()
+        except httpx.HTTPStatusError as e:
+            raise RuntimeError(
+                f"Models endpoint returned status code {e.response.status_code}: {e.response.text}"
+            ) from e
+
+        embedding_response = EmbeddingModelResponse.model_validate(response.json())
+
+        # Model not specified -> log available models and select the first that contains word "embed"
+        # Model specified but not found -> log warning, and choose first that contains word "embed"
+        # Model specified and found -> use it
+
+        available_models = list_models(embedding_response)
+
+        algorithm.logger.info(f"Available models: {available_models}")
+        if not parameters.model or parameters.model not in available_models:
+            if parameters.model:
+                algorithm.logger.warning(
+                    f"Model {parameters.model} not found in available models. Selecting the first found embedding model."
+                )
+            else:
+                algorithm.logger.info(
+                    "No model specified, selecting the first found embedding model."
+                )
+
+            embedding_models = filter_models(available_models, included_word="embed")
+            if not embedding_models:
+                raise RuntimeError("No embedding models found in available models.")
+
+            embedding_model = embedding_models[0]
+            algorithm.logger.info(f"Selected model: {embedding_model}")
+            return ModelSpecification(
+                name=embedding_model,
+                url=parameters.embedding_url,
             )
         else:
             algorithm.logger.info(
-                "No model specified, selecting the first found embedding model."
+                f"Proceeding using specified model: {parameters.model}"
+            )
+            return ModelSpecification(
+                name=parameters.model,
+                url=parameters.embedding_url,
             )
 
-        embedding_models = filter_models(available_models, included_word="embed")
-        if not embedding_models:
-            raise RuntimeError("No embedding models found in available models.")
 
-        embedding_model = embedding_models[0]
-        algorithm.logger.info(f"Selected model: {embedding_model}")
-        return ModelSpecification(
-            name=embedding_model,
-            url=parameters.embedding_url,
-        )
-    else:
-        algorithm.logger.info(f"Proceeding using specified model: {parameters.model}")
-        return ModelSpecification(
-            name=parameters.model,
-            url=parameters.embedding_url,
-        )
-
-
-def embed_content(model_specification: ModelSpecification, content: str) -> Result:
-    request = requests.post(
-        model_specification.url,
-        json={"model": model_specification.name, "input": [content]},
-        headers=headers(algorithm.job_details.input_parameters),
-    )
-
+async def embed_content(
+    parameters: InputParameters,
+    model_specification: ModelSpecification,
+    content: str,
+) -> List[List[float]]:
     try:
-        result = request.json()
-        return result["embeddings"]
-    except Exception as e:
+        async with httpx.AsyncClient(
+            headers=headers(parameters),
+            timeout=parameters.timeout,
+        ) as client:
+            response = await client.post(
+                model_specification.url,
+                json={"model": model_specification.name, "input": [content]},
+            )
+            response.raise_for_status()
+
+            return response.json()["embeddings"]
+    except httpx.HTTPStatusError as e:
         algorithm.logger.error(f"Error obtaining embedding: {e}")
         return []
 
 
-@algorithm.run
-def run() -> ResultsT:
-    results: ResultsT = []
+async def contents(algorithm: Algorithm) -> AsyncGenerator[Tuple[str, Metadata], None]:
+    for _, path in algorithm.job_details.inputs():
+        algorithm.logger.info(f"Adding file [{path.name}]")
 
-    model = get_model_specifications()
-
-    files = algorithm.job_details.files
-    for file in files:
-        for path in file.input_files:
-            algorithm.logger.info(f"Adding file [{path.name}] for {file.did}")
-
-            if algorithm.job_details.input_parameters.is_zipped:
-                # Unzip and read its contents
-                with zipfile.ZipFile(path, "r") as zip_ref:
-                    for member in zip_ref.namelist():
-                        if member.endswith("/"):
-                            continue  # Skip directories
-
-                        with zip_ref.open(member) as extracted_file:
-                            try:
-                                content = extracted_file.read().decode("utf-8")
-                            except UnicodeDecodeError:
-                                algorithm.logger.warning(
-                                    f"Skipping non-text file [{member}] inside zip for {file.did}"
-                                )
-                                continue
-
-                            results.append(
-                                Result(
-                                    embeddings=embed_content(model, content),
-                                    metadata={
-                                        "filepath": f"{path}:{member}",
-                                        "did": file.did,
-                                        "idx": path.name,
-                                    },
-                                )
+        if zipfile.is_zipfile(path):
+            with zipfile.ZipFile(path, "r") as zip_ref:
+                for member in (m for m in zip_ref.namelist() if not m.endswith("/")):
+                    with zip_ref.open(member) as extracted_file:
+                        try:
+                            yield (
+                                extracted_file.read().decode("utf-8"),
+                                Metadata(
+                                    filepath=f"{path.name}:{member}",
+                                    did=path.parent.name,
+                                    idx=path.name,
+                                ),
                             )
-            else:
-                with open(path, "r") as f:
-                    embeddings = embed_content(model, f.read())
+                        except UnicodeDecodeError:
+                            algorithm.logger.warning(
+                                f"Skipping non-text file [{member}] inside zip"
+                            )
+        else:
+            async with aiofiles.open(path, "r") as f:
+                yield (
+                    await f.read(),
+                    Metadata(
+                        filepath=path.name,
+                        did=path.parent.name,
+                        idx=path.name,
+                    ),
+                )
 
-                    results.append(
-                        Result(
-                            embeddings=embeddings,
-                            metadata={
-                                "filepath": f"{path}",
-                                "did": file.did,
-                                "idx": path.name,
-                                # Maybe add more metadata, like file type,
-                            },
-                        )
-                    )
 
-    return results
+@algorithm.run
+async def run(algorithm: Algorithm) -> ResultsT:
+    parameters = await algorithm.job_details.input_parameters()
+    assert parameters is not None
+
+    model = await get_model_specifications(parameters)
+    return [
+        Result(
+            embeddings=await embed_content(parameters, model, content),
+            metadata=metadata,
+        )
+        async for content, metadata in contents(algorithm)
+    ]
 
 
 @algorithm.save_results
-def save(
-    results: ResultsT,
-    base_path: Path,
+async def save(
+    algorithm: Algorithm,
+    result: ResultsT,
+    base: Path,
 ) -> None:
-    for result in results:
-        filename = "_".join(result.metadata["filepath"].split("/")[-2:])
-        output = base_path / f"{filename}_embedding.txt"
-        with open(output, "w") as f:
-            json.dump(result.asdict(), f)
+    for res in result:
+        fname = "_".join(res.metadata.filepath.split("/")[-2:])
+        async with aiofiles.open(base / f"{fname}_embedding.txt", "wb") as f:
+            await f.write(orjson.dumps(res.model_dump()))
 
 
 if __name__ == "__main__":

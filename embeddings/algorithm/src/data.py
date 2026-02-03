@@ -1,24 +1,29 @@
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
+from typing import List
+
+from pydantic import BaseModel
 
 
-@dataclass
-class InputParameters:
+class InputParameters(BaseModel):
     token: str
     embedding_url: str
-    is_zipped: bool = False
     models_url: str | None = None
     model: str | None = None
+    timeout: int = 60
 
 
 @dataclass(frozen=True)
-class Result:
-    embeddings: list[int]
-    metadata: dict[str, any]
+class Metadata:
+    filepath: str
+    did: str
+    idx: str
 
-    asdict = asdict
+
+class Result(BaseModel):
+    embeddings: List[List[float]]
+    metadata: Metadata
 
 
-@dataclass
-class ModelSpecification:
+class ModelSpecification(BaseModel):
     name: str
     url: str
