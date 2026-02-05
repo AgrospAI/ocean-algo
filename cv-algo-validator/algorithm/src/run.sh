@@ -22,6 +22,4 @@ docker run -d \
     registry.agrospai.udl.cat/library/agrospai_apple_inference \
     tail -f /dev/null
 
-docker ps -a
-
 exec python3 /algorithm/src/algorithm.py
