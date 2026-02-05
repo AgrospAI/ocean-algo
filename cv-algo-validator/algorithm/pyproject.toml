@@ -1,0 +1,16 @@
+[project]
+name = "algorithm"
+version = "0.1.0"
+description = ""
+authors = [{ name = "AgrospAI", email = "aleix.segura@udl.cat" }]
+requires-python = ">=3.12"
+readme = "README.md"
+license = { file = "LICENSE" }
+dependencies = [
+    "numpy",
+    "ocean-runner==0.2.14",
+    "oceanprotocol-job-details==0.2.7",
+]
+
+[tool.uv]
+package = false
