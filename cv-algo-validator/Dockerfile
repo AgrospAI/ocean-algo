@@ -1,5 +1,5 @@
 # ---------------------------------------------------
-# STAGE 1: Builder (Basado en Alpine/Dind)
+# STAGE 1: Builder
 # ---------------------------------------------------
 FROM docker:27-dind AS builder
 
@@ -31,6 +31,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 RUN cp -r /usr/lib/python3.12/site-packages/cv2 \
     /algorithm/.venv/lib/python3.12/site-packages/cv2
+
 # ---------------------------------------------------
 # STAGE 2: Runner
 # ---------------------------------------------------
@@ -45,10 +46,9 @@ RUN apk add --no-cache \
 
 WORKDIR /algorithm
 
-# 2. Copiar el entorno virtual desde el builder
+
 COPY --from=builder /algorithm/.venv /algorithm/.venv
 
-# 3. Copiar código
 COPY algorithm/src /algorithm/src
 
 ENV PYTHONDONTWRITEBYTECODE=1
