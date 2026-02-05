@@ -16,7 +16,8 @@ To ensure the validation algorithm can correctly compare your model's results wi
 
 * **Format:** The outputs must be saved as **Binary Segmentation Masks** in `.png` format.
 * **Dimensions:** The output resolution should match the input resolution used by the model (e.g., `256x256`).
-* **Pixel Values:** * **Background:** Must be represented by the value `0` (Black).
+* **Pixel Values:**
+    * **Background:** Must be represented by the value `0` (Black).
     * **Object (Predicted Class):** Must be represented by the value `255` (White).
 * **Data Type:** 8-bit unsigned integer (`uint8`).
 
