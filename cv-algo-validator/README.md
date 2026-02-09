@@ -1,4 +1,4 @@
-# Segmentation Model Validation Guide
+# Binary Segmentation Validator Guide
 
 This repository contains the validation algorithm (`algorithm.py`) used to benchmark and verify segmentation models. This guide outlines the requirements for submitting your model as a Docker image and specifies the current input data format required for the validation dataset.
 
@@ -6,9 +6,9 @@ This repository contains the validation algorithm (`algorithm.py`) used to bench
 
 To validate your model using this system, your segmentation algorithm must be packaged as a **Docker image**.
 
-* The validation algorithm receives an `image_digest`.
-* It will automatically pull your Docker image and execute it against the validation dataset.
-* Ensure your container is configured to accept input images and output segmentation masks/coordinates in a standard format (compatible with the evaluation metrics defined in `algorithm.py`).
+* **Docker Image:** The validation algorithm receives an `image_digest`. It will automatically pull your Docker image and execute it against the validation dataset.
+* **Inference Command:** You must specify the exact **inference command** required to run your container. This command should trigger the prediction process on the input images.
+* **I/O Configuration:** Ensure your container is configured to accept input images and output segmentation masks in the standard format defined below.
 
 ### Expected Output Format (Model Predictions)
 
@@ -16,20 +16,29 @@ To ensure the validation algorithm can correctly compare your model's results wi
 
 * **Format:** The outputs must be saved as **Binary Segmentation Masks** in `.png` format.
 * **Pixel Values:**
-    * **Background:** Must be represented by the value `0` (Black).
-    * **Object (Predicted Class):** Must be represented by the value `255` (White).
+  * **Background:** Must be represented by the value `0` (Black).
+  * **Object (Predicted Class):** Must be represented by the value `255` (White).
+
+
 * **Data Type:** 8-bit unsigned integer (`uint8`).
 
-> [!IMPORTANT]  
-> The validation script expects a strict binary split. Do not save probability maps or grayscale images with values between 1 and 254. Ensure you apply a threshold (e.g., $> 0.5$) to your model's output before scaling to `255`.
+> [!IMPORTANT]
+> The validation script expects a strict binary split. Do not save probability maps or grayscale images with values between 1 and 254. Ensure you apply a threshold (e.g., ) to your model's output before scaling to `255`.
 
 ### Example Output Logic (Python/PyTorch)
+
 ```python
 # Convert probability map to binary 0-255 mask
 mask = (output > 0.5).float().cpu().numpy()
 mask_img = Image.fromarray((mask * 255).astype(np.uint8))
 mask_img.save(output_path)
+
 ```
+
+**For a complete example of a valid model structure and inference implementation, please refer to this code:**
+[AgrospAI's Fine Tuned DeepLab V3 model](https://github.com/AgrospAI/ocean-algo/tree/main/amodal-appleseg-rgb)
+
+---
 
 ## 2. Input Data Specifications
 
@@ -104,3 +113,5 @@ We are working on extending the validation algorithm (`algorithm.py`) to support
 * YOLO format.
 
 Please ensure your current submissions strictly adhere to the **VIA Polygon** format to ensure successful validation.
+
+![Image](https://github.com/user-attachments/assets/7a8e1e21-b7f9-4bac-affd-40a1d2d3dcb7)
