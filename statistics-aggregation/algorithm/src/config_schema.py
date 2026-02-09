@@ -3,7 +3,7 @@ KEYWORD_RULES = {
         "A3 / Wolters Kluwer": ["a3", "wolter", "kluwer", "a3erp"],
         "Sage": ["sage", "murano", "sage50", "sage200", "eurowin"],
         "Microsoft Dynamics": ["navision", "nav", "business central", "dynamics", "bc"],
-        "Microsoft Excel": ["excel", "sheet", "hoja", "calculo", "office"],
+        "Excel": ["excel", "sheet", "hoja", "calculo", "office", "microsoft"],
         "SAP": ["sap", "b1", "business one", "hana"],
         "Odoo": ["odoo", "openerp"],
         "Salesforce": ["salesforce", "force.com"],
@@ -28,7 +28,7 @@ KEYWORD_RULES = {
     },
     
     "antivirus": {
-        "Microsoft Defender": ["defender", "windows", "microsoft", "no usan", "ninguno"],
+        "Microsoft Defender": ["defender", "windows", "microsoft", "no usan", "ninguno", "nvidia"],
         "Kaspersky": ["kasp"],
         "McAfee": ["mcafee", "trellix"],
         "Norton/Symantec": ["norton", "symantec"],
@@ -48,6 +48,7 @@ CNAE_MAP = {
     "1721": "Industrial",
     "2849": "Industrial",
     "6022": "Servicios",
+    "694.1": "Otro",
 }
 
 SURVEY_SCHEMA = {
@@ -120,6 +121,69 @@ SURVEY_SCHEMA = {
         "Gestión de incidencias y continuidad de negocio",
         "Protección de datos y propiedad intelectual"
     ]
+}
+
+SECTION_MAPPING = {
+    # --- 0. DIMENSIÓN EMPRESARIAL ---
+    "company_profile_cnae": "0",
+    "number_of_employees": "0",
+    "average_employee_age": "0",
+    "number_of_clients": "0",
+    "number_of_suppliers": "0",
+    "annual_revenue": "0",
+    "it_outsourcing_level": "0",
+    
+    "remote_work_acceptable_use_policy": "1",
+    "secure_remote_access": "1",
+    "two_factor_authentication": "1",
+    "it_infrastructure_type": "1",
+    
+    # --- 2. Procesos y automatización ---
+    "key_processes_digitized_pct": "2",
+    "erp_in_use": "2",
+    "crm_in_use": "2",
+    "ai_for_automation_usage": "2",
+    
+    # --- 3. Datos y analítica ---
+    "database_type": "3",
+    "powerbi_usage": "3",
+    
+    # --- 4. Personas y cultura digital ---
+    "advanced_digital_skills_pct": "4",
+    "microsoft_365_usage": "4",
+    "collaboration_tools_usage": "4",
+    "continuous_digital_training": "4",
+    "cybersecurity_training": "4",
+    "ftfe_training": "4",
+    "phishing_simulations": "4",
+    
+    # --- 5. PRESENCIA INTERNET ---
+    "active_internet_presence": "5",
+    "active_social_media_management": "5",
+    "digital_marketing_use": "5",
+    "visitor_follower_analysis": "5",
+    
+    # --- 6. VENTAS ONLINE ---
+    "accessible_digital_sales_channels": "6",
+    "digital_revenue": "6",
+    "usual_customer_communication_channel": "6",
+    "preferred_customer_communication_channel": "6",
+    
+    # --- 7. CIBERSEGURIDAD ---
+    "antivirus_used": "7",
+    "employees_using_antivirus_pct": "7",
+    "regular_patching_and_updates": "7",
+    "network_controls_implemented": "7",
+    
+    "documented_account_lifecycle_process": "8",
+    "clear_roles_and_privileges": "8",
+
+    "incident_response_plan": "9",
+    "continuity_and_recovery_plans": "9",
+
+    "data_protection_compliance": "10",
+    "legal_and_compliance_training": "10",
+    "priority_assessment_area": "10",
 }
 
 QUEST_MAPPING = {
@@ -204,4 +268,58 @@ SCORING_MAPS = {
         '10-30%': 50, 
         '<10%': 25
     }
+}
+
+POSTAL_CODE = {
+    "01": "Álava",
+        "02": "Albacete", 
+        "03": "Alicante",
+        "04": "Almería",
+        "05": "Ávila",
+        "06": "Badajoz",
+        "08": "Barcelona",
+        "09": "Burgos",
+        "10": "Cáceres",
+        "11": "Cádiz",
+        "12": "Castellón",
+        "13": "Ciudad Real",
+        "14": "Córdoba",
+        "15": "A Coruña",
+        "16": "Cuenca",
+        "17": "Girona",
+        "18": "Granada",
+        "19": "Guadalajara",
+        "20": "Gipuzkoa",
+        "21": "Huelva",
+        "22": "Huesca",
+        "23": "Jaén",
+        "24": "León",
+        "25": "Lleida",
+        "26": "La Rioja",
+        "27": "Lugo",
+        "28": "Madrid",
+        "29": "Málaga",
+        "30": "Murcia",
+        "31": "Navarra",
+        "32": "Ourense",
+        "33": "Asturias",
+        "34": "Palencia",
+        "35": "Palmas (Las)",
+        "36": "Pontevedra",
+        "37": "Salamanca",
+        "38": "Santa Cruz de Tenerife",
+        "39": "Santander",
+        "40": "Segovia",
+        "41": "Seville",
+        "42": "Soria",
+        "43": "Tarragona",
+        "44": "Teruel",
+        "45": "Toledo",
+        "46": "Valencia",
+        "47": "Valladolid",
+        "48": "Vizcaya",
+        "49": "Zamora",
+        "50": "Zaragoza",
+        "51": "Ceuta",
+        "52": "Melilla"
 }
