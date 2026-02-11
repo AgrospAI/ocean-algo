@@ -1,0 +1,29 @@
+[project]
+name = "algorithm"
+version = "0.1.0"
+description = ""
+authors = [{ name = "AgrospAI", email = "agrospai@udl.cat" }]
+requires-python = ">=3.10,<3.13"
+readme = "README.md"
+license = { file = "LICENSE" }
+dependencies = [
+    "httpx>=0.28.1",
+    "jinja2>=3.1.6",
+    "jsonschema>=4.26.0",
+    "ocean-runner>=0.2.31",
+    "pandas>=2.3.3",
+    "pytest>=8.3.4,<9",
+    "returns[compatible-mypy]>=0.26.0",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+
+[tool.mypy]
+plugins = ["returns.contrib.mypy.returns_plugin"]
+
+[dependency-groups]
+dev = ["ruff>=0.14.13", "types-aiofiles>=25.1.0.20251011"]
