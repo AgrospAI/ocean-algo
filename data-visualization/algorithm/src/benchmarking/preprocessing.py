@@ -1,7 +1,7 @@
 import re
 import unicodedata
 
-import pandas as pd
+import pandas as pd  # type: ignore
 
 from .config_schema import (
     CNAE_MAP,
