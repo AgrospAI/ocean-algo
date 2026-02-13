@@ -315,7 +315,7 @@ def compare_ordinal(company_row, aggregate_block):
 
 def compare_responses(company_row: pd.DataFrame, aggregate_block: dict):
     max_dim: int = max(cfg["dimension"] for cfg in QUESTION_REGISTRY.values())
-    result = [[] for _ in range(max_dim + 1)]
+    result: list = [[] for _ in range(max_dim + 1)]
 
     all_questions = aggregate_block.get("all_questions", {})
 

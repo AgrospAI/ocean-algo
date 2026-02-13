@@ -1,17 +1,17 @@
 import asyncio
 import logging
 from pathlib import Path
-from typing import List, Tuple, TypeAlias
+from typing import Any, Dict, List, Tuple, TypeAlias
 
 import aiofiles
 import httpx
 import jinja2
-import pandas as pd  # type: ignore  # type: ignore
+import pandas as pd  # type: ignore
+from jsonschema import Draft202012Validator, ValidationError  # type: ignore
 from ocean_runner import Algorithm, Config
-from returns.io import IOFailure, IOSuccess
+from returns.io import IOFailure, IOResult, IOSuccess
 from returns.result import Failure, Success
 
-from src.aggregate import Aggregate, get_aggregate
 from src.benchmarking.config_schema import DIMENSION_LABELS
 from src.benchmarking.preprocessing import (
     calculate_maturity_kpis,
@@ -21,8 +21,9 @@ from src.benchmarking.preprocessing import (
 from src.benchmarking.requests import ObjectType, get_object, make_request
 from src.data import InputParameters
 
-ResultT: TypeAlias = List[Tuple[str, str]]
+ResultT: TypeAlias = List[IOResult[Tuple[str, str], Algorithm.Error]]
 algorithm = Algorithm[InputParameters, ResultT](Config(custom_input=InputParameters))
+Aggregate: TypeAlias = Dict[str, Dict[str, Any]]
 
 
 @algorithm.validate
@@ -38,8 +39,8 @@ async def validate(algorithm: Algorithm[InputParameters, ResultT]) -> None:
         case IOSuccess(Success(_)):
             algorithm.logger.info("API Healthcheck done")
         case IOFailure(Failure(error)):
-            algorithm.logger.error("Checking API health")
-            raise Algorithm.Error from error
+            algorithm.logger.error(error)
+            raise Algorithm.Error("API is not healthy") from error
 
 
 async def benchmark(
@@ -47,7 +48,7 @@ async def benchmark(
     aggregate: Aggregate,
     survey: pd.DataFrame,
     url: str,
-) -> Tuple[str, str]:
+) -> IOResult[Tuple[str, str], Algorithm.Error]:
     algorithm.logger.info(f"Benchmarking {did}")
 
     survey = process_survey(survey)
@@ -60,24 +61,26 @@ async def benchmark(
     )
 
     match translations_response:
-        case IOFailure(Failure(error)):
-            raise Algorithm.Error from error
         case IOSuccess(Success(response)):
             translations = response.json()
+        case IOFailure(Failure(error)):
+            return IOFailure(Algorithm.Error(error))
 
     match template_response:
-        case IOFailure(Failure(error)):
-            raise Algorithm.Error from error
         case IOSuccess(Success(response)):
             template = jinja2.Template(response.text)
+        case IOFailure(Failure(error)):
+            return IOFailure(Algorithm.Error(error))
 
-    return (
-        did,
-        template.render(
-            **comparison,
-            translations=translations,
-            dimension_labels=DIMENSION_LABELS,
-        ),
+    return IOSuccess(
+        (
+            did,
+            template.render(
+                **comparison,
+                translations=translations,
+                dimension_labels=DIMENSION_LABELS,
+            ),
+        )
     )
 
 
@@ -108,20 +111,40 @@ async def run_benchmarks(
     )
 
 
+class AggregateError(Exception): ...
+
+
+async def get_aggregate(url: str) -> IOResult[Aggregate, AggregateError]:  # type: ignore[return]
+    match await get_object(url, ObjectType.AGGREGATE_SCHEMA):
+        case IOFailure(Failure(error)):
+            return IOFailure(AggregateError(error))
+
+        case IOSuccess(Success(response)):
+            validator = Draft202012Validator(response.json())
+
+            match await get_object(url, ObjectType.AGGREGATE):
+                case IOSuccess(Success(aggregate)):
+                    try:
+                        data = aggregate.json()
+                        validator.validate(data)
+                        return IOSuccess(data)
+                    except ValidationError as e:
+                        return IOFailure(AggregateError(e))
+                case IOFailure(Failure(error)):
+                    return IOFailure(AggregateError(error))
+
+
 @algorithm.run
 async def run(algorithm: Algorithm[InputParameters, ResultT]) -> ResultT:  # type: ignore[return]
     parameters = await algorithm.job_details.input_parameters()
     assert parameters is not None
 
-    match await get_aggregate(parameters):
+    match await get_aggregate(parameters.aggregate_api.url):
         case IOSuccess(Success(aggregate)):
             algorithm.logger.info("Running benchmarks")
             return await run_benchmarks(algorithm, aggregate)
         case IOFailure(Failure(error)):
-            algorithm.logger.error("ERROR getting aggregate")
-            raise Algorithm.Error from error
-        case _:
-            algorithm.logger.error("??")
+            algorithm.logger.error(error)
 
 
 @algorithm.save_results
@@ -130,6 +153,15 @@ async def save(
     result: ResultT,
     base: Path,
 ) -> None:
+    async def save_render_batch(
+        result: IOResult[Tuple[str, str], Algorithm.Error],
+    ) -> None:
+        match result:
+            case IOSuccess(Success((did, render))):
+                await save_render(render, path(did))
+            case IOFailure(Failure(error)):
+                algorithm.logger.error(error)
+
     async def save_render(render: str, path: Path) -> None:
         async with aiofiles.open(path, "w+") as f:
             await f.write(render)
@@ -138,7 +170,8 @@ async def save(
         return base / f"{did}.html"
 
     assert result is not None
-    await asyncio.gather(*(save_render(render, path(did)) for did, render in result))
+
+    await asyncio.gather(*(save_render_batch(res) for res in result))
 
 
 if __name__ == "__main__":

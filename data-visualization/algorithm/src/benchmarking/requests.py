@@ -27,7 +27,8 @@ async def make_request(request: httpx.Request) -> IOResult[httpx.Response, EXCEP
 
 
 async def get_object(  # type: ignore[return]
-    endpoint: str, object_type: ObjectType
+    endpoint: str,
+    object_type: ObjectType,
 ) -> IOResult[httpx.Response, EXCEPTION]:
     match object_type:
         case (
