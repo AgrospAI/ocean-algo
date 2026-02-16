@@ -310,7 +310,7 @@ POSTAL_CODE = {
         "38": "Santa Cruz de Tenerife",
         "39": "Santander",
         "40": "Segovia",
-        "41": "Seville",
+        "41": "Sevilla",
         "42": "Soria",
         "43": "Tarragona",
         "44": "Teruel",
@@ -322,4 +322,100 @@ POSTAL_CODE = {
         "50": "Zaragoza",
         "51": "Ceuta",
         "52": "Melilla"
+}
+
+REGION_COORDINATES = {
+    # --- Andalucía ---
+    'Almería': {'lat': 36.8340, 'lon': -2.4637},
+    'Cádiz': {'lat': 36.5271, 'lon': -6.2886},
+    'Córdoba': {'lat': 37.8882, 'lon': -4.7663},
+    'Granada': {'lat': 37.1773, 'lon': -3.5898},
+    'Huelva': {'lat': 37.2614, 'lon': -6.9447},
+    'Jaén': {'lat': 37.7796, 'lon': -3.7849},
+    'Málaga': {'lat': 36.7196, 'lon': -4.4203},
+    'Sevilla': {'lat': 37.3891, 'lon': -5.9845},
+
+    # --- Aragón ---
+    'Huesca': {'lat': 42.1361, 'lon': -0.4087},
+    'Teruel': {'lat': 40.3456, 'lon': -1.1065},
+    'Zaragoza': {'lat': 41.6488, 'lon': -0.8891},
+
+    # --- Asturias ---
+    'Asturias': {'lat': 43.3619, 'lon': -5.8494}, # Oviedo
+
+    # --- Baleares ---
+    'Palma de Mallorca': {'lat': 39.5696, 'lon': 2.6502},
+    'Illes Balears': {'lat': 39.6953, 'lon': 3.0176}, # Por si usas el nombre de provincia
+
+    # --- Canarias ---
+    'Las Palmas': {'lat': 28.1235, 'lon': -15.4363},
+    'Santa Cruz de Tenerife': {'lat': 28.4674, 'lon': -16.2538},
+
+    # --- Cantabria ---
+    'Cantabria': {'lat': 43.4623, 'lon': -3.8050}, # Santander
+
+    # --- Castilla-La Mancha ---
+    'Albacete': {'lat': 38.9943, 'lon': -1.8585},
+    'Ciudad Real': {'lat': 38.9848, 'lon': -3.9274},
+    'Cuenca': {'lat': 40.0704, 'lon': -2.1374},
+    'Guadalajara': {'lat': 40.6328, 'lon': -3.1602},
+    'Toledo': {'lat': 39.8564, 'lon': -4.0199},
+
+    # --- Castilla y León ---
+    'Ávila': {'lat': 40.6565, 'lon': -4.7019},
+    'Burgos': {'lat': 42.3439, 'lon': -3.6969},
+    'León': {'lat': 42.5987, 'lon': -5.5671},
+    'Palencia': {'lat': 42.0095, 'lon': -4.5286},
+    'Salamanca': {'lat': 40.9701, 'lon': -5.6635},
+    'Segovia': {'lat': 40.9429, 'lon': -4.1088},
+    'Soria': {'lat': 41.7666, 'lon': -2.4790},
+    'Valladolid': {'lat': 41.6523, 'lon': -4.7245},
+    'Zamora': {'lat': 41.5063, 'lon': -5.7446},
+
+    # --- Catalunya ---
+    'Barcelona': {'lat': 41.3851, 'lon': 2.1734},
+    'Girona': {'lat': 41.9794, 'lon': 2.8214},
+    'Lleida': {'lat': 41.6176, 'lon': 0.6200},
+    'Tarragona': {'lat': 41.1189, 'lon': 1.2445},
+
+    # --- Comunitat Valenciana ---
+    'Alicante': {'lat': 38.3452, 'lon': -0.4810},
+    'Castellón': {'lat': 39.9864, 'lon': -0.0513},
+    'Valencia': {'lat': 39.4699, 'lon': -0.3763},
+
+    # --- Extremadura ---
+    'Badajoz': {'lat': 38.8797, 'lon': -6.9706},
+    'Cáceres': {'lat': 39.4753, 'lon': -6.3723},
+
+    # --- Galicia ---
+    'A Coruña': {'lat': 43.3724, 'lon': -8.3898},
+    'Lugo': {'lat': 43.0121, 'lon': -7.5558},
+    'Ourense': {'lat': 42.3358, 'lon': -7.8639},
+    'Pontevedra': {'lat': 42.4299, 'lon': -8.6446},
+
+    # --- Madrid ---
+    'Madrid': {'lat': 40.4168, 'lon': -3.7038},
+
+    # --- Murcia ---
+    'Murcia': {'lat': 37.9922, 'lon': -1.1307},
+
+    # --- Navarra ---
+    'Navarra': {'lat': 42.8125, 'lon': -1.6458}, # Pamplona
+
+    # --- País Vasco ---
+    'Bilbao': {'lat': 43.2630, 'lon': -2.9350},
+    'Bizkaia': {'lat': 43.2630, 'lon': -2.9350}, # Nombre en euskera
+    'Gipuzkoa': {'lat': 43.3183, 'lon': -1.9812}, # San Sebastián
+    'Álava': {'lat': 42.8467, 'lon': -2.6716},   # Vitoria
+    'Araba': {'lat': 42.8467, 'lon': -2.6716},   # Nombre en euskera
+
+    # --- La Rioja ---
+    'La Rioja': {'lat': 42.4627, 'lon': -2.4450},
+
+    # --- Ciudades Autónomas ---
+    'Ceuta': {'lat': 35.8894, 'lon': -5.3213},
+    'Melilla': {'lat': 35.2923, 'lon': -2.9381},
+
+    # --- Fallback ---
+    'Unknown': {'lat': 40.0000, 'lon': -4.0000}
 }
