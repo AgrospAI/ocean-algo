@@ -1,7 +1,0 @@
-numpy
-pathlib
-oceanprotocol-job-details==0.0.12
-torch
-torchvision
-pillow
-opencv-python

@@ -1,0 +1,5 @@
+{
+  "token": "",
+  "embedding_url": "https://chat.agrospai.udl.cat/ollama/api/embed",
+  "is_zipped": true
+}
