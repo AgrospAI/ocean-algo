@@ -1,8 +1,12 @@
 {
-  "company_profile_cnae": "Clasificación CNAE",
-  "company_size": "Tamaño",
-  "province": "Provincia",
-  "sample_size": "Muestra",
+  "company_profile_cnae_key": "Clasificación CNAE",
+  "company_profile_cnae_description": "",
+  "company_size_key": "Tamaño",
+  "company_size_description": "Tamaño de las empresas comparadas (número empleados)",
+  "province_key": "Provincia",
+  "province_description": "",
+  "sample_size_key": "Muestra",
+  "sample_size_description": "Número de empresas que pasan el filtro con las que se compara",
   "two_factor_authentication": "Autenticación de dos factores (2FA)",
   "continuity_and_recovery_plans": "Planes de continuidad y recuperación",
   "microsoft_365_usage": "Uso de Microsoft 365",
@@ -36,7 +40,18 @@
   "market-detail-chart": "Gráfico de la cuota del mercado de las diferentes dimensiones.",
   "KPI_OPERATIONS": "Operacional",
   "KPI_SECURITY": "Seguridad",
-  "KPI_BUSINESS": "Empresarial",
+  "KPI_BUSINESS": "Negocio Digital",
   "KPI_CULTURE": "Cultural",
-  "GLOBAL_SCORE": "Puntuación Global"
+  "GLOBAL_SCORE": "Puntuación Global",
+
+  "above_p75": "Posicionamiento Avanzado",
+  "between_median_p75": "Por Encima de la Media Sectorial",
+  "between_p25_median": "En Línea con el Mercado",
+  "below_p25": "Por Debajo del Mercado",
+  "fortalezas_y_areas_de_mejora": "Fortalezas y Áreas de Mejora",
+  "brechas_en_adopcion_tecnologica": "Brechas en Adopción Tecnológica",
+  "posicionamiento_avanzado": "Posicionamiento Avanzado",
+  "ventajas_y_brechas_relativas": "Ventajas y Brechas Relativas",
+  "adopcion_superior_intro": "La empresa muestra una adopción superior al mercado en:",
+  "adopcion_inferior_intro": "Existen oportunidades de mejora en:"
 }

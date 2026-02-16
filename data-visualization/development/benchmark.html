@@ -6,44 +6,97 @@
 
     <style>
         html { scroll-behavior: smooth; }
-        body { font-family: Inter, Arial, sans-serif; color: #1f2937; line-height: 1.55; align-content: center; background: #f4f7f6}
-        h1 { font-size: 2.2em; margin-bottom: 0.2em; color: #0062a4; }
-        h2 { margin-top: 48px; padding-bottom: 6px; border-bottom: 2px solid #e5e7eb; color: #0062a4; }
-        h3 { margin-top: 32px; color: #0062a4; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; color: #333; background: #f4f7f6; }
+        h1 { font-size: 2.2em; margin: 0; color: #0062a4; }
+        h2 { color: #0062a4; border-left: 5px solid #2ecc71; padding-left: 15px; margin: 0; page-break-after: avoid; }
+        h3 { color: #0062a4; margin: 0; }
         ol { padding: 0 48px; }
         li { color: #0062a4 ; }
         strong { color: #0062a4; }
-        p.muted { color: #6b7280; font-size: 0.95em; }
+        .odd-row { background-color: #4a91e22b; }
+        .muted { color: #6b7280; font-size: 0.95em; }
         a:visited { color: #0062a4; }
-        table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+        table { width: 100%; border-collapse: collapse; }
         th { background: #f9fafb; font-weight: 600; }
         img { object-fit: scale-down; }
         table caption { caption-side: bottom; font-size: medium; }
         table th { background: #003366; color: white; padding: 8px; text-align: center;  }
-        table td { border-bottom: 1px solid #eee; padding: 8px; vertical-align: top; text-align: center; }
-        footer { display: flex; align-content: center; justify-content: center; padding: 2rem 0 0 0; margin: 0 auto; } 
-        .caption { padding-top: 1rem; }
-        .detail { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .content { padding: 0 40px; width: 900px; box-shadow: 0 0 10px rgba(0,0,0,0.1); margin: 0 auto; background: white; }
-        .resume { display: flex; justify-content: space-between; padding: 0 10rem 1rem 10rem; }
+        table td { border-bottom: 1px solid #eee; padding: 8px; vertical-align: center; text-align: center; }
+        footer { text-align: center; font-size: 11px; color: #999; border-top: 1px solid #eee; padding: 2rem 0; }
+        .kpi-row { display: flex; justify-content: space-between; gap: 2rem; }
+        .kpi-card { background: #eef2f5; padding: 20px; border-radius: 8px; width: 30%; text-align: center; border-top: 4px solid #0062a4; display: flex; flex-direction: column; gap: 0.2rem; }
+        .kpi-value { font-size: 32px; font-weight: bold; color: #0062a4; }
+        .caption { padding-top: 1rem; font-size: 13px; }
+        .detail { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #0062a4; text-style: italic; }
+        .content { padding: 40px; width: 900px; box-shadow: 0 0 10px rgba(0,0,0,0.1); margin: 0 auto; background: white; display: flex; flex-direction: column; gap: 2rem; }
+        .methodology-box { background: #fff; border: 1px solid #ddd; padding: 15px; border-radius: 5px; }
+        small { color: #666; font-size: 11px; }
         .small { font-size: 13px; }
         .li-section { font-size: x-large; }
-        .col { display: flex; flex-direction: column; }
-        .logo { height: 100px; width: 300px; padding-left: 2rem; }
-        .header { background: #0062a4; width: auto; height: 150px; align-content: center; }
+        .logo { height: 100%; padding-left: 1rem; }
+        .header { background: #0062a4; width: auto; height: 70px; align-content: center; padding: 1rem; }
+        .resume { border-bottom: 3px solid #0062a4; padding-bottom: 2rem; }
         .badge { padding: 4px 10px; border-radius: 14px; font-size: 0.8em; font-weight: 600; white-space: nowrap; }
         .good { background: #0062a4; color: white; }
         .avg  { background: #fef3c7; color: #92400e; }
         .bad  { background: #fee2e2; color: #991b1b; }
-        .section { margin-top: 48px; display: flex; flex-direction: column; gap: 1rem; }
-        .chart { margin: 18px auto; text-align: center; max-width: 400px; max-height: 400px;}
-        .grid { display: grid; grid-template-columns: 1fr 1fr; align-items: center; }
+        .section { display: flex; flex-direction: column; gap: 0.5rem; }
+        .chart { margin: 18px auto; text-align: center; max-width: 400px; max-height: 400px; gap: 1rem; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; align-items: center; padding: 1rem 0; }
         .dimension-header { background-color: #4a90e2; color: white; font-weight: bold; text-align: left; }
-        .question-row { background-color: #e6f0fa; }
         .indent { padding-left: 1rem; display: flex}
         .indent2 { padding-left: 2rem; display: flex}
-        tr.hoverable:hover, .adoption-row:hover { background: #f9fafb; cursor: pointer; }
-        @media print { body { margin: 20px; } }
+
+        .scoring-grid { display: flex; flex-wrap: wrap; gap: 15px; }
+        .scoring-card { flex: 1; min-width: 180px; background: #f8f9fa; border-left: 4px solid #0062a4; border-radius: 4px; padding: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .scoring-card h4 { color: #0062a4; margin: 0 0 10px 0; font-size: 13px; text-transform: uppercase; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
+        .score-row { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px; color: #555; }
+        .score-val { font-weight: bold; color: #27ae60; }
+
+        .conclusion { padding: 25px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .conclusion ul { list-style-type: square; }
+        .conclusion li { font-size: 0.95em; color: #333; } 
+        .conclusion strong { color: #0062a4; }
+        
+        .row { display: flex; justify-content: space-between; }
+        .print-btn { padding: 10px 20px; background: #0062a4; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: bold; float: right; margin-top: -10px; }
+        
+        .print-btn:hover { background-color: #004d80; }
+        
+        tr.hoverable:hover, .adoption-row:hover { opacity: 0.9; cursor: pointer; }
+        
+        @media print {
+        @page { size: A4; margin: 15mm 15mm; }
+ 
+        body {
+            background-color: white;
+            -webkit-print-color-adjust: exact; /* OBLIGATORIO: Para que salgan los colores de fondo y barras */
+            print-color-adjust: exact;
+            margin: 0;
+            padding: 0;
+        }
+ 
+        .container {
+            width: 100% !important; /* Que ocupe todo el ancho del papel */
+            max-width: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            box-shadow: none !important; /* Quitar la sombra de la "hoja" web */
+            border: none !important;
+        }
+ 
+        .section {
+            page-break-inside: avoid;
+            break-inside: avoid;
+            margin-bottom: 20px; /* Espacio entre secciones */
+        }
+ 
+        h2 { page-break-after: avoid; break-after: avoid; }
+ 
+        .actions, .no-print { display: none !important; }
+        .page-break { page-break-before: always; }
+        body, p, td, th { font-size: 12pt; color: #000; }
+        }
     </style>
 
     <!-- Chart.js -->
@@ -56,35 +109,227 @@
     <img src="https://disi.tareando.es/img/disiLogoTareandoBlanco.png" alt="Tareando Logo" class="logo"/>
 </header>
 
-<h1>Informe Digital de Referencia</h1>
-<p class="muted col">
-    <div class="resume">
+<div class="resume row">
+    <div>
+        <h1>Informe Digital de Referencia</h1>
+        <div class="subtitle">Informe estratégico | 16 Feb 2026</div> 
+    </div>
+    <div class="actions">
+        <button onclick="window.print()" class="print-btn">
+            📄 Guardar como PDF
+        </button>
+    </div>
+</div>
+
+
+<div class="section">
+    <h2>Descripción breve y objetivo del informe</h2>
+    <p>
+        Este informe presenta un análisis digital de referencia orientado a la comparación estructurada entre las respuestas proporcionadas por la empresa evaluada y los resultados agregados correspondientes al filtro sectorial aplicado. A lo largo del documento se incluyen diversas tablas y representaciones gráficas diseñadas para facilitar la interpretación comparativa de los principales indicadores, permitiendo identificar posicionamientos relativos, fortalezas diferenciales y posibles áreas de mejora en relación con el conjunto de empresas del sector.
+    </p>
+    
+    <div class="kpi-row">
         
-            <span><strong data-key=company_profile_cnae></strong>: <i data-key=Tecnología></i></span> 
+            
+                <div class="kpi-card">
+                    <span class="kpi-value" data-key=Tecnología></span><br>
+                    <span data-key=company_profile_cnae_key></span><br>
+                    <small data-key=company_profile_cnae_description></small><br>
+                </div>
+            
         
-            <span><strong data-key=company_size></strong>: <i data-key=Mediana></i></span> 
+            
+                <div class="kpi-card">
+                    <span class="kpi-value" data-key=Mediana></span><br>
+                    <span data-key=company_size_key></span><br>
+                    <small data-key=company_size_description></small><br>
+                </div>
+            
         
-            <span><strong data-key=sample_size></strong>: <i data-key=12></i></span>
+            
+                <div class="kpi-card">
+                    <span class="kpi-value" data-key=12></span><br>
+                    <span data-key=sample_size_key></span><br>
+                    <small data-key=sample_size_description></small><br>
+                </div>
+            
         
     </div>
-    
-    <span>
-        <strong>Informe Digital de Referencia</strong> para la comparación estructurada entre las respuestas proporcionadas y el sector proporcionado. A continuación se mostrarán diferentes tablas y gráficos con el objetivo de comparar las cualidades de la empresa proporcionada en comparación con las agregadas.
-    </span>
-</p>
+</div>
 
-<ol>
 <!-- ================= KPI RADAR + GLOBAL SCORE ================= -->
-<h3>Índice</h3>
-    <ol>
-        <li><a href="#indices-globales">Valores KPI y Puntuación Global</a></li>
-        <li><a href="#adopcion-tecnologica">Adopción Tecnológica</a></li>
-        <li><a href="#posicion-mercado">Posición del Mercado</a></li>
-        <li><a href="#respuestas">Respuestas</a></li>
-    </ol>
 <div class="section">
-    <strong id="indices-globales"><li class="li-section">Valores KPI y Puntuación Global</li></strong>
-    <p class="muted">Radar de cualidades <a href="#kpi-description"><i>Key Performance Indicator (KPI)</i></a> y Puntuación Global (media de KPIs) comparada con las medianas del sector. Además de los datos originales de las gráficas y la explicación de cada KPI. És un buen indicativo del nivel general comparado con el sector especificado.</p>
+    <h2 id="logica-puntuacion">Lógica de Puntuación</h2>
+    <p>La puntuación global de madurez digital se calcula a partir de cuatro dimensiones clave: Operaciones, Negocio Digital, Ciberseguridad y Cultura Digital. Cada dimensión se compone de varias preguntas específicas que se ponderan para reflejar su importancia relativa en la madurez digital general.</p>
+    <div class="methodology-box">
+        <div class="scoring-grid">
+        
+            <div class="scoring-card">
+                <h4>Respuestas Estándar</h4>
+
+                
+                    <div class="score-row">
+                        <span>Sí</span>
+                        <span class="score-val">100 pts</span>
+                    </div>
+                
+                    <div class="score-row">
+                        <span>Parcial / En desarrollo</span>
+                        <span class="score-val">50 pts</span>
+                    </div>
+                
+                    <div class="score-row">
+                        <span>No / Ninguno</span>
+                        <span class="score-val">0 pts</span>
+                    </div>
+                
+
+            </div>
+        
+            <div class="scoring-card">
+                <h4>Infraestructura TI</h4>
+
+                
+                    <div class="score-row">
+                        <span>Cloud (Nube)</span>
+                        <span class="score-val">100 pts</span>
+                    </div>
+                
+                    <div class="score-row">
+                        <span>Híbrida</span>
+                        <span class="score-val">70 pts</span>
+                    </div>
+                
+                    <div class="score-row">
+                        <span>On-premise (Local)</span>
+                        <span class="score-val">30 pts</span>
+                    </div>
+                
+
+            </div>
+        
+            <div class="scoring-card">
+                <h4>Inteligencia Artificial</h4>
+
+                
+                    <div class="score-row">
+                        <span>En producción</span>
+                        <span class="score-val">100 pts</span>
+                    </div>
+                
+                    <div class="score-row">
+                        <span>En piloto</span>
+                        <span class="score-val">75 pts</span>
+                    </div>
+                
+                    <div class="score-row">
+                        <span>Explorando</span>
+                        <span class="score-val">40 pts</span>
+                    </div>
+                
+                    <div class="score-row">
+                        <span>No</span>
+                        <span class="score-val">0 pts</span>
+                    </div>
+                
+
+            </div>
+        
+            <div class="scoring-card">
+                <h4>Ingresos / Digitalización</h4>
+
+                
+                    <div class="score-row">
+                        <span>Alto (>60% / 76-100%)</span>
+                        <span class="score-val">100 pts</span>
+                    </div>
+                
+                    <div class="score-row">
+                        <span>Medio (30-60% / 51-75%)</span>
+                        <span class="score-val">75 pts</span>
+                    </div>
+                
+                    <div class="score-row">
+                        <span>Bajo (10-30% / 26-50%)</span>
+                        <span class="score-val">50 pts</span>
+                    </div>
+                
+                    <div class="score-row">
+                        <span>Nulo (<10% / 0-25%)</span>
+                        <span class="score-val">25 pts</span>
+                    </div>
+                
+
+            </div>
+        
+        </div>
+    </div>
+</div>
+
+<div class="section">
+    <h2 id="metodologia-evaluacion">Metodología de Evaluación</h2>
+    <p>Para obtener una radiografía precisa de la madurez digital, no nos basamos en una única métrica. Nuestro algoritmo evalúa la empresa desde cuatro dimensiones estratégicas (KPIs), asignando un peso específico a cada respuesta según su impacto real en el negocio.<br />La puntuación global (0-100) es el resultado ponderado de estos cuatro pilares. A continuación, desglosamos la "fórmula" exacta utilizada para calcular cada indicador, detallando qué preguntas componen cada bloque y cuánto influyen en la nota final: </p>
+    <div class="methodology-box"><table id="kpi-description" class="small">
+        <tr>
+            <th>KPI (Dimensión)</th>
+            <th>Qué mide</th>
+            <th>Columnas / Preguntas utilizadas</th>
+        </tr>
+        <tr>
+            <td><strong>Eficiencia Operativa</strong></td>
+            <td>Nivel de modernización de la infraestructura y procesos.</td>
+            <td>
+                <ul>
+                    <li><em>% Procesos digitalizados (40%)</em></li>
+                    <li><em>Infraestructura (Cloud vs On-Prem) (30%)</em></li>
+                    <li><em>Uso de herramientas colaborativas (15%)</em></li>
+                    <li><em>¿Usas PowerBI para la analítica empresarias de tu negocio? (15%)</em></li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td><strong>Negocio Digital</strong></td>
+            <td>Capacidad de generar valor e ingresos a través de la tecnología.</td>
+            <td>
+                <ul>
+                    <li><em>% Ingresos Digitales (40%)</em></li>
+                    <li><em>Uso de IA para automatización (20%)</em></li>
+                    <li><em>Presencia activa en Internet (20%)</em></li>
+                    <li><em>Uso de marketing digital (20%)</em></li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td><strong>Ciberseguridad</strong></td>
+            <td>Nivel de protección y cumplimiento normativo (Higiene Digital).</td>
+            <td>
+                <ul>
+                    <li><em>Autenticación de Doble Factor (2FA) (25%)</em></li>
+                    <li><em>Planes de Continuidad/Backups (25%)</em></li>
+                    <li><em>Simulacros de Phishing (25%)</em></li>
+                    <li><em>Cumplimiento RGPD/Datos (25%)</em></li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td><strong>Cultura Digital</strong></td>
+            <td>Capacitación y preparación del capital humano.</td>
+            <td>
+                <ul>
+                    <li><em>% Empleados con skills avanzados (25%)</em></li>
+                    <li><em>Formación específica en Ciberseguridad (25%)</em></li>
+                    <li><em>¿Existe política de uso aceptable para el teletrabajo? (25%)</em></li>
+                    <li><em>¿Qué porcentaje de tus empleados usan antivirus? (25%)</em></li>
+                </ul>
+            </td>
+        </tr>
+    </table></div>
+</div>
+
+<div class="section">
+    <h2 id="indices-globales">Indicadores Clave</h2>
+    <p>A continuación presentamos un gráfico de radar de los Indicadores Clave de Desempeño (KPI) y la Puntuación Global (promedio de KPIs) en comparación con las medianas del sector filtrado y del agregado total; incluídas tablas con los datos originales de las gráficas. Representa un indicador fiable del nivel competitivo general frente al sector de referencia y el global.</p>
+
     <div class="grid">
         <div class="chart">
             <canvas id="kpi-radar-chart" width="400" height="400"></canvas>
@@ -100,12 +345,16 @@
             <tr>
                 <th>KPI</th>
                 <th>Puntuación</th>
-                <th>Mediana</th>
-                <th>Diferencia</th>
-                <th>Posición</th>
+                <th>Mediana Sectorial</th>
+                <th>Diferencia Sectorial</th>
+                <th>Posición Sectorial</th>
+                <th>Mediana Agregada</th>
+                <th>Diferencia Agregada</th>
             </tr>
             
+            
             <tr>
+            
             <td class="i18n" data-key=KPI_OPERATIONS />
             <td><strong>80.0</strong></td>
             <td>79.2</td>
@@ -119,9 +368,17 @@
                     <span class="badge good">Por encima de la media</span>
                 
             </td>
+            <td>67.76</td>
+            <td>
+            
+            <span class="badge good">+12.24</span>
+            
+            </td>
         </tr>
         
-            <tr>
+            
+            <tr class="odd-row">
+            
             <td class="i18n" data-key=KPI_BUSINESS />
             <td><strong>58.0</strong></td>
             <td>56.5</td>
@@ -135,9 +392,17 @@
                     <span class="badge good">Por encima de la media</span>
                 
             </td>
+            <td>43.92</td>
+            <td>
+            
+            <span class="badge good">+14.08</span>
+            
+            </td>
         </tr>
         
+            
             <tr>
+            
             <td class="i18n" data-key=KPI_SECURITY />
             <td><strong>75.0</strong></td>
             <td>50.0</td>
@@ -151,9 +416,17 @@
                     <span class="badge good">Por encima de la media</span>
                 
             </td>
+            <td>57.64</td>
+            <td>
+            
+            <span class="badge good">+17.36</span>
+            
+            </td>
         </tr>
         
-            <tr>
+            
+            <tr class="odd-row">
+            
             <td class="i18n" data-key=KPI_CULTURE />
             <td><strong>68.8</strong></td>
             <td>50.0</td>
@@ -167,9 +440,17 @@
                     <span class="badge good">Por encima de la media</span>
                 
             </td>
+            <td>59.73</td>
+            <td>
+            
+            <span class="badge good">+9.07</span>
+            
+            </td>
         </tr>
         
+            
             <tr>
+            
             <td class="i18n" data-key=GLOBAL_SCORE />
             <td><strong>71.8</strong></td>
             <td>58.1</td>
@@ -183,72 +464,22 @@
                     <span class="badge good">Por encima de la media</span>
                 
             </td>
+            <td>57.38</td>
+            <td>
+            
+            <span class="badge good">+14.42</span>
+            
+            </td>
         </tr>
         
         </tbody>
     </table>
-    <table id="kpi-description" class="methodology-table small">
-        <tr>
-            <th>KPI (Dimensión)</th>
-            <th>Qué mide</th>
-            <th>Columnas / Preguntas utilizadas</th>
-        </tr>
-        <tr>
-            <td><strong>Eficiencia Operativa</strong><br>(KPI Operacional)</td>
-            <td>Nivel de modernización de la infraestructura y procesos.</td>
-            <td>
-                <ul>
-                    <li><em>% Procesos digitalizados (40%)</em></li>
-                    <li><em>Infraestructura (Cloud vs On-Prem) (30%)</em></li>
-                    <li><em>Uso de herramientas colaborativas (15%)</em></li>
-                    <li><em>¿Usas PowerBI para la analítica empresarias de tu negocio? (15%)</em></li>
-                </ul>
-            </td>
-        </tr>
-        <tr>
-            <td><strong>Negocio Digital</strong><br>(KPI Empresarial)</td>
-            <td>Capacidad de generar valor e ingresos a través de la tecnología.</td>
-            <td>
-                <ul>
-                    <li><em>% Ingresos Digitales (40%)</em></li>
-                    <li><em>Uso de IA para automatización (20%)</em></li>
-                    <li><em>Presencia activa en Internet (20%)</em></li>
-                    <li><em>Uso de marketing digital (20%)</em></li>
-                </ul>
-            </td>
-        </tr>
-        <tr>
-            <td><strong>Ciberseguridad</strong><br>(KPI Seguridad)</td>
-            <td>Nivel de protección y cumplimiento normativo (Higiene Digital).</td>
-            <td>
-                <ul>
-                    <li><em>Autenticación de Doble Factor (2FA) (25%)</em></li>
-                    <li><em>Planes de Continuidad/Backups (25%)</em></li>
-                    <li><em>Simulacros de Phishing (25%)</em></li>
-                    <li><em>Cumplimiento RGPD/Datos (25%)</em></li>
-                </ul>
-            </td>
-        </tr>
-        <tr>
-            <td><strong>Cultura Digital</strong><br>(KPI Cultural)</td>
-            <td>Capacitación y preparación del capital humano.</td>
-            <td>
-                <ul>
-                    <li><em>% Empleados con skills avanzados (25%)</em></li>
-                    <li><em>Formación específica en Ciberseguridad (25%)</em></li>
-                    <li><em>¿Existe política de uso aceptable para el teletrabajo? (25%)</em></li>
-                    <li><em>¿Qué porcentaje de tus empleados usan antivirus? (25%)</em></li>
-                </ul>
-            </td>
-        </tr>
-    </table>
-    
 </div>
 
 <!-- ================= ADOPTION (INTERACTIVE) ================= -->
 <div class="section">
-    <strong id="adopcion-tecnologica"><li class="li-section">Adopción Tecnológica</li></strong>
-    <p class="muted">Comparativa entre las competencias proporcionadas y la su adopción en el sector.</p>
+    <h2 id="adopcion-tecnologica">Adopción Tecnológica</h2>
+    <p>Este análisis de adopción sectorial ofrece una perspectiva objetiva sobre la singularidad del perfil empresarial. Contrastando las competencias poseídas con las del mercado para ayudar a categorizar si la empresa cumple con la norma general o si tiene características de alta especialización.</p>
     <div class="grid">
         <div>
             <table id="adoption-table" class="small">
@@ -258,79 +489,105 @@
                     <th>Adopción del mercado</th>
                 </tr>
                 
+                
                 <tr class="adoption-row" data-label="remote_work_acceptable_use_policy" data-sector="33.3">
+                
                     <td class="i18n" data-key=remote_work_acceptable_use_policy />
                     <td><span class="badge good">Sí</span></td>
                     <td>33.3%</td>
                 </tr>
                 
-                <tr class="adoption-row" data-label="two_factor_authentication" data-sector="50.0">
+                
+                <tr class="adoption-row odd-row" data-label="two_factor_authentication" data-sector="50.0">
+                
                     <td class="i18n" data-key=two_factor_authentication />
                     <td><span class="badge good">Sí</span></td>
                     <td>50.0%</td>
                 </tr>
                 
+                
                 <tr class="adoption-row" data-label="ai_for_automation_usage" data-sector="33.3">
+                
                     <td class="i18n" data-key=ai_for_automation_usage />
                     <td><span class="badge bad">No</span></td>
                     <td>33.3%</td>
                 </tr>
                 
-                <tr class="adoption-row" data-label="microsoft_365_usage" data-sector="0.0">
+                
+                <tr class="adoption-row odd-row" data-label="microsoft_365_usage" data-sector="0.0">
+                
                     <td class="i18n" data-key=microsoft_365_usage />
                     <td><span class="badge good">Sí</span></td>
                     <td>0.0%</td>
                 </tr>
                 
+                
                 <tr class="adoption-row" data-label="continuous_digital_training" data-sector="33.3">
+                
                     <td class="i18n" data-key=continuous_digital_training />
                     <td><span class="badge good">Sí</span></td>
                     <td>33.3%</td>
                 </tr>
                 
-                <tr class="adoption-row" data-label="phishing_simulations" data-sector="41.7">
+                
+                <tr class="adoption-row odd-row" data-label="phishing_simulations" data-sector="41.7">
+                
                     <td class="i18n" data-key=phishing_simulations />
                     <td><span class="badge bad">No</span></td>
                     <td>41.7%</td>
                 </tr>
                 
+                
                 <tr class="adoption-row" data-label="active_internet_presence" data-sector="41.7">
+                
                     <td class="i18n" data-key=active_internet_presence />
                     <td><span class="badge good">Sí</span></td>
                     <td>41.7%</td>
                 </tr>
                 
-                <tr class="adoption-row" data-label="digital_marketing_use" data-sector="25.0">
+                
+                <tr class="adoption-row odd-row" data-label="digital_marketing_use" data-sector="25.0">
+                
                     <td class="i18n" data-key=digital_marketing_use />
                     <td><span class="badge good">Sí</span></td>
                     <td>25.0%</td>
                 </tr>
                 
+                
                 <tr class="adoption-row" data-label="accessible_digital_sales_channels" data-sector="25.0">
+                
                     <td class="i18n" data-key=accessible_digital_sales_channels />
                     <td><span class="badge good">Sí</span></td>
                     <td>25.0%</td>
                 </tr>
                 
-                <tr class="adoption-row" data-label="regular_patching_and_updates" data-sector="25.0">
+                
+                <tr class="adoption-row odd-row" data-label="regular_patching_and_updates" data-sector="25.0">
+                
                     <td class="i18n" data-key=regular_patching_and_updates />
                     <td><span class="badge good">Sí</span></td>
                     <td>25.0%</td>
                 </tr>
                 
+                
                 <tr class="adoption-row" data-label="incident_response_plan" data-sector="16.7">
+                
                     <td class="i18n" data-key=incident_response_plan />
                     <td><span class="badge good">Sí</span></td>
                     <td>16.7%</td>
                 </tr>
                 
-                <tr class="adoption-row" data-label="continuity_and_recovery_plans" data-sector="25.0">
+                
+                <tr class="adoption-row odd-row" data-label="continuity_and_recovery_plans" data-sector="25.0">
+                
                     <td class="i18n" data-key=continuity_and_recovery_plans />
                     <td><span class="badge good">Sí</span></td>
                     <td>25.0%</td>
                 </tr>
                 
+                
                 <tr class="adoption-row" data-label="data_protection_compliance" data-sector="33.3">
+                
                     <td class="i18n" data-key=data_protection_compliance />
                     <td><span class="badge good">Sí</span></td>
                     <td>33.3%</td>
@@ -339,16 +596,16 @@
             </table>
         </div>
         <div class="chart">
+            <p class="detail" id="adoption-detail-label">Pasa el ratón por encima de la competecia o clica para ver la Adopción del Sector</p>
             <canvas id="adoption-detail-chart" width="200" height="200"></canvas>
-            <p class="muted detail" id="adoption-detail-label">Pasa el ratón por encima de la competecia o clica para ver la Adopción del Sector</p>
         </div>
     </div>
 </div>
 
 <!-- ================= MARKET POSITION ================= -->
 <div class="section">
-    <strong id="posicion-mercado"><li class="li-section">Posición del Mercado</li></strong>
-    <p class="muted">A continuación, mostraremos la posición del mercado (popularidad) de las diferentes dimensiones de las respuestas.</p>
+    <h2 id="posicion-mercado">Posición del Mercado</h2>
+    <p>A continuación, se presenta un desglose del posicionamiento competitivo basado en la popularidad de las respuestas proporcionadas. El objetivo es determinar la frecuencia relativa de cada dimensión organizativa dentro del ecosistema sectorial.</p>
     
     <div class="grid">
         <table id="posicion-mercado" class="small"> 
@@ -359,7 +616,9 @@
                 <th>Cuota de Mercado</th>
             </tr>
             
+            
             <tr class="hoverable market-row"
+            
                 data-dim="average_employee_age"
                 data-share="25.0">
                 <td class="i18n" data-key=average_employee_age />
@@ -368,7 +627,9 @@
                 <td>25.0%</td>
             </tr>
             
-            <tr class="hoverable market-row"
+            
+            <tr class="hoverable market-row odd-row"
+            
                 data-dim="it_outsourcing_level"
                 data-share="58.3">
                 <td class="i18n" data-key=it_outsourcing_level />
@@ -377,7 +638,9 @@
                 <td>58.3%</td>
             </tr>
             
+            
             <tr class="hoverable market-row"
+            
                 data-dim="it_infrastructure_type"
                 data-share="50.0">
                 <td class="i18n" data-key=it_infrastructure_type />
@@ -386,7 +649,9 @@
                 <td>50.0%</td>
             </tr>
             
-            <tr class="hoverable market-row"
+            
+            <tr class="hoverable market-row odd-row"
+            
                 data-dim="erp_in_use"
                 data-share="0.0">
                 <td class="i18n" data-key=erp_in_use />
@@ -395,7 +660,9 @@
                 <td>0.0%</td>
             </tr>
             
+            
             <tr class="hoverable market-row"
+            
                 data-dim="crm_in_use"
                 data-share="0.0">
                 <td class="i18n" data-key=crm_in_use />
@@ -404,7 +671,9 @@
                 <td>0.0%</td>
             </tr>
             
-            <tr class="hoverable market-row"
+            
+            <tr class="hoverable market-row odd-row"
+            
                 data-dim="powerbi_usage"
                 data-share="0.0">
                 <td class="i18n" data-key=powerbi_usage />
@@ -413,7 +682,9 @@
                 <td>0.0%</td>
             </tr>
             
+            
             <tr class="hoverable market-row"
+            
                 data-dim="digital_revenue"
                 data-share="25.0">
                 <td class="i18n" data-key=digital_revenue />
@@ -422,7 +693,9 @@
                 <td>25.0%</td>
             </tr>
             
-            <tr class="hoverable market-row"
+            
+            <tr class="hoverable market-row odd-row"
+            
                 data-dim="antivirus_used"
                 data-share="0.0">
                 <td class="i18n" data-key=antivirus_used />
@@ -431,7 +704,9 @@
                 <td>0.0%</td>
             </tr>
             
+            
             <tr class="hoverable market-row"
+            
                 data-dim="priority_assessment_area"
                 data-share="0.0">
                 <td class="i18n" data-key=priority_assessment_area />
@@ -443,16 +718,14 @@
         </table>
 
         <div class="chart">
+            <p class="detail" id="market-detail-label">Pasa el ratón por encima de la dimensión o clica para ver la Posición del Mercado</p>
             <canvas id="market-detail-chart" width="200" height="200"></canvas>
-            <p class="muted detail" id="market-detail-label">
-                Pasa el ratón por encima de la dimensión o clica para ver la Posición del Mercado
-            </p>
         </div>
     </div>
 </div>
 
 <div class="section">
-    <strong id="respuestas"><li class="li-section">Respuestas</li></strong>
+    <h2 id="respuestas">Respuestas</h2>
     <p class="muted">Por último, mostraremos directamente las respuestas proporcionadas comparadas con los datos agregados. Para leer esta <a href="#respuestas-table">Tabla <span id="table-number"></span></a>, deberemos tener en cuenta que en la columna <i>Comparación sectorial</i> hay dos tipos de datos. Primero, el dato numérico, que es un valor numérico abierto (el caso de <i>Número clientes</i>), en el cual se mostrará la diferencia entre el valor aportado y la mediana del sector. Por último, con el dato categórico, el cual es mayoritario, mostrará el porcentaje del sector que ha proporcionado la misma respuesta que la proporcionada.</p>
 
     <table id="respuestas-table" class="small">
@@ -474,7 +747,9 @@
 
                     
                         
-                        <tr class="question-row">
+                        
+                        <tr class="">
+                        
                             <td><div class="indent2">1. Número de trabajadores</div></td>
                             <td>5</td>
                             <td>
@@ -487,7 +762,9 @@
                         </tr>
                     
                         
-                        <tr class="question-row">
+                        
+                        <tr class="odd-row">
+                        
                             <td><div class="indent2">2. Edad media de los trabajadores</div></td>
                             <td>41-50</td>
                             <td>
@@ -498,7 +775,9 @@
                         </tr>
                     
                         
-                        <tr class="question-row">
+                        
+                        <tr class="">
+                        
                             <td><div class="indent2">3. Número de clientes</div></td>
                             <td>292</td>
                             <td>
@@ -511,7 +790,9 @@
                         </tr>
                     
                         
-                        <tr class="question-row">
+                        
+                        <tr class="odd-row">
+                        
                             <td><div class="indent2">4. Número de proveedores</div></td>
                             <td>231</td>
                             <td>
@@ -524,7 +805,9 @@
                         </tr>
                     
                         
-                        <tr class="question-row">
+                        
+                        <tr class="">
+                        
                             <td><div class="indent2">5. Facturación anual</div></td>
                             <td><1M</td>
                             <td>
@@ -535,7 +818,9 @@
                         </tr>
                     
                         
-                        <tr class="question-row">
+                        
+                        <tr class="odd-row">
+                        
                             <td><div class="indent2">6. Nivel de externalización TI</div></td>
                             <td>Medio</td>
                             <td>
@@ -554,7 +839,9 @@
 
                     
                         
-                        <tr class="question-row">
+                        
+                        <tr class="">
+                        
                             <td><div class="indent2">7. Política de uso aceptable para teletrabajo</div></td>
                             <td>Sí</td>
                             <td>
@@ -565,7 +852,9 @@
                         </tr>
                     
                         
-                        <tr class="question-row">
+                        
+                        <tr class="odd-row">
+                        
                             <td><div class="indent2">8. Acceso remoto seguro</div></td>
                             <td>Sí</td>
                             <td>
@@ -576,7 +865,9 @@
                         </tr>
                     
                         
-                        <tr class="question-row">
+                        
+                        <tr class="">
+                        
                             <td><div class="indent2">9. Autenticación de doble factor (2FA)</div></td>
                             <td>Sí</td>
                             <td>
@@ -587,7 +878,9 @@
                         </tr>
                     
                         
-                        <tr class="question-row">
+                        
+                        <tr class="odd-row">
+                        
                             <td><div class="indent2">10. Tipo de infraestructura TI</div></td>
                             <td>Cloud</td>
                             <td>
@@ -606,7 +899,9 @@
 
                     
                         
-                        <tr class="question-row">
+                        
+                        <tr class="">
+                        
                             <td><div class="indent2">11. Porcentaje de procesos clave digitalizados</div></td>
                             <td>26-50%</td>
                             <td>
@@ -617,7 +912,9 @@
                         </tr>
                     
                         
-                        <tr class="question-row">
+                        
+                        <tr class="odd-row">
+                        
                             <td><div class="indent2">12. ERP utilizado</div></td>
                             <td>A3 / Wolters Kluwer</td>
                             <td>
@@ -628,7 +925,9 @@
                         </tr>
                     
                         
-                        <tr class="question-row">
+                        
+                        <tr class="">
+                        
                             <td><div class="indent2">13. CRM utilizado</div></td>
                             <td>Digiforma</td>
                             <td>
@@ -639,7 +938,9 @@
                         </tr>
                     
                         
-                        <tr class="question-row">
+                        
+                        <tr class="odd-row">
+                        
                             <td><div class="indent2">14. Uso de IA para automatización</div></td>
                             <td>Explorando</td>
                             <td>
@@ -658,7 +959,9 @@
 
                     
                         
-                        <tr class="question-row">
+                        
+                        <tr class="">
+                        
                             <td><div class="indent2">15. Tipo de base de datos utilizada</div></td>
                             <td>Cloud</td>
                             <td>
@@ -669,7 +972,9 @@
                         </tr>
                     
                         
-                        <tr class="question-row">
+                        
+                        <tr class="odd-row">
+                        
                             <td><div class="indent2">16. Herramientas de analítica empresarial</div></td>
                             <td>Excel</td>
                             <td>
@@ -688,7 +993,9 @@
 
                     
                         
-                        <tr class="question-row">
+                        
+                        <tr class="">
+                        
                             <td><div class="indent2">17. Empleados con competencias digitales avanzadas</div></td>
                             <td>51-75%</td>
                             <td>
@@ -699,7 +1006,9 @@
                         </tr>
                     
                         
-                        <tr class="question-row">
+                        
+                        <tr class="odd-row">
+                        
                             <td><div class="indent2">18. Uso de Microsoft 365</div></td>
                             <td>Sí</td>
                             <td>
@@ -710,7 +1019,9 @@
                         </tr>
                     
                         
-                        <tr class="question-row">
+                        
+                        <tr class="">
+                        
                             <td><div class="indent2">19. Formación digital continua</div></td>
                             <td>Sí</td>
                             <td>
@@ -721,7 +1032,9 @@
                         </tr>
                     
                         
-                        <tr class="question-row">
+                        
+                        <tr class="odd-row">
+                        
                             <td><div class="indent2">20. Uso de herramientas colaborativas</div></td>
                             <td>Sí</td>
                             <td>
@@ -732,7 +1045,9 @@
                         </tr>
                     
                         
-                        <tr class="question-row">
+                        
+                        <tr class="">
+                        
                             <td><div class="indent2">21. Formación en ciberseguridad</div></td>
                             <td>Sí</td>
                             <td>
@@ -743,7 +1058,9 @@
                         </tr>
                     
                         
-                        <tr class="question-row">
+                        
+                        <tr class="odd-row">
+                        
                             <td><div class="indent2">22. Formación FTFE bonificada</div></td>
                             <td>Sí</td>
                             <td>
@@ -754,7 +1071,9 @@
                         </tr>
                     
                         
-                        <tr class="question-row">
+                        
+                        <tr class="">
+                        
                             <td><div class="indent2">23. Simulacros o tests de phishing</div></td>
                             <td>No</td>
                             <td>
@@ -773,7 +1092,9 @@
 
                     
                         
-                        <tr class="question-row">
+                        
+                        <tr class="odd-row">
+                        
                             <td><div class="indent2">24. Presencia activa en Internet</div></td>
                             <td>Sí</td>
                             <td>
@@ -784,7 +1105,9 @@
                         </tr>
                     
                         
-                        <tr class="question-row">
+                        
+                        <tr class="">
+                        
                             <td><div class="indent2">25. Gestión activa de redes sociales</div></td>
                             <td>Sí</td>
                             <td>
@@ -795,7 +1118,9 @@
                         </tr>
                     
                         
-                        <tr class="question-row">
+                        
+                        <tr class="odd-row">
+                        
                             <td><div class="indent2">26. Uso de marketing digital</div></td>
                             <td>Sí</td>
                             <td>
@@ -806,7 +1131,9 @@
                         </tr>
                     
                         
-                        <tr class="question-row">
+                        
+                        <tr class="">
+                        
                             <td><div class="indent2">27. Análisis de visitantes y seguidores</div></td>
                             <td>Sí</td>
                             <td>
@@ -825,7 +1152,9 @@
 
                     
                         
-                        <tr class="question-row">
+                        
+                        <tr class="odd-row">
+                        
                             <td><div class="indent2">28. Canales de venta digitales accesibles</div></td>
                             <td>Sí</td>
                             <td>
@@ -836,7 +1165,9 @@
                         </tr>
                     
                         
-                        <tr class="question-row">
+                        
+                        <tr class="">
+                        
                             <td><div class="indent2">29. Ingresos digitales</div></td>
                             <td><10%</td>
                             <td>
@@ -847,7 +1178,9 @@
                         </tr>
                     
                         
-                        <tr class="question-row">
+                        
+                        <tr class="odd-row">
+                        
                             <td><div class="indent2">30. Canal habitual comunicación cliente</div></td>
                             <td>Email</td>
                             <td>
@@ -858,7 +1191,9 @@
                         </tr>
                     
                         
-                        <tr class="question-row">
+                        
+                        <tr class="">
+                        
                             <td><div class="indent2">31. Canal preferente comunicación cliente</div></td>
                             <td>Email</td>
                             <td>
@@ -877,7 +1212,9 @@
 
                     
                         
-                        <tr class="question-row">
+                        
+                        <tr class="odd-row">
+                        
                             <td><div class="indent2">32. Antivirus utilizado</div></td>
                             <td>Eset Nod32</td>
                             <td>
@@ -888,7 +1225,9 @@
                         </tr>
                     
                         
-                        <tr class="question-row">
+                        
+                        <tr class="">
+                        
                             <td><div class="indent2">33. Porcentaje de empleados con antivirus</div></td>
                             <td>100</td>
                             <td>
@@ -901,7 +1240,9 @@
                         </tr>
                     
                         
-                        <tr class="question-row">
+                        
+                        <tr class="odd-row">
+                        
                             <td><div class="indent2">34. Aplicación regular de parches y actualizaciones</div></td>
                             <td>Sí</td>
                             <td>
@@ -912,7 +1253,9 @@
                         </tr>
                     
                         
-                        <tr class="question-row">
+                        
+                        <tr class="">
+                        
                             <td><div class="indent2">35. Controles de red implementados</div></td>
                             <td>Sí</td>
                             <td>
@@ -931,7 +1274,9 @@
 
                     
                         
-                        <tr class="question-row">
+                        
+                        <tr class="odd-row">
+                        
                             <td><div class="indent2">36. Proceso documentado de gestión de cuentas</div></td>
                             <td>Sí</td>
                             <td>
@@ -942,7 +1287,9 @@
                         </tr>
                     
                         
-                        <tr class="question-row">
+                        
+                        <tr class="">
+                        
                             <td><div class="indent2">37. Asignación clara de roles y privilegios</div></td>
                             <td>Sí</td>
                             <td>
@@ -961,7 +1308,9 @@
 
                     
                         
-                        <tr class="question-row">
+                        
+                        <tr class="odd-row">
+                        
                             <td><div class="indent2">38. Plan de respuesta a incidentes</div></td>
                             <td>Sí</td>
                             <td>
@@ -972,7 +1321,9 @@
                         </tr>
                     
                         
-                        <tr class="question-row">
+                        
+                        <tr class="">
+                        
                             <td><div class="indent2">39. Planes de continuidad y recuperación</div></td>
                             <td>Sí</td>
                             <td>
@@ -991,7 +1342,9 @@
 
                     
                         
-                        <tr class="question-row">
+                        
+                        <tr class="odd-row">
+                        
                             <td><div class="indent2">40. Cumplimiento de protección de datos</div></td>
                             <td>Sí</td>
                             <td>
@@ -1002,7 +1355,9 @@
                         </tr>
                     
                         
-                        <tr class="question-row">
+                        
+                        <tr class="">
+                        
                             <td><div class="indent2">41. Formación en cumplimiento legal y normativo</div></td>
                             <td>Sí</td>
                             <td>
@@ -1020,11 +1375,108 @@
 </div>
 
 
-</ol>
+<div class="section">
+
+
+
+
+
+
+
+    
+    
+
+
+<h2>Conclusiones</h2>
+<div class="conclusion" style="border-left: 6px solid #2ecc71; background-color: #eef2f5; margin-top: 2rem;">
+
+    <h3 style="color: #2ecc71; margin-top: 0; margin-bottom: 0.5rem;">Posicionamiento Avanzado</h3>
+    
+    <p style="margin-bottom: 1.5rem;">
+        En comparación con el segmento de referencia 
+        <span class="muted">
+            (Sector: <strong>Tecnología</strong>
+             | 
+            Tamaño: <strong>Mediana</strong>
+            
+            ),
+        </span> 
+        la empresa obtiene un índice global de madurez de <strong>71.8</strong>. 
+        Este resultado la sitúa en la posición <strong class="i18n" data-key="above_p75"></strong> 
+        respecto a la mediana del grupo comparativo (<strong>58.1</strong>), 
+        calculada sobre una muestra de 12 empresas.
+    </p>
+
+    <div class="section-divider" style="border-top: 1px solid #ddd; margin: 1.5rem 0;"></div>
+
+    <h4 style="color:#0062a4; margin-bottom: 0.8rem;">Fortalezas y Áreas de Mejora</h4>
+
+    <p>
+        La dimensión más sólida es 
+        <strong data-key=KPI_OPERATIONS></strong> 
+        con una puntuación de <strong>80.0</strong>, 
+        posicionándose como <em class="i18n" data-key="between_median_p75"></em> respecto al sector.
+    </p>
+
+    <p style="margin-bottom: 1.5rem;">
+        La principal área de mejora es <strong data-key=KPI_BUSINESS></strong> con <strong>58.0</strong>, donde la mediana sectorial es <strong>56.5</strong>.
+    </p>
+
+    <h4 style="color:#0062a4; margin-bottom: 0.8rem;">Brechas en Adopción Tecnológica</h4>
+
+    <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start;">
+        
+        
+
+        
+            <div>
+                <p class="small" style="font-weight: bold; color: #2ecc71;">Liderazgo en adopción:</p>
+                <ul style="padding-left: 20px; margin-top: 0.5rem;">
+                
+                
+                    <li style="margin-bottom: 4px;">
+                        <span data-key=microsoft_365_usage></span>
+                        <strong>(+100.0%)</strong>
+                    </li>
+                
+                    <li style="margin-bottom: 4px;">
+                        <span data-key=incident_response_plan></span>
+                        <strong>(+83.3%)</strong>
+                    </li>
+                
+                    <li style="margin-bottom: 4px;">
+                        <span data-key=digital_marketing_use></span>
+                        <strong>(+75.0%)</strong>
+                    </li>
+                
+                </ul>
+            </div>
+        
+
+        
+            <div>
+                <p class="small" style="font-weight: bold; color: #991b1b;">Prioridades de inversión:</p>
+                <ul style="padding-left: 20px; margin-top: 0.5rem;">
+                
+                
+                    <li style="margin-bottom: 4px; color: #333;">
+                        <span data-key=phishing_simulations></span>
+                        <strong style="color: #991b1b;">(-41.7%)</strong>
+                    </li>
+                
+                    <li style="margin-bottom: 4px; color: #333;">
+                        <span data-key=ai_for_automation_usage></span>
+                        <strong style="color: #991b1b;">(-33.3%)</strong>
+                    </li>
+                
+                </ul>
+            </div>
+        
+    </div>
+</div>
+
 <!-- ================= FOOTER ================= -->
-<footer>
-    <p class="muted">Generado automáticamente · Valores comparados contra datos sectoriales agregados.</p>
-</footer>
+<footer>Generado automáticamente · Valores comparados contra datos sectoriales agregados.</footer>
 
 
 <!-- ================= CHART.JS SCRIPTS ================= -->
@@ -1041,10 +1493,14 @@
 
     /* Translations */
     TRANSLATIONS = {
-  "company_profile_cnae": "Clasificación CNAE",
-  "company_size": "Tamaño",
-  "province": "Provincia",
-  "sample_size": "Muestra",
+  "company_profile_cnae_key": "Clasificación CNAE",
+  "company_profile_cnae_description": "",
+  "company_size_key": "Tamaño",
+  "company_size_description": "Tamaño de las empresas comparadas (número empleados)",
+  "province_key": "Provincia",
+  "province_description": "",
+  "sample_size_key": "Muestra",
+  "sample_size_description": "Número de empresas que pasan el filtro con las que se compara",
   "two_factor_authentication": "Autenticación de dos factores (2FA)",
   "continuity_and_recovery_plans": "Planes de continuidad y recuperación",
   "microsoft_365_usage": "Uso de Microsoft 365",
@@ -1078,9 +1534,20 @@
   "market-detail-chart": "Gráfico de la cuota del mercado de las diferentes dimensiones.",
   "KPI_OPERATIONS": "Operacional",
   "KPI_SECURITY": "Seguridad",
-  "KPI_BUSINESS": "Empresarial",
+  "KPI_BUSINESS": "Negocio Digital",
   "KPI_CULTURE": "Cultural",
-  "GLOBAL_SCORE": "Puntuación Global"
+  "GLOBAL_SCORE": "Puntuación Global",
+
+  "above_p75": "Posicionamiento Avanzado",
+  "between_median_p75": "Por Encima de la Media Sectorial",
+  "between_p25_median": "En Línea con el Mercado",
+  "below_p25": "Por Debajo del Mercado",
+  "fortalezas_y_areas_de_mejora": "Fortalezas y Áreas de Mejora",
+  "brechas_en_adopcion_tecnologica": "Brechas en Adopción Tecnológica",
+  "posicionamiento_avanzado": "Posicionamiento Avanzado",
+  "ventajas_y_brechas_relativas": "Ventajas y Brechas Relativas",
+  "adopcion_superior_intro": "La empresa muestra una adopción superior al mercado en:",
+  "adopcion_inferior_intro": "Existen oportunidades de mejora en:"
 }
 
     
@@ -1152,30 +1619,33 @@
     const kpiLabels = kpiKeys.map(translate)
     const companyData = [80.0, 58.0, 75.0, 68.8, 71.8];
     const sectorData = [79.2, 56.5, 50.0, 50.0, 58.1];
+    const aggregateData = [67.76, 43.92, 57.64, 59.73, 57.38];
 
     new Chart(document.getElementById("kpi-radar-chart"), {
         type:'radar',
         data:{
             labels: kpiLabels,
             datasets:[
-                { label:'Respuestas proporcionadas', data:companyData, fill:true, backgroundColor:'rgba(37,99,235,0.25)', borderColor:'#0062a4', pointBackgroundColor:'#0062a4' },
-                { label:'Mediana del sector', data:sectorData, fill:true, backgroundColor:'rgba(156,163,175,0.15)', borderColor:'#9ca3af', borderDash:[5,5], pointBackgroundColor:'#9ca3af' }
+                { label:'Empresa Encuestada', data:companyData, fill:true, backgroundColor:'rgba(37,99,235,0.25)', borderColor:'#0062a4', pointBackgroundColor:'#0062a4' },
+                { label:'Mediana del Sector', data:sectorData, fill:true, backgroundColor:'rgba(156,163,175,0.15)', borderColor:'#9ca3af', borderDash:[5,5], pointBackgroundColor:'#9ca3af' },
+                { label:'Mediana Agregada', data:aggregateData, fill:true, backgroundColor:'rgba(18, 164, 88, 0.15)', borderColor:'#9ca3af', borderDash:[2,2], pointBackgroundColor:'#4b5563' }
             ]
         },
         options:{ responsive:true, scales:{ r:{ min:0, max:100, ticks:{ stepSize:20 } } }, plugins:{ legend:{ position:'top' }, title:{ display:true, text:'Comparación de KPIs' } } }
     });
 
     /* Global Score */
-    const globalScoreData = [71.8, 58.1];
+    const globalScoreData = [71.8, 58.1, 57.38];
     new Chart(document.getElementById("global-score-chart"), {
     type: 'bar',
     data: {
-        labels: ['Respuestas proporcionadas', 'Mediana del Sector'],
+        labels: ['Empresa encuestada', 'Mediana del Sector', 'Mediana Agregada'],
         datasets: [{
             data: globalScoreData,
             backgroundColor: [
                 "#0062a4",
-                '#9ca3af'
+                '#9ca3af',
+                'rgba(18, 164, 88)'
             ]
         }]
     },
@@ -1208,15 +1678,22 @@
         data:{ labels:['Adopted','Not Adopted'], datasets:[{ data:[0,100], backgroundColor:['#0062a4','#e5e7eb'] }] },
         options:{ responsive:true, plugins:{ legend:{ position:'bottom' } } }
     });
-    document.querySelectorAll(".adoption-row").forEach(row=>{
-        row.addEventListener("mouseenter", ()=>{
-            const label = row.dataset.label;
-            const sector = parseInt(row.dataset.sector,10);
-            adoptionChart.data.datasets[0].data = [sector,100-sector];
-            adoptionChart.update();
-            document.getElementById("adoption-detail-label").textContent=`Adopción del sector a "${translate(label)}"`;
-        });
+    const updateAdoptionChart = (row) => {
+        const label = row.dataset.label;
+        const sector = parseInt(row.dataset.sector,10);
+        adoptionChart.data.datasets[0].data = [sector,100-sector];
+        adoptionChart.update();
+        document.getElementById("adoption-detail-label").textContent=`Competencia: ${translate(label)}`;
+    }
+    
+    const adoptionRows = document.querySelectorAll(".adoption-row");
+    adoptionRows.forEach((row) => {
+        row.addEventListener("click", () => updateAdoptionChart(row));
+        row.addEventListener("mouseenter", () => updateAdoptionChart(row));
     });
+
+    if (adoptionRows.length > 0) updateAdoptionChart(adoptionRows[0])
+
     /* ---------------- Market Position Interactive ---------------- */
     const marketCtx = document.getElementById("market-detail-chart");
     const marketChart = new Chart(marketCtx, {
@@ -1234,21 +1711,25 @@
         }
     });
 
-    document.querySelectorAll(".market-row").forEach(row => {
-        const updateMarketChart = (row) => {
-            const dim = row.dataset.dim;
-            const share = parseFloat(row.dataset.share || 0);
+    const marketRows = document.querySelectorAll(".market-row");
+    const updateMarketChart = (row) => {
+        const dim = row.dataset.dim;
+        const share = parseFloat(row.dataset.share || 0);
 
-            marketChart.data.datasets[0].data = [share, 100 - share];
-            marketChart.update();
+        marketChart.data.datasets[0].data = [share, 100 - share];
+        marketChart.update();
 
-            document.getElementById("market-detail-label").textContent =
-                `Posición del mercado de "${translate(dim)}"`;
-        }
-        
+        document.getElementById("market-detail-label").textContent =
+            `Competencia: ${translate(dim)}`;
+    }
+
+    marketRows.forEach(row => {
         row.addEventListener("click", (_) => updateMarketChart(row));
         row.addEventListener("mouseenter", (_) => updateMarketChart(row));
     });
+
+    if (marketRows.length > 0) updateMarketChart(marketRows[0]);
+
 </script>
 </div>
 </body>

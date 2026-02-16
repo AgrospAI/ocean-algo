@@ -1,4 +1,5 @@
 import asyncio
+import datetime
 import logging
 from pathlib import Path
 from typing import Any, Dict, List, Tuple, TypeAlias
@@ -16,6 +17,7 @@ from src.benchmarking.config_schema import DIMENSION_LABELS
 from src.benchmarking.preprocessing import (
     calculate_maturity_kpis,
     compare_company_to_aggregate,
+    get_overall_kpis,
     process_survey,
 )
 from src.benchmarking.requests import ObjectType, get_object, make_request
@@ -47,6 +49,7 @@ async def benchmark(
     did: str,
     aggregate: Aggregate,
     survey: pd.DataFrame,
+    overall_kpis: dict,
     url: str,
 ) -> IOResult[Tuple[str, str], Algorithm.Error]:
     algorithm.logger.info(f"Benchmarking {did}")
@@ -54,6 +57,9 @@ async def benchmark(
     survey = process_survey(survey)
     survey = calculate_maturity_kpis(survey)
     comparison = compare_company_to_aggregate(survey.iloc[0], aggregate)
+
+    for kpi, values in comparison["kpis"].items():
+        comparison["kpis"][kpi]["aggregate_median"] = overall_kpis[kpi]["median"]
 
     translations_response, template_response = await asyncio.gather(
         get_object(url, ObjectType.BENCHMARKING_TRANSLATIONS),
@@ -79,6 +85,7 @@ async def benchmark(
                 **comparison,
                 translations=translations,
                 dimension_labels=DIMENSION_LABELS,
+                date=datetime.date.today().strftime("%d %b %Y"),
             ),
         )
     )
@@ -98,12 +105,14 @@ async def run_benchmarks(
 
     algorithm.logger.info(f"Loaded {len(inputs)} file(s)")
 
+    overall_kpis = get_overall_kpis(aggregate)
     return await asyncio.gather(
         *(
             benchmark(
                 did,
                 aggregate[str(parameters.aggregate_filter)],
                 content,
+                overall_kpis,
                 parameters.aggregate_api.url,
             )
             for did, content in inputs
@@ -158,7 +167,10 @@ async def save(
     ) -> None:
         match result:
             case IOSuccess(Success((did, render))):
-                await save_render(render, path(did))
+                _path = path(did)
+
+                await save_render(render, _path)
+
             case IOFailure(Failure(error)):
                 algorithm.logger.error(error)
 

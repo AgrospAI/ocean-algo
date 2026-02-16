@@ -1,5 +1,6 @@
 import re
 import unicodedata
+from collections import defaultdict
 
 import pandas as pd  # type: ignore
 
@@ -378,6 +379,22 @@ def compare_responses(company_row: pd.DataFrame, aggregate_block: dict):
     return result
 
 
+def get_overall_kpis(aggregate_block: dict):
+    results: dict[str, dict[str, float]] = defaultdict(lambda: defaultdict(float))
+
+    for stats in aggregate_block.values():
+        for kpi, values in stats["scores"].items():
+            for percentile, value in values.items():
+                results[kpi][percentile] += value
+
+    total = len(aggregate_block.keys())
+    for kpi, values in results.items():
+        for percentile, value in values.items():
+            results[kpi][percentile] = round(results[kpi][percentile] / total, 2)
+
+    return results
+
+
 def compare_company_to_aggregate(company_row, aggregate_block):
     return {
         "meta": aggregate_block["meta"],
@@ -386,4 +403,32 @@ def compare_company_to_aggregate(company_row, aggregate_block):
         "market_position": compare_market_tools(company_row, aggregate_block),
         "ordinal_comparison": compare_ordinal(company_row, aggregate_block),
         "responses": compare_responses(company_row, aggregate_block),
+        "scoring_logic": get_scoring_logic(),
+    }
+
+
+def get_scoring_logic():
+    return {
+        "Respuestas Estándar": {
+            "Sí": 100,
+            "Parcial / En desarrollo": 50,
+            "No / Ninguno": 0,
+        },
+        "Infraestructura TI": {
+            "Cloud (Nube)": 100,
+            "Híbrida": 70,
+            "On-premise (Local)": 30,
+        },
+        "Inteligencia Artificial": {
+            "En producción": 100,
+            "En piloto": 75,
+            "Explorando": 40,
+            "No": 0,
+        },
+        "Ingresos / Digitalización": {
+            "Alto (>60% / 76-100%)": 100,
+            "Medio (30-60% / 51-75%)": 75,
+            "Bajo (10-30% / 26-50%)": 50,
+            "Nulo (<10% / 0-25%)": 25,
+        },
     }
