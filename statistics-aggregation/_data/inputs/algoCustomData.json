@@ -1,0 +1,5 @@
+{
+  "aggregate_api": {
+    "url": "http://api:8000"
+  }
+}
