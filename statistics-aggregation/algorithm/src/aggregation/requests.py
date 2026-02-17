@@ -6,6 +6,7 @@ from returns.result import Failure, Success
 
 
 class ObjectType(StrEnum):
+    AGGREGATE = auto()
     AGGREGATION_TEMPLATE = auto()
     # BENCHMARKING_TRANSLATIONS = auto()
 
@@ -24,7 +25,7 @@ async def make_request(request: httpx.Request) -> IOResult[httpx.Response, EXCEP
         return IOFailure(e)
 
 
-async def get_object(  # type: ignore[return]
+async def get_object(
     endpoint: str,
     object_type: ObjectType,
 ) -> IOResult[httpx.Response, EXCEPTION]:
@@ -39,6 +40,32 @@ async def get_object(  # type: ignore[return]
     )
 
     match await make_request(request):
+        case IOSuccess(Success(response)):
+            return IOSuccess(response)
+        case IOFailure(Failure(error)):
+            return IOFailure(error)
+
+
+async def post_object(
+    endpoint: str,
+    object_type: ObjectType,
+    data: dict,
+) -> IOResult[httpx.Response, EXCEPTION]:
+    request_kwargs = {
+        "method": "POST",
+        "params": {"object_type": str(object_type)},
+    }
+
+    match object_type:
+        case ObjectType.AGGREGATION_TEMPLATE:
+            request_kwargs["url"] = f"{endpoint}/api/aggregate/"
+            request_kwargs["json"] = data
+
+        case ObjectType.AGGREGATE:
+            request_kwargs["url"] = f"{endpoint}/api/aggregate-template/"
+            request_kwargs["headers"] = {"Content-Type": "text/html"}
+
+    match await make_request(httpx.Request(**request_kwargs)):
         case IOSuccess(Success(response)):
             return IOSuccess(response)
         case IOFailure(Failure(error)):
