@@ -17,35 +17,42 @@
         .muted { color: #6b7280; font-size: 0.95em; }
         a:visited { color: #0062a4; }
         table { width: 100%; border-collapse: collapse; }
-        th { background: #f9fafb; font-weight: 600; }
         img { object-fit: scale-down; }
         table caption { caption-side: bottom; font-size: medium; }
         table th { background: #003366; color: white; padding: 8px; text-align: center;  }
         table td { border-bottom: 1px solid #eee; padding: 8px; vertical-align: center; text-align: center; }
         footer { text-align: center; font-size: 11px; color: #999; border-top: 1px solid #eee; padding: 2rem 0; }
+        
         .kpi-row { display: flex; justify-content: space-between; gap: 2rem; }
         .kpi-card { background: #eef2f5; padding: 20px; border-radius: 8px; width: 30%; text-align: center; border-top: 4px solid #0062a4; display: flex; flex-direction: column; gap: 0.2rem; }
-        .kpi-value { font-size: 32px; font-weight: bold; color: #0062a4; }
+        .kpi-value { font-size: 32px; font-weight: bold; color: #0062a4; display: flex; align-items: center; justify-content: center; gap: 0.3em; }
+        
         .caption { padding-top: 1rem; font-size: 13px; }
         .detail { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #0062a4; text-style: italic; }
         .content { padding: 40px; width: 900px; box-shadow: 0 0 10px rgba(0,0,0,0.1); margin: 0 auto; background: white; display: flex; flex-direction: column; gap: 2rem; }
         .methodology-box { background: #fff; border: 1px solid #ddd; padding: 15px; border-radius: 5px; }
         small { color: #666; font-size: 11px; }
         .small { font-size: 13px; }
-        .li-section { font-size: x-large; }
         .logo { height: 100%; padding-left: 1rem; }
         .header { background: #0062a4; width: auto; height: 70px; align-content: center; padding: 1rem; }
         .resume { border-bottom: 3px solid #0062a4; padding-bottom: 2rem; }
+
         .badge { padding: 4px 10px; border-radius: 14px; font-size: 0.8em; font-weight: 600; white-space: nowrap; }
+        .badge-sm { padding: 2px 6px; font-size: 0.7em; border-radius: 10px; }
+
+        .status-good { color: #2ecc71; border-top: 4px solid #2ecc71; }
+        .status-avg  { color: #f1c40f; border-top: 4px solid #f1c40f; }
+        .status-bad  { color: #e74c3c; border-top: 4px solid #e74c3c; }
         .good { background: #0062a4; color: white; }
         .avg  { background: #fef3c7; color: #92400e; }
         .bad  { background: #fee2e2; color: #991b1b; }
+        
         .section { display: flex; flex-direction: column; gap: 0.5rem; }
         .chart { margin: 18px auto; text-align: center; max-width: 400px; max-height: 400px; gap: 1rem; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; align-items: center; padding: 1rem 0; }
         .dimension-header { background-color: #4a90e2; color: white; font-weight: bold; text-align: left; }
-        .indent { padding-left: 1rem; display: flex}
-        .indent2 { padding-left: 2rem; display: flex}
+        .indent { padding-left: 1rem; display: flex; }
+        .indent2 { padding-left: 2rem; display: flex; }
 
         .scoring-grid { display: flex; flex-wrap: wrap; gap: 15px; }
         .scoring-card { flex: 1; min-width: 180px; background: #f8f9fa; border-left: 4px solid #0062a4; border-radius: 4px; padding: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
@@ -112,7 +119,7 @@
 <div class="resume row">
     <div>
         <h1>Informe Digital de Referencia</h1>
-        <div class="subtitle">Informe estratégico | 16 Feb 2026</div> 
+        <div class="subtitle">Informe estratégico | 18 Feb 2026</div> 
     </div>
     <div class="actions">
         <button onclick="window.print()" class="print-btn">
@@ -132,7 +139,7 @@
         
             
                 <div class="kpi-card">
-                    <span class="kpi-value" data-key=Tecnología></span><br>
+                    <span class="kpi-value" data-key=Servicios></span><br>
                     <span data-key=company_profile_cnae_key></span><br>
                     <small data-key=company_profile_cnae_description></small><br>
                 </div>
@@ -148,12 +155,49 @@
         
             
                 <div class="kpi-card">
-                    <span class="kpi-value" data-key=12></span><br>
+                    <span class="kpi-value" data-key=8></span><br>
                     <span data-key=sample_size_key></span><br>
                     <small data-key=sample_size_description></small><br>
                 </div>
             
         
+    </div>
+    <div class="kpi-row">
+        
+        
+        
+        
+        
+        
+
+        <div class="kpi-card status-avg">
+            <span class="kpi-value"><strong>53.1</strong></span>
+            <span class="i18n" data-key="global_score_own_key">Tu Score</span>
+            <small class="i18n" data-key="global_score_own_desc">Puntuación general obtenida.</small>
+        </div>
+
+        <div class="kpi-card">
+            <span class="kpi-value">
+                54.4
+                <span class="badge-sm bad">
+                    -1.3
+                </span>
+            </span>
+            <span class="i18n" data-key="global_score_sector_key">Media Sector</span>
+            <small class="i18n" data-key="global_score_sector_desc">Comparativa con tu industria.</small>
+        </div>
+
+        <div class="kpi-card">
+            <span class="kpi-value">
+                57.38
+                <span class="badge-sm bad">
+                    -4.28
+                </span>
+            </span>
+            <span class="i18n" data-key="global_score_all_key">Media Global</span>
+            <small class="i18n" data-key="global_score_all_desc">Comparativa con todos los usuarios.</small>
+        </div>
+    
     </div>
 </div>
 
@@ -357,10 +401,10 @@
             
             <td class="i18n" data-key=KPI_OPERATIONS />
             <td><strong>80.0</strong></td>
-            <td>79.2</td>
+            <td>77.2</td>
             <td>
             
-            <span class="badge good">+0.8</span>
+            <span class="badge good">+2.8</span>
             
             </td>
             <td>
@@ -381,10 +425,10 @@
             
             <td class="i18n" data-key=KPI_BUSINESS />
             <td><strong>58.0</strong></td>
-            <td>56.5</td>
+            <td>45.0</td>
             <td>
             
-            <span class="badge good">+1.5</span>
+            <span class="badge good">+13.0</span>
             
             </td>
             <td>
@@ -404,22 +448,22 @@
             <tr>
             
             <td class="i18n" data-key=KPI_SECURITY />
-            <td><strong>75.0</strong></td>
-            <td>50.0</td>
+            <td><strong>25.0</strong></td>
+            <td>43.8</td>
             <td>
             
-            <span class="badge good">+25.0</span>
+            <span class="badge bad">-18.8</span>
             
             </td>
             <td>
                 
-                    <span class="badge good">Por encima de la media</span>
+                    <span class="badge bad">Por debajo de la media</span>
                 
             </td>
             <td>57.64</td>
             <td>
             
-            <span class="badge good">+17.36</span>
+            <span class="badge bad">-32.64</span>
             
             </td>
         </tr>
@@ -428,11 +472,11 @@
             <tr class="odd-row">
             
             <td class="i18n" data-key=KPI_CULTURE />
-            <td><strong>68.8</strong></td>
+            <td><strong>50.0</strong></td>
             <td>50.0</td>
             <td>
             
-            <span class="badge good">+18.8</span>
+            <span class="badge avg">0.0</span>
             
             </td>
             <td>
@@ -443,7 +487,7 @@
             <td>59.73</td>
             <td>
             
-            <span class="badge good">+9.07</span>
+            <span class="badge bad">-9.73</span>
             
             </td>
         </tr>
@@ -452,22 +496,22 @@
             <tr>
             
             <td class="i18n" data-key=GLOBAL_SCORE />
-            <td><strong>71.8</strong></td>
-            <td>58.1</td>
+            <td><strong>53.1</strong></td>
+            <td>54.4</td>
             <td>
             
-            <span class="badge good">+13.7</span>
+            <span class="badge bad">-1.3</span>
             
             </td>
             <td>
                 
-                    <span class="badge good">Por encima de la media</span>
+                    <span class="badge avg">Media</span>
                 
             </td>
             <td>57.38</td>
             <td>
             
-            <span class="badge good">+14.42</span>
+            <span class="badge bad">-4.28</span>
             
             </td>
         </tr>
@@ -490,11 +534,11 @@
                 </tr>
                 
                 
-                <tr class="adoption-row" data-label="remote_work_acceptable_use_policy" data-sector="33.3">
+                <tr class="adoption-row" data-label="remote_work_acceptable_use_policy" data-sector="25.0">
                 
                     <td class="i18n" data-key=remote_work_acceptable_use_policy />
                     <td><span class="badge good">Sí</span></td>
-                    <td>33.3%</td>
+                    <td>25.0%</td>
                 </tr>
                 
                 
@@ -506,11 +550,11 @@
                 </tr>
                 
                 
-                <tr class="adoption-row" data-label="ai_for_automation_usage" data-sector="33.3">
+                <tr class="adoption-row" data-label="ai_for_automation_usage" data-sector="25.0">
                 
                     <td class="i18n" data-key=ai_for_automation_usage />
                     <td><span class="badge bad">No</span></td>
-                    <td>33.3%</td>
+                    <td>25.0%</td>
                 </tr>
                 
                 
@@ -522,75 +566,75 @@
                 </tr>
                 
                 
-                <tr class="adoption-row" data-label="continuous_digital_training" data-sector="33.3">
+                <tr class="adoption-row" data-label="continuous_digital_training" data-sector="37.5">
                 
                     <td class="i18n" data-key=continuous_digital_training />
                     <td><span class="badge good">Sí</span></td>
-                    <td>33.3%</td>
+                    <td>37.5%</td>
                 </tr>
                 
                 
-                <tr class="adoption-row odd-row" data-label="phishing_simulations" data-sector="41.7">
+                <tr class="adoption-row odd-row" data-label="phishing_simulations" data-sector="12.5">
                 
                     <td class="i18n" data-key=phishing_simulations />
                     <td><span class="badge bad">No</span></td>
-                    <td>41.7%</td>
+                    <td>12.5%</td>
                 </tr>
                 
                 
-                <tr class="adoption-row" data-label="active_internet_presence" data-sector="41.7">
+                <tr class="adoption-row" data-label="active_internet_presence" data-sector="25.0">
                 
                     <td class="i18n" data-key=active_internet_presence />
                     <td><span class="badge good">Sí</span></td>
-                    <td>41.7%</td>
+                    <td>25.0%</td>
                 </tr>
                 
                 
-                <tr class="adoption-row odd-row" data-label="digital_marketing_use" data-sector="25.0">
+                <tr class="adoption-row odd-row" data-label="digital_marketing_use" data-sector="75.0">
                 
                     <td class="i18n" data-key=digital_marketing_use />
                     <td><span class="badge good">Sí</span></td>
-                    <td>25.0%</td>
+                    <td>75.0%</td>
                 </tr>
                 
                 
-                <tr class="adoption-row" data-label="accessible_digital_sales_channels" data-sector="25.0">
+                <tr class="adoption-row" data-label="accessible_digital_sales_channels" data-sector="37.5">
                 
                     <td class="i18n" data-key=accessible_digital_sales_channels />
                     <td><span class="badge good">Sí</span></td>
-                    <td>25.0%</td>
+                    <td>37.5%</td>
                 </tr>
                 
                 
-                <tr class="adoption-row odd-row" data-label="regular_patching_and_updates" data-sector="25.0">
+                <tr class="adoption-row odd-row" data-label="regular_patching_and_updates" data-sector="37.5">
                 
                     <td class="i18n" data-key=regular_patching_and_updates />
                     <td><span class="badge good">Sí</span></td>
-                    <td>25.0%</td>
+                    <td>37.5%</td>
                 </tr>
                 
                 
-                <tr class="adoption-row" data-label="incident_response_plan" data-sector="16.7">
+                <tr class="adoption-row" data-label="incident_response_plan" data-sector="12.5">
                 
                     <td class="i18n" data-key=incident_response_plan />
-                    <td><span class="badge good">Sí</span></td>
-                    <td>16.7%</td>
+                    <td><span class="badge bad">No</span></td>
+                    <td>12.5%</td>
                 </tr>
                 
                 
-                <tr class="adoption-row odd-row" data-label="continuity_and_recovery_plans" data-sector="25.0">
+                <tr class="adoption-row odd-row" data-label="continuity_and_recovery_plans" data-sector="0.0">
                 
                     <td class="i18n" data-key=continuity_and_recovery_plans />
-                    <td><span class="badge good">Sí</span></td>
-                    <td>25.0%</td>
+                    <td><span class="badge bad">No</span></td>
+                    <td>0.0%</td>
                 </tr>
                 
                 
-                <tr class="adoption-row" data-label="data_protection_compliance" data-sector="33.3">
+                <tr class="adoption-row" data-label="data_protection_compliance" data-sector="37.5">
                 
                     <td class="i18n" data-key=data_protection_compliance />
-                    <td><span class="badge good">Sí</span></td>
-                    <td>33.3%</td>
+                    <td><span class="badge bad">No</span></td>
+                    <td>37.5%</td>
                 </tr>
                 
             </table>
@@ -620,33 +664,33 @@
             <tr class="hoverable market-row"
             
                 data-dim="average_employee_age"
-                data-share="25.0">
+                data-share="0.0">
                 <td class="i18n" data-key=average_employee_age />
                 <td>41-50</td>
-                <td>#3</td>
-                <td>25.0%</td>
+                <td>Nicho</td>
+                <td>0.0%</td>
             </tr>
             
             
             <tr class="hoverable market-row odd-row"
             
                 data-dim="it_outsourcing_level"
-                data-share="58.3">
+                data-share="37.5">
                 <td class="i18n" data-key=it_outsourcing_level />
                 <td>Medio</td>
-                <td>#1</td>
-                <td>58.3%</td>
+                <td>#2</td>
+                <td>37.5%</td>
             </tr>
             
             
             <tr class="hoverable market-row"
             
                 data-dim="it_infrastructure_type"
-                data-share="50.0">
+                data-share="25.0">
                 <td class="i18n" data-key=it_infrastructure_type />
                 <td>Cloud</td>
-                <td>#1</td>
-                <td>50.0%</td>
+                <td>#2</td>
+                <td>25.0%</td>
             </tr>
             
             
@@ -686,11 +730,11 @@
             <tr class="hoverable market-row"
             
                 data-dim="digital_revenue"
-                data-share="25.0">
+                data-share="50.0">
                 <td class="i18n" data-key=digital_revenue />
                 <td><10%</td>
-                <td>#3</td>
-                <td>25.0%</td>
+                <td>#1</td>
+                <td>50.0%</td>
             </tr>
             
             
@@ -755,7 +799,7 @@
                             <td>
                                 
                                     
-                                        <span class="badge bad">-133.17</span>
+                                        <span class="badge bad">-122.25</span>
                                     
                                 
                             </td>
@@ -769,7 +813,7 @@
                             <td>41-50</td>
                             <td>
                                 
-                                    25.0%
+                                    0%
                                 
                             </td>
                         </tr>
@@ -783,7 +827,7 @@
                             <td>
                                 
                                     
-                                        <span class="badge bad">-1949.75</span>
+                                        <span class="badge bad">-2867.5</span>
                                     
                                 
                             </td>
@@ -798,7 +842,7 @@
                             <td>
                                 
                                     
-                                        <span class="badge good">+175.92</span>
+                                        <span class="badge good">+187.62</span>
                                     
                                 
                             </td>
@@ -812,7 +856,7 @@
                             <td><1M</td>
                             <td>
                                 
-                                    50.0%
+                                    12.5%
                                 
                             </td>
                         </tr>
@@ -825,7 +869,7 @@
                             <td>Medio</td>
                             <td>
                                 
-                                    58.3%
+                                    37.5%
                                 
                             </td>
                         </tr>
@@ -846,7 +890,7 @@
                             <td>Sí</td>
                             <td>
                                 
-                                    33.3%
+                                    25.0%
                                 
                             </td>
                         </tr>
@@ -885,7 +929,7 @@
                             <td>Cloud</td>
                             <td>
                                 
-                                    50.0%
+                                    25.0%
                                 
                             </td>
                         </tr>
@@ -906,7 +950,7 @@
                             <td>26-50%</td>
                             <td>
                                 
-                                    16.7%
+                                    0%
                                 
                             </td>
                         </tr>
@@ -945,7 +989,7 @@
                             <td>Explorando</td>
                             <td>
                                 
-                                    33.3%
+                                    25.0%
                                 
                             </td>
                         </tr>
@@ -966,7 +1010,7 @@
                             <td>Cloud</td>
                             <td>
                                 
-                                    58.3%
+                                    37.5%
                                 
                             </td>
                         </tr>
@@ -1000,7 +1044,7 @@
                             <td>51-75%</td>
                             <td>
                                 
-                                    0%
+                                    12.5%
                                 
                             </td>
                         </tr>
@@ -1026,7 +1070,7 @@
                             <td>Sí</td>
                             <td>
                                 
-                                    33.3%
+                                    37.5%
                                 
                             </td>
                         </tr>
@@ -1039,7 +1083,7 @@
                             <td>Sí</td>
                             <td>
                                 
-                                    41.7%
+                                    25.0%
                                 
                             </td>
                         </tr>
@@ -1052,7 +1096,7 @@
                             <td>Sí</td>
                             <td>
                                 
-                                    16.7%
+                                    25.0%
                                 
                             </td>
                         </tr>
@@ -1078,7 +1122,7 @@
                             <td>No</td>
                             <td>
                                 
-                                    41.7%
+                                    12.5%
                                 
                             </td>
                         </tr>
@@ -1099,7 +1143,7 @@
                             <td>Sí</td>
                             <td>
                                 
-                                    41.7%
+                                    25.0%
                                 
                             </td>
                         </tr>
@@ -1112,7 +1156,7 @@
                             <td>Sí</td>
                             <td>
                                 
-                                    41.7%
+                                    25.0%
                                 
                             </td>
                         </tr>
@@ -1125,7 +1169,7 @@
                             <td>Sí</td>
                             <td>
                                 
-                                    25.0%
+                                    75.0%
                                 
                             </td>
                         </tr>
@@ -1138,7 +1182,7 @@
                             <td>Sí</td>
                             <td>
                                 
-                                    25.0%
+                                    37.5%
                                 
                             </td>
                         </tr>
@@ -1159,7 +1203,7 @@
                             <td>Sí</td>
                             <td>
                                 
-                                    25.0%
+                                    37.5%
                                 
                             </td>
                         </tr>
@@ -1172,7 +1216,7 @@
                             <td><10%</td>
                             <td>
                                 
-                                    25.0%
+                                    50.0%
                                 
                             </td>
                         </tr>
@@ -1185,7 +1229,7 @@
                             <td>Email</td>
                             <td>
                                 
-                                    0%
+                                    25.0%
                                 
                             </td>
                         </tr>
@@ -1198,7 +1242,7 @@
                             <td>Email</td>
                             <td>
                                 
-                                    0%
+                                    25.0%
                                 
                             </td>
                         </tr>
@@ -1229,11 +1273,11 @@
                         <tr class="">
                         
                             <td><div class="indent2">33. Porcentaje de empleados con antivirus</div></td>
-                            <td>100</td>
+                            <td>0</td>
                             <td>
                                 
                                     
-                                        <span class="badge good">+46.92</span>
+                                        <span class="badge bad">-59.5</span>
                                     
                                 
                             </td>
@@ -1247,7 +1291,7 @@
                             <td>Sí</td>
                             <td>
                                 
-                                    25.0%
+                                    37.5%
                                 
                             </td>
                         </tr>
@@ -1257,10 +1301,10 @@
                         <tr class="">
                         
                             <td><div class="indent2">35. Controles de red implementados</div></td>
-                            <td>Sí</td>
+                            <td>No</td>
                             <td>
                                 
-                                    58.3%
+                                    75.0%
                                 
                             </td>
                         </tr>
@@ -1278,10 +1322,10 @@
                         <tr class="odd-row">
                         
                             <td><div class="indent2">36. Proceso documentado de gestión de cuentas</div></td>
-                            <td>Sí</td>
+                            <td>No</td>
                             <td>
                                 
-                                    41.7%
+                                    12.5%
                                 
                             </td>
                         </tr>
@@ -1291,10 +1335,10 @@
                         <tr class="">
                         
                             <td><div class="indent2">37. Asignación clara de roles y privilegios</div></td>
-                            <td>Sí</td>
+                            <td>No</td>
                             <td>
                                 
-                                    50.0%
+                                    25.0%
                                 
                             </td>
                         </tr>
@@ -1312,10 +1356,10 @@
                         <tr class="odd-row">
                         
                             <td><div class="indent2">38. Plan de respuesta a incidentes</div></td>
-                            <td>Sí</td>
+                            <td>No</td>
                             <td>
                                 
-                                    16.7%
+                                    12.5%
                                 
                             </td>
                         </tr>
@@ -1325,10 +1369,10 @@
                         <tr class="">
                         
                             <td><div class="indent2">39. Planes de continuidad y recuperación</div></td>
-                            <td>Sí</td>
+                            <td>No</td>
                             <td>
                                 
-                                    25.0%
+                                    0.0%
                                 
                             </td>
                         </tr>
@@ -1346,10 +1390,10 @@
                         <tr class="odd-row">
                         
                             <td><div class="indent2">40. Cumplimiento de protección de datos</div></td>
-                            <td>Sí</td>
+                            <td>No</td>
                             <td>
                                 
-                                    33.3%
+                                    37.5%
                                 
                             </td>
                         </tr>
@@ -1359,10 +1403,10 @@
                         <tr class="">
                         
                             <td><div class="indent2">41. Formación en cumplimiento legal y normativo</div></td>
-                            <td>Sí</td>
+                            <td>No</td>
                             <td>
                                 
-                                    25.0%
+                                    37.5%
                                 
                             </td>
                         </tr>
@@ -1388,23 +1432,23 @@
 
 
 <h2>Conclusiones</h2>
-<div class="conclusion" style="border-left: 6px solid #2ecc71; background-color: #eef2f5; margin-top: 2rem;">
+<div class="conclusion" style="border-left: 6px solid #e67e22; background-color: #eef2f5; margin-top: 2rem;">
 
-    <h3 style="color: #2ecc71; margin-top: 0; margin-bottom: 0.5rem;">Posicionamiento Avanzado</h3>
+    <h3 style="color: #e67e22; margin-top: 0; margin-bottom: 0.5rem;">En Línea con el Mercado</h3>
     
     <p style="margin-bottom: 1.5rem;">
         En comparación con el segmento de referencia 
         <span class="muted">
-            (Sector: <strong>Tecnología</strong>
+            (Sector: <strong>Servicios</strong>
              | 
             Tamaño: <strong>Mediana</strong>
             
             ),
         </span> 
-        la empresa obtiene un índice global de madurez de <strong>71.8</strong>. 
-        Este resultado la sitúa en la posición <strong class="i18n" data-key="above_p75"></strong> 
-        respecto a la mediana del grupo comparativo (<strong>58.1</strong>), 
-        calculada sobre una muestra de 12 empresas.
+        la empresa obtiene un índice global de madurez de <strong>53.1</strong>. 
+        Este resultado la sitúa en la posición <strong class="i18n" data-key="between_p25_median"></strong> 
+        respecto a la mediana del grupo comparativo (<strong>54.4</strong>), 
+        calculada sobre una muestra de 8 empresas.
     </p>
 
     <div class="section-divider" style="border-top: 1px solid #ddd; margin: 1.5rem 0;"></div>
@@ -1419,7 +1463,7 @@
     </p>
 
     <p style="margin-bottom: 1.5rem;">
-        La principal área de mejora es <strong data-key=KPI_BUSINESS></strong> con <strong>58.0</strong>, donde la mediana sectorial es <strong>56.5</strong>.
+        La principal área de mejora es <strong data-key=KPI_SECURITY></strong> con <strong>25.0</strong>, donde la mediana sectorial es <strong>43.8</strong>.
     </p>
 
     <h4 style="color:#0062a4; margin-bottom: 0.8rem;">Brechas en Adopción Tecnológica</h4>
@@ -1440,12 +1484,12 @@
                     </li>
                 
                     <li style="margin-bottom: 4px;">
-                        <span data-key=incident_response_plan></span>
-                        <strong>(+83.3%)</strong>
+                        <span data-key=remote_work_acceptable_use_policy></span>
+                        <strong>(+75.0%)</strong>
                     </li>
                 
                     <li style="margin-bottom: 4px;">
-                        <span data-key=digital_marketing_use></span>
+                        <span data-key=active_internet_presence></span>
                         <strong>(+75.0%)</strong>
                     </li>
                 
@@ -1460,13 +1504,18 @@
                 
                 
                     <li style="margin-bottom: 4px; color: #333;">
-                        <span data-key=phishing_simulations></span>
-                        <strong style="color: #991b1b;">(-41.7%)</strong>
+                        <span data-key=data_protection_compliance></span>
+                        <strong style="color: #991b1b;">(-37.5%)</strong>
                     </li>
                 
                     <li style="margin-bottom: 4px; color: #333;">
                         <span data-key=ai_for_automation_usage></span>
-                        <strong style="color: #991b1b;">(-33.3%)</strong>
+                        <strong style="color: #991b1b;">(-25.0%)</strong>
+                    </li>
+                
+                    <li style="margin-bottom: 4px; color: #333;">
+                        <span data-key=phishing_simulations></span>
+                        <strong style="color: #991b1b;">(-12.5%)</strong>
                     </li>
                 
                 </ul>
@@ -1547,7 +1596,14 @@
   "posicionamiento_avanzado": "Posicionamiento Avanzado",
   "ventajas_y_brechas_relativas": "Ventajas y Brechas Relativas",
   "adopcion_superior_intro": "La empresa muestra una adopción superior al mercado en:",
-  "adopcion_inferior_intro": "Existen oportunidades de mejora en:"
+  "adopcion_inferior_intro": "Existen oportunidades de mejora en:",
+
+  "global_score_own_key": "Puntuación Global Propia",
+  "global_score_own_desc": "Puntuación Global de la empresa encuestada",
+  "global_score_all_key": "Puntuación Global",
+  "global_score_all_desc": "Puntuación Global de todas las empresas encuestadas, junto a la diferencia respecto a la empresa actual.",
+  "global_score_sector_key": "Puntuación Global Muestra",
+  "global_score_sector_desc": "Puntuación Global de las empresas filtradas, junto a la diferencia respecto a la empresa actual."
 }
 
     
@@ -1617,8 +1673,8 @@
     /* KPI Radar */
     const kpiKeys = ["KPI_OPERATIONS", "KPI_BUSINESS", "KPI_SECURITY", "KPI_CULTURE", "GLOBAL_SCORE"];
     const kpiLabels = kpiKeys.map(translate)
-    const companyData = [80.0, 58.0, 75.0, 68.8, 71.8];
-    const sectorData = [79.2, 56.5, 50.0, 50.0, 58.1];
+    const companyData = [80.0, 58.0, 25.0, 50.0, 53.1];
+    const sectorData = [77.2, 45.0, 43.8, 50.0, 54.4];
     const aggregateData = [67.76, 43.92, 57.64, 59.73, 57.38];
 
     new Chart(document.getElementById("kpi-radar-chart"), {
@@ -1635,7 +1691,7 @@
     });
 
     /* Global Score */
-    const globalScoreData = [71.8, 58.1, 57.38];
+    const globalScoreData = [53.1, 54.4, 57.38];
     new Chart(document.getElementById("global-score-chart"), {
     type: 'bar',
     data: {
@@ -1643,7 +1699,7 @@
         datasets: [{
             data: globalScoreData,
             backgroundColor: [
-                "#0062a4",
+                "#dc2626",
                 '#9ca3af',
                 'rgba(18, 164, 88)'
             ]

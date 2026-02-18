@@ -53,5 +53,12 @@
   "posicionamiento_avanzado": "Posicionamiento Avanzado",
   "ventajas_y_brechas_relativas": "Ventajas y Brechas Relativas",
   "adopcion_superior_intro": "La empresa muestra una adopción superior al mercado en:",
-  "adopcion_inferior_intro": "Existen oportunidades de mejora en:"
+  "adopcion_inferior_intro": "Existen oportunidades de mejora en:",
+
+  "global_score_own_key": "Puntuación Global Propia",
+  "global_score_own_desc": "Puntuación Global de la empresa encuestada",
+  "global_score_all_key": "Puntuación Global",
+  "global_score_all_desc": "Puntuación Global de todas las empresas encuestadas, junto a la diferencia respecto a la empresa actual.",
+  "global_score_sector_key": "Puntuación Global Muestra",
+  "global_score_sector_desc": "Puntuación Global de las empresas filtradas, junto a la diferencia respecto a la empresa actual."
 }
