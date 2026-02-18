@@ -36,7 +36,7 @@ async def validate(algorithm: Algorithm[InputParameters, ResultT]) -> None:
     input_parameters = await algorithm.job_details.input_parameters()
     assert input_parameters is not None
 
-    request = httpx.Request("GET", f"{input_parameters.aggregate_api.url}/api/health/")
+    request = httpx.Request("GET", f"{input_parameters.url}/api/health/")
     match await make_request(request):
         case IOSuccess(Success(_)):
             algorithm.logger.info("API Healthcheck done")
@@ -110,10 +110,10 @@ async def run_benchmarks(
         *(
             benchmark(
                 did,
-                aggregate[str(parameters.aggregate_filter)],
+                aggregate[str(parameters.filter_key)],
                 content,
                 overall_kpis,
-                parameters.aggregate_api.url,
+                parameters.url,
             )
             for did, content in inputs
         )
@@ -148,7 +148,7 @@ async def run(algorithm: Algorithm[InputParameters, ResultT]) -> ResultT:  # typ
     parameters = await algorithm.job_details.input_parameters()
     assert parameters is not None
 
-    match await get_aggregate(parameters.aggregate_api.url):
+    match await get_aggregate(parameters.url):
         case IOSuccess(Success(aggregate)):
             algorithm.logger.info("Running benchmarks")
             return await run_benchmarks(algorithm, aggregate)
