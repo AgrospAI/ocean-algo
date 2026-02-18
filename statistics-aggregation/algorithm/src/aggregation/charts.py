@@ -1,7 +1,9 @@
+# type: ignore
+
 import pandas as pd
 import plotly.graph_objects as go
 import seaborn as sns
-from numpy import np
+from numpy import nan as np
 from plotly import express as px
 from plotly.colors import n_colors
 

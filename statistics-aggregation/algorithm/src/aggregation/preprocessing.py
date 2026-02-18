@@ -14,7 +14,7 @@ from .config_schema import (
 )
 
 
-def read_parse_csv(file_path: str, sep: str = ";") -> pd.DataFrame:
+def read_parse_csv(file_path: Path, sep: str = ";") -> pd.DataFrame:
     """
     CSV reader with multiple encoding support.
     """
@@ -32,7 +32,7 @@ def read_parse_csv(file_path: str, sep: str = ";") -> pd.DataFrame:
     return pd.DataFrame()
 
 
-def normalize_questions_id(text: str) -> str:
+def normalize_questions_id(text: str) -> str | None:
     """
     Standardizes question string to create a unique key.
     """

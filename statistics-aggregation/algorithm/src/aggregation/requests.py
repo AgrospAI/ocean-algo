@@ -11,7 +11,9 @@ class ObjectType(StrEnum):
     # BENCHMARKING_TRANSLATIONS = auto()
 
 
-type EXCEPTION = httpx.TransportError | httpx.HTTPStatusError | httpx.InvalidURL
+type EXCEPTION = (
+    httpx.TransportError | httpx.HTTPStatusError | httpx.InvalidURL | Exception
+)
 EXCEPTIONS = (httpx.TransportError, httpx.HTTPStatusError, httpx.InvalidURL)
 
 
@@ -44,6 +46,8 @@ async def get_object(
             return IOSuccess(response)
         case IOFailure(Failure(error)):
             return IOFailure(error)
+        case _:
+            return IOFailure(Exception("Unknown error occurred while fetching object"))
 
 
 async def post_object(
@@ -70,3 +74,5 @@ async def post_object(
             return IOSuccess(response)
         case IOFailure(Failure(error)):
             return IOFailure(error)
+        case _:
+            return IOFailure(Exception("Unknown error occurred while posting object"))
