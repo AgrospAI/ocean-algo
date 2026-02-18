@@ -1,7 +1,6 @@
-import asyncio
 import logging
 from pathlib import Path
-from typing import Any, Dict, Tuple, TypeAlias
+from typing import Any, Dict, TypeAlias
 
 import aiofiles
 import httpx
@@ -21,7 +20,7 @@ from src.aggregation.report_rendering import (
 from src.aggregation.requests import ObjectType, get_object, make_request, post_object
 from src.data import InputParameters
 
-ResultT: TypeAlias = IOResult[Tuple[str, str], Algorithm.Error]
+ResultT: TypeAlias = IOResult[str, Algorithm.Error]
 algorithm = Algorithm[InputParameters, ResultT](Config(custom_input=InputParameters))
 Aggregate: TypeAlias = Dict[str, Dict[str, Any]]
 
@@ -46,7 +45,7 @@ async def validate(algorithm: Algorithm[InputParameters, ResultT]) -> None:
 async def aggregation(
     algorithm: Algorithm[InputParameters, ResultT],
     url: str,
-) -> IOResult[Tuple[str, str], Algorithm.Error]:
+) -> IOResult[str, Algorithm.Error]:
     parameters = await algorithm.job_details.input_parameters()
     assert parameters is not None
 
@@ -62,9 +61,7 @@ async def aggregation(
     surveys_df = calculate_maturity_kpis(surveys_df)
     benchmark_json = generate_benchmark_reference(surveys_df)
 
-    template_response = await asyncio.create_task(
-        post_object(url, ObjectType.AGGREGATION_TEMPLATE, benchmark_json)
-    )
+    template_response = await post_object(url, ObjectType.AGGREGATE, benchmark_json)
 
     match template_response:
         case IOSuccess(Success(response)):
@@ -81,15 +78,13 @@ async def aggregation(
                 )
             )
 
-    template_response = await asyncio.create_task(
-        get_object(url, ObjectType.AGGREGATION_TEMPLATE)
-    )
+    template_response = await get_object(url, ObjectType.AGGREGATE_TEMPLATE)
 
     match template_response:
         case IOSuccess(Success(response)):
             template = jinja2.Template(response.text)
             rendered = template.render(generate_interactive_report(surveys_df))
-            return IOSuccess((rendered))
+            return IOSuccess(rendered)
         case IOFailure(Failure(error)):
             return IOFailure(Algorithm.Error(f"Failed to fetch template: {error}"))
 
@@ -114,13 +109,11 @@ async def save(
     base: Path,
 ) -> None:
     async def save_render_batch(
-        result: IOResult[Tuple[str, str], Algorithm.Error],
+        result: IOResult[str, Algorithm.Error],
     ) -> None:
         match result:
-            case IOSuccess(Success((did, render))):
-                _path = path(did)
-
-                await save_render(render, _path)
+            case IOSuccess(Success(render)):
+                await save_render(render, base / "report.html")
 
             case IOFailure(Failure(error)):
                 algorithm.logger.error(error)
@@ -129,17 +122,15 @@ async def save(
         async with aiofiles.open(path, "w", encoding="utf-8") as f:
             await f.write(render)
 
-    def path(did: str) -> Path:
-        return base / f"{did}.html"
-
     assert result is not None
 
-    await asyncio.gather(*(save_render_batch(res) for res in result))  # type: ignore
+    await save_render_batch(result)
 
 
 if __name__ == "__main__":
     logging.getLogger("httpx").setLevel("WARNING")
     logging.getLogger("httpcore").setLevel("WARNING")
+    logging.getLogger("pandas").setLevel("ERROR")
     algorithm.logger.setLevel("INFO")
 
     algorithm()
