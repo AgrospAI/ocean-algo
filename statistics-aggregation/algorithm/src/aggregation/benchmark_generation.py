@@ -95,7 +95,7 @@ def calculate_reference_by_group(grouped) -> dict:
     for (x, y), group in grouped:
         # Unique ID (eg. "Industrial_Small")
         combination_id = f"{x}_{y}"
-        column_names = grouped.grouper.names
+        column_names = grouped.keys
 
         # Minimum 3 samples to consider valid benchmark
         if len(group) < 3:
