@@ -28,11 +28,9 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=algorithm/pyproject.toml,target=pyproject.toml \
     uv sync --frozen --no-install-project
 
-FROM python:3.12-slim
+FROM python:3.12
 
 WORKDIR /algorithm
-
-COPY _data/algorithm /algorithm/data
 
 # Copy the algorithm code (with the same depth)
 COPY --from=builder /algorithm/.venv /algorithm/.venv
