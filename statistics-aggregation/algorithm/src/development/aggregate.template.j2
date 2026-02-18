@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Informe de Mercado</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; color: #333; background: #f4f7f6; }
+        .container { width: 900px; margin: 0 auto; background: white; padding: 40px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        header { border-bottom: 3px solid #0062a4; padding-bottom: 20px; margin-bottom: 30px; }
+        h1 { color: #0062a4; font-size: 28px; margin: 0; }
+        h2 { color: #0062a4; border-left: 5px solid #2ecc71; padding-left: 15px; margin-bottom: 20px; page-break-after: avoid; }
+        
+        .logo { height: 100px; width: 300px; padding-left: 2rem; }
+        .header { background: #0062a4; width: auto; height: 150px; align-content: center; }
+        
+        .methodology-box { background: #fff; border: 1px solid #ddd; padding: 15px; border-radius: 5px; margin-bottom: 40px; }
+        .methodology-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .methodology-table th { background: #0062a4; color: white; padding: 8px; text-align: left; }
+        .methodology-table td { border-bottom: 1px solid #eee; padding: 8px; vertical-align: top; }
+        
+        .kpi-row { display: flex; justify-content: space-between; margin-bottom: 40px; }
+        .kpi-card { background: #eef2f5; padding: 20px; border-radius: 8px; width: 30%; text-align: center; border-top: 4px solid #0062a4; }
+        .kpi-value { font-size: 32px; font-weight: bold; color: #0062a4; }
+        
+        .section { margin-bottom: 50px; page-break-inside: avoid; }
+        .chart-box { text-align: center; margin: 20px 0; border: 1px solid #eee; padding: 10px; border-radius: 5px; }
+        img { max-width: 100%; height: auto; }
+        .footer { text-align: center; font-size: 11px; color: #999; margin-top: 50px; border-top: 1px solid #eee; padding-top: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header class="header">
+        <img src="https://disi.tareando.es/img/disiLogoTareandoBlanco.png?v=" alt="Tareando Logo" class="logo"/>
+    </header>
+    <header>
+        <h1>Análisis Digital del Mercado</h1>
+        <div class="subtitle">Informe Estratégico | {{ date }}</div>
+    </header>
+
+    <div class="section">
+        <h2>Descripción breve y objetivo del informe</h2>
+        <p>Este informe presenta un análisis exhaustivo del estado de madurez digital de las empresas encuestadas, identificando fortalezas, debilidades y oportunidades clave para la transformación digital. El objetivo es proporcionar insights accionables para que puedan diseñar estrategias efectivas de digitalización.</p>
+    </div>
+
+    <div class="section">
+    <h2>Indicadores Clave</h2>
+    <p>
+        Antes de profundizar, presentamos los indicadores generales del mercado. Estos tres números resumen la salud digital de las {{ total_companies }} empresas analizadas, destacando el volumen de la muestra, la calidad media y, crucialmente, el nivel de exposición al riesgo.
+    </p>
+
+    <div class="kpi-row">
+        <div class="kpi-card">
+            <span class="kpi-value">{{ total_companies }}</span><br>
+            Empresas Analizadas<br>
+        </div>
+
+        <div class="kpi-card">
+            <span class="kpi-value">{{ avg_score }}</span><br>
+            Índice de Madurez (0-100)<br>
+            <small style="color: #666; font-size: 11px;">Promedio de mercado</small>
+        </div>
+
+        <div class="kpi-card" style="border-top: 4px solid #FFA500;"> <span class="kpi-value" style="color:#FFA500;">{{ risk_pct }}%</span><br>
+            Tasa de Vulnerabilidad<br>
+            <small style="color: #666; font-size: 11px;">Empresas con seguridad crítica (<40/100)</small>
+        </div>        
+    </div>
+
+    <div style="background-color: #fff8e1; padding: 15px; border-radius: 5px; border-left: 5px solid #FFA500; font-size: 13px; margin-top: 20px;">
+        <strong>ℹ️ ¿Qué significa la Tasa de Vulnerabilidad?</strong><br>
+        Este indicador revela que el <strong>{{ risk_pct }}% del mercado opera en "Zona de Peligro"</strong>. 
+        Estas empresas han obtenido menos de 40 puntos en Ciberseguridad, lo que implica que carecen de los "cortafuegos" básicos (como copias de seguridad verificadas o autenticación robusta). 
+        No es solo un área de mejora; es una estadística de <strong>probabilidad de supervivencia</strong> ante un ciberataque.
+    </div>
+</div>
+
+    <div class="section">
+        <h2>Lógica de Puntuación</h2>
+        <p>La puntuación global de madurez digital se calcula a partir de cuatro dimensiones clave: Operaciones, Negocio Digital, Ciberseguridad y Cultura Digital. Cada dimensión se compone de varias preguntas específicas que se ponderan para reflejar su importancia relativa en la madurez digital general.</p>
+        <div class="methodology-box">{{ scoring_logic }}</div>
+    </div>
+
+    <div class="section">
+        <h2>Metodología de evaluación</h2>
+        <p>
+            Para obtener una radiografía precisa de la madurez digital, no nos basamos en una única métrica. Nuestro algoritmo evalúa la empresa desde cuatro dimensiones estratégicas (KPIs), asignando un peso específico a cada respuesta según su impacto real en el negocio.
+        </p>
+        <p>
+            La puntuación global (0-100) es el resultado ponderado de estos cuatro pilares. A continuación, desglosamos la "fórmula" exacta utilizada para calcular cada indicador, detallando qué preguntas componen cada bloque y cuánto influyen en la nota final:
+        </p>
+        <div class="methodology-box">{{ methodology_table }}</div>
+    </div>
+
+    <div class="section">
+        <h2>Comparativa promedio participantes vs líderes</h2>
+        <p>Este gráfico de radar compara el perfil de madurez digital promedio del mercado con el de los líderes (empresas en el percentil 75). Permite identificar áreas donde el mercado en general está rezagado y dónde se encuentran las mejores prácticas.</p>
+        <div class="chart-box">
+        {{ chart_radar_url }}
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Distribución de Madurez del Mercado</h2>
+        <p>Este histograma muestra cómo se distribuyen las puntuaciones globales de madurez digital entre las empresas encuestadas, destacando la media y la variabilidad del mercado.</p>
+        <ul>
+            <li><strong>Micro:</strong> <10 empleados</li>
+            <li><strong>Pequeña:</strong> 11-50 empleados</li>
+            <li><strong>Mediana:</strong> 51-250 empleados</li>
+            <li><strong>Grande:</strong> >250 empleados</li>
+        </ul>
+        <div class="chart-box">
+        {{ chart_distplot_url }}
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Desempeño por Sector</h2>
+        <p>
+            Análisis comparativo de la madurez digital agrupado por sectores de actividad. 
+            El gráfico de cajas (Boxplot) permite identificar qué industrias lideran la transformación 
+            y cuáles presentan una mayor dispersión interna (brecha entre líderes y rezagados dentro del mismo sector).
+        </p>
+        <div class="chart-box">
+        {{ chart_boxplot_url }}
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Análisis Regional</h2>
+        <p>
+            Mapa de calor que visualiza la intensidad digital por ubicación geográfica. 
+            Este indicador ayuda a detectar polos de innovación tecnológica y correlaciones 
+            entre la ubicación de la sede y el nivel de adopción de herramientas digitales.
+            Cabe destacar que se ha tomado los códigos postales y se han agrupado por provincias, asignando a cada una un color basado en el promedio de madurez digital de las empresas ubicadas en esa provincia.
+        </p>
+        <div class="chart-box">
+        {{ chart_region_url }}
+        </div>
+    </div>
+
+
+    <div class="section">
+        <h2>Prioridades Estratégicas</h2>
+        <p>
+            ¿Dónde ponen el foco las empresas hoy? Este gráfico jerarquiza las áreas que 
+            las compañías han marcado como "críticas" para su mejora (ej. Ciberseguridad, Ventas, Eficiencia). 
+            Contrasta la intención estratégica con la realidad operativa observada.
+        </p>
+        <div class="chart-box">
+        {{ chart_priority_url }}
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Uso del ERP, distribución erp y tecnología</h2>
+        <p>El ERP es la columna vertebral de la digitalización. A continuación analizamos tres dimensiones:</p>
+        <ul>
+            <li><strong>Impacto:</strong> Cuánto mejora la calificación global al tener ERP.</li>
+            <li><strong>Adopción:</strong> Porcentaje de implantación de cada tecnología.</li>
+            <li><strong>Distribución por Tamaño:</strong> Porcentaje de adopción por tamaño de empresa.</li>
+        </ul>
+        <div style="display: flex; justify-content: space-between;">
+            <div style="width: 48%;" class="chart-box">{{ chart_driver_erp_url }}</div>
+            <div style="width: 48%;" class="chart-box">{{ chart_pie_erp_url }}</div>
+        </div>
+        <div class="chart-box">
+        {{ chart_erp_distplot_url}}
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Uso del CRM, distribución crm y tecnología</h2>
+        <p>El CRM es una herramienta clave para la gestión de relaciones con clientes. A continuación analizamos tres dimensiones:</p>
+        <ul>
+            <li><strong>Impacto:</strong> Cuánto mejora la calificación global al tener CRM.</li>
+            <li><strong>Adopción:</strong> Porcentaje de implantación de cada tecnología.</li>
+            <li><strong>Distribución por Tamaño:</strong> Porcentaje de adopción por tamaño de empresa.</li>
+        </ul>
+        <div style="display: flex; justify-content: space-between;">
+            <div style="width: 48%;" class="chart-box">{{ chart_driver_crm_url }}</div>
+            <div style="width: 48%;" class="chart-box">{{ chart_pie_crm_url }}</div>
+        </div>
+        <div class="chart-box">
+        {{ chart_crm_distplot_url}}
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Uso de ERP y CRM en el mercado</h2>
+        <p>
+            Desglose de las herramientas tecnológicas específicas que dominan el mercado. 
+        </p>
+        <div style="display: flex; justify-content: space-between;">
+            <div style="width: 48%;" class="chart-box">{{ chart_usage_crm_url }}</div>
+            <div style="width: 48%;" class="chart-box">{{ chart_usage_erp_url }}</div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Adopción en ciberseguridad e Infraestructura</h2>
+        <p>
+            Evaluación crítica del riesgo tecnológico. A la izquierda, el cumplimiento de controles básicos de seguridad 
+            (MFA, Backups, Planes de contingencia). A la derecha, cómo la modernización de la infraestructura (Cloud vs Híbrida vs On-Premise) 
+            actúa como palanca aceleradora de la madurez digital.
+        </p>
+        <div style="display: flex; justify-content: space-between;">
+            <div style="width: 48%;" class="chart-box">{{ chart_riskbar_url }}</div>
+            <div style="width: 48%;" class="chart-box">{{ chart_driver_cloud_url }}</div>
+        </div>
+    </div>
+
+
+    <div class="section">
+        <h2>Madurez Digital vs Ingresos por empleado</h2>
+        <p>
+            Este análisis cruza la Madurez Digital con la Eficiencia Económica (Ingresos/Empleado). 
+            El tamaño y color de las burbujas indican el tamaño de la plantilla, permitiendo detectar 
+            <strong>"Micro-Gigantes"</strong>: empresas pequeñas altamente digitalizadas y eficientes.
+        </p>
+        <div class="chart-box">
+        {{ chart_bubble_url }}
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Factor Humano y Legado Tecnológico</h2>
+        <p>
+            Análisis de correlación entre la media de edad de la plantilla y el tipo de infraestructura (Cloud vs Híbrida vs On-Premise). 
+            Busca identificar si existe una "Trampa del Legado", donde estructuras más tradicionales muestran resistencia 
+            al cambio hacia tecnologías en la nube.
+        </p>
+        <div class="chart-box">
+        {{ chart_age_cloud_url }}
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Tracción Digital (Marketing vs Retorno)</h2>
+        <p>
+            Verificación de la efectividad de la inversión. Comparamos a las empresas que invierten en Marketing Digital 
+            frente a sus ingresos digitales reales. El objetivo es detectar gasto sin retorno 
+            y confirmar si la inversión publicitaria se traduce en ventas tangibles.
+        </p>
+        <div class="chart-box">
+        {{ chart_digital_traction_url }}
+        </div>
+    </div>
+
+    <div class="section" style="page-break-inside: avoid;">
+        <h2>Conclusión</h2>
+        <p>Basándonos en la correlación entre los indicadores (KPIs) y las prioridades declaradas por los participantes, presentamos el diagnóstico final del ecosistema:</p>
+        {{ dynamic_conclusion_html }}
+        
+    </div>
+    
+    <div class="footer">Informe generado automáticamente | Valores agregados mediante empresas encuestadas</div>
+</div>
+</body>
+</html>

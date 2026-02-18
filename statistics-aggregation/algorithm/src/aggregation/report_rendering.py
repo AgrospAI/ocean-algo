@@ -18,9 +18,6 @@ from src.aggregation.charts import (
 )
 
 
-def yield_interactive_report_template(): ...
-
-
 def generate_interactive_report(df):
     scoring_maps = {
         "Respuestas Estándar": {

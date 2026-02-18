@@ -137,7 +137,6 @@ def process_surveys(
     Loops through CSVs, merges with schema, cleans data and unifies client data.
     """
     all_data = []
-    # files = glob.glob(os.path.join(data_folder, "*.csv"))
     print(f"Found {len(files_path)} files")
 
     for file_name, file_path in files_path:
