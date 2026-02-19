@@ -131,6 +131,8 @@ if __name__ == "__main__":
     logging.getLogger("httpx").setLevel("WARNING")
     logging.getLogger("httpcore").setLevel("WARNING")
     logging.getLogger("pandas").setLevel("ERROR")
+    logging.getLogger("numpy").setLevel("ERROR")
+    logging.getLogger("plotly").setLevel("ERROR")
     algorithm.logger.setLevel("INFO")
 
     algorithm()
