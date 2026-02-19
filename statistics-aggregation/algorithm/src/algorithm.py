@@ -33,7 +33,7 @@ async def validate(algorithm: Algorithm[InputParameters, ResultT]) -> None:
     input_parameters = await algorithm.job_details.input_parameters()
     assert input_parameters is not None
 
-    request = httpx.Request("GET", f"{input_parameters.aggregate_api.url}/api/health/")
+    request = httpx.Request("GET", f"{input_parameters.aggregate_api}/api/health/")
     match await make_request(request):
         case IOSuccess(Success(_)):
             algorithm.logger.info("API Healthcheck done")
@@ -99,7 +99,7 @@ async def run(algorithm: Algorithm[InputParameters, ResultT]) -> ResultT:
     parameters = await algorithm.job_details.input_parameters()
     assert parameters is not None
 
-    return await aggregation(algorithm, parameters.aggregate_api.url)
+    return await aggregation(algorithm, parameters.aggregate_api)
 
 
 @algorithm.save_results
