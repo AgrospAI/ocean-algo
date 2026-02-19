@@ -1,10 +1,6 @@
 from pydantic import BaseModel
 
 
-class AggregateAPI(BaseModel):
-    url: str
-
-
 class InputParameters(BaseModel):
-    aggregate_api: AggregateAPI
+    aggregate_api: str
     csv_separator: str = ";"
