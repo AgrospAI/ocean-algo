@@ -18,7 +18,7 @@ from src.aggregation.charts import (
 )
 
 
-def generate_interactive_report(df):
+def generate_interactive_report(df, config_file: dict):
     scoring_maps = {
         "Respuestas Estándar": {
             "Sí": 100,
@@ -67,7 +67,7 @@ def generate_interactive_report(df):
         "chart_crm_distplot_url": create_erp_crm_distplot_chart(df)[1],
         "chart_usage_crm_url": create_int_opportunies_charts(df)[0],
         "chart_usage_erp_url": create_int_opportunies_charts(df)[1],
-        "chart_region_url": create_interactive_map(df),
+        "chart_region_url": create_interactive_map(df, config_file),
         "chart_bubble_url": create_bubble_chart(df),
         "chart_age_cloud_url": create_age_cloud_chart(df),
         "chart_digital_traction_url": create_digital_traction_chart(df),
