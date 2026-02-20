@@ -8,6 +8,7 @@ from returns.result import Failure, Success
 class ObjectType(StrEnum):
     AGGREGATE = auto()
     AGGREGATE_TEMPLATE = auto()
+    CONFIG_SCHEMA = auto()
 
 
 type EXCEPTION = (
