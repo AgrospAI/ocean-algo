@@ -7,10 +7,6 @@ from numpy import nan as np
 from plotly import express as px
 from plotly.colors import n_colors
 
-from .config_schema import (
-    REGION_COORDINATES,
-)
-
 # Set visual style for professional charts
 sns.set_theme(style="whitegrid")
 
@@ -412,21 +408,23 @@ def create_int_opportunies_charts(df):
     )
 
 
-def create_interactive_map(df):
+def create_interactive_map(df, config_file: dict):
     """
     Generates a Bubble Map of companies.
     """
     df = df[["company_profile_cnae", "province", "GLOBAL_SCORE"]].copy()
     df = df.groupby("province")["GLOBAL_SCORE"].mean().round(1).reset_index()
 
+    coordinates = config_file.get("region_coordinates")
+
     def get_lat(row):
-        return REGION_COORDINATES.get(
-            row.get("province", "Unknown"), REGION_COORDINATES["Unknown"]
+        return coordinates.get(
+            row.get("province", "Unknown"), coordinates.get("Unknown")
         )["lat"]
 
     def get_lon(row):
-        return REGION_COORDINATES.get(
-            row.get("province", "Unknown"), REGION_COORDINATES["Unknown"]
+        return coordinates.get(
+            row.get("province", "Unknown"), coordinates.get("Unknown")
         )["lon"]
 
     df["lat_base"] = df.apply(get_lat, axis=1)
