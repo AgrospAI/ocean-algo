@@ -5,15 +5,13 @@ from typing import Any, Dict, TypeAlias
 import aiofiles
 import httpx
 import jinja2
+import orjson
 from ocean_runner import Algorithm, Config
 from returns.io import IOFailure, IOResult, IOSuccess
 from returns.result import Failure, Success
 
-from src.aggregation.benchmark_generation import generate_benchmark_reference
-from src.aggregation.preprocessing import (
-    calculate_maturity_kpis,
-    process_surveys,
-)
+from src.aggregation.benchmark_generation import BenchmarkReference
+from src.aggregation.preprocessing import Preprocessing
 from src.aggregation.report_rendering import (
     generate_interactive_report,
 )
@@ -51,15 +49,23 @@ async def aggregation(
 
     inputs = [(path.parent.name, path) for _, path in algorithm.job_details.inputs()]
 
-    surveys_df = process_surveys(inputs, csv_separator=parameters.csv_separator)
+    with open("/algorithm/src/config_schema.json", "r") as file:
+        config_file = orjson.loads(file.read())
+
+    preprocessor = Preprocessing(config_file)
+    surveys_df = preprocessor.process_surveys(
+        inputs, csv_separator=parameters.csv_separator
+    )
     if surveys_df.empty:
         algorithm.logger.warning("No survey data found")
         return IOFailure(Algorithm.Error("No survey data found"))
 
     algorithm.logger.info(f"Processed {len(surveys_df)} survey entries")
 
-    surveys_df = calculate_maturity_kpis(surveys_df)
-    benchmark_json = generate_benchmark_reference(surveys_df)
+    surveys_df = preprocessor.calculate_maturity_kpis(surveys_df)
+
+    benchmark_ref = BenchmarkReference(config_file)
+    benchmark_json = benchmark_ref.generate_benchmark_reference(surveys_df)
 
     template_response = await post_object(url, ObjectType.AGGREGATE, benchmark_json)
 
@@ -83,7 +89,9 @@ async def aggregation(
     match template_response:
         case IOSuccess(Success(response)):
             template = jinja2.Template(response.text)
-            rendered = template.render(generate_interactive_report(surveys_df))
+            rendered = template.render(
+                generate_interactive_report(surveys_df, config_file)
+            )
             return IOSuccess(rendered)
         case IOFailure(Failure(error)):
             return IOFailure(Algorithm.Error(f"Failed to fetch template: {error}"))
