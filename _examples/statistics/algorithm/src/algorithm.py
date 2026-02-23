@@ -1,33 +1,28 @@
 from pathlib import Path
+from typing import Sequence, Tuple
 
 import pandas as pd
-from ocean_runner import Algorithm
+from ocean_runner import Algorithm, EmptyAlgorithm
+from oceanprotocol_job_details.domain import DID
 
-algorithm = Algorithm()
+type ResultT = Tuple[DID, pd.DataFrame]
+type ResultsT = Sequence[ResultT]
 
-
-@algorithm.on_error
-def error_callback(algorithm: Algorithm, ex: Exception):
-    algorithm.logger.exception(ex)
-    raise algorithm.Error() from ex
-
-
-@algorithm.validate
-def val(algorithm: Algorithm):
-    assert algorithm.job_details.files, "Empty input dir"
+algorithm: EmptyAlgorithm[ResultsT] = Algorithm[None, ResultsT].create(None)
 
 
 @algorithm.run
-def run(algorithm: Algorithm) -> pd.DataFrame:
-    _, filename = next(algorithm.job_details.inputs())
-    return pd.read_csv(filename).describe(include="all")
+def run(_) -> ResultsT:
+    return [
+        (did, pd.read_csv(file_path).describe(include="all"))
+        for did, file_path in algorithm.job_details.inputs()
+    ]
 
 
 @algorithm.save_results
-def save(algorithm: Algorithm, result: pd.DataFrame, base: Path):
-    algorithm.logger.info(f"Descriptive statistics: {result}")
-    result.to_csv(base / "result.csv")
+def save(_, result: ResultsT, base: Path):
+    for did, analysis in result:
+        algorithm.logger.info(f"Descriptive statistics {did}: {analysis}")
+        analysis.to_csv(base / did)
 
 
-if __name__ == "__main__":
-    algorithm()

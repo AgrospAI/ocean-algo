@@ -9,4 +9,4 @@ services:
       - ./_data/logs:/data/logs:rw
       - ./algorithm/src:/algorithm/src/
       - ./algorithm/tests:/algorithm/tests/
-    entrypoint: [ "pytest" ]
+    # entrypoint: ["pytest"]

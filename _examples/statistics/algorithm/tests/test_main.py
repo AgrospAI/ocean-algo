@@ -1,10 +1,20 @@
 import pandas as pd
-import os
+
 from src.algorithm import algorithm
 
 
 def test_main():
     algorithm()
 
-    assert isinstance(algorithm.result, pd.DataFrame)
-    assert os.listdir(algorithm.job_details.paths.outputs)
+    assert algorithm.job_details.paths.outputs.iterdir()
+
+    assert isinstance(algorithm.result, list)
+
+    res0 = algorithm.result[0]
+
+    assert isinstance(res0, tuple)
+
+    did, result = res0
+
+    assert isinstance(did, str)
+    assert isinstance(result, pd.DataFrame)
