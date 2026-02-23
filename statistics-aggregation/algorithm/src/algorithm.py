@@ -21,6 +21,8 @@ from src.data import InputParameters
 ResultT: TypeAlias = IOResult[str, Algorithm.Error]
 algorithm = Algorithm[InputParameters, ResultT](Config(custom_input=InputParameters))
 Aggregate: TypeAlias = Dict[str, Dict[str, Any]]
+# AGGREGATE_API = "http://host.docker.internal:8000"
+AGGREGATE_API = "http://tareando-s3-wrapper-svc.agrospai.svc.cluster.local:8000"
 
 
 @algorithm.validate
@@ -28,10 +30,10 @@ async def validate(algorithm: Algorithm[InputParameters, ResultT]) -> None:
     assert algorithm.job_details.metadata, "DDOs missing"
     assert algorithm.job_details.files, "Files missing"
 
-    input_parameters = await algorithm.job_details.input_parameters()
-    assert input_parameters is not None
-
-    request = httpx.Request("GET", f"{input_parameters.aggregate_api}/api/health/")
+    request = httpx.Request(
+        "GET",
+        f"{AGGREGATE_API}/api/health/",
+    )
     match await make_request(request):
         case IOSuccess(Success(_)):
             algorithm.logger.info("API Healthcheck done")
@@ -44,18 +46,13 @@ async def aggregation(
     algorithm: Algorithm[InputParameters, ResultT],
     url: str,
 ) -> IOResult[str, Algorithm.Error]:
-    parameters = await algorithm.job_details.input_parameters()
-    assert parameters is not None
-
     inputs = [(path.parent.name, path) for _, path in algorithm.job_details.inputs()]
 
     with open("/algorithm/src/config_schema.json", "r") as file:
         config_file = orjson.loads(file.read())
 
     preprocessor = Preprocessing(config_file)
-    surveys_df = preprocessor.process_surveys(
-        inputs, csv_separator=parameters.csv_separator
-    )
+    surveys_df = preprocessor.process_surveys(inputs)
     if surveys_df.empty:
         algorithm.logger.warning("No survey data found")
         return IOFailure(Algorithm.Error("No survey data found"))
@@ -104,10 +101,7 @@ async def aggregation(
 
 @algorithm.run
 async def run(algorithm: Algorithm[InputParameters, ResultT]) -> ResultT:
-    parameters = await algorithm.job_details.input_parameters()
-    assert parameters is not None
-
-    return await aggregation(algorithm, parameters.aggregate_api)
+    return await aggregation(algorithm, AGGREGATE_API)
 
 
 @algorithm.save_results
