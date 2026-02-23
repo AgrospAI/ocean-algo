@@ -1,6 +1,8 @@
 import os
 import re
+import sys
 import cv2
+import time
 import json
 import zipfile
 import subprocess
@@ -338,6 +340,7 @@ algo = Algorithm_().run().save_result()
 algo.build_template()
 
 
-subprocess.run(["docker", "stop", "model"], check=False)
-subprocess.run(["docker", "rm", "model"], check=False)
-os._exit(0)
+subprocess.run(["docker", "rm", "-f", "model"], check=False)
+subprocess.run("kill -15 $(pidof dockerd)", shell=True, check=False)
+time.sleep(3)
+sys.exit(0)
