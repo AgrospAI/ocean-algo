@@ -58,7 +58,7 @@ async def benchmark(
     survey = calculate_maturity_kpis(survey)
     comparison = compare_company_to_aggregate(survey.iloc[0], aggregate)
 
-    for kpi, values in comparison["kpis"].items():
+    for kpi, _ in comparison["kpis"].items():
         comparison["kpis"][kpi]["aggregate_median"] = overall_kpis[kpi]["median"]
 
     translations_response, template_response = await asyncio.gather(

@@ -12,10 +12,10 @@ class Sector(StrEnum):
 
 
 class Size(StrEnum):
-    PYME = "PYME"
-    Mediana = "Mediana"
     Micro = "Micro"
     Pequeña = "Pequeña"
+    Mediana = "Mediana"
+    Grande = "Grande"
 
 
 class InputParameters(BaseModel):

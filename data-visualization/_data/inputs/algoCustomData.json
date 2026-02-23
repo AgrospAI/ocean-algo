@@ -1,9 +1,5 @@
 {
-  "aggregate_filter": {
-    "sector": "Tecnología",
-    "size": "Mediana"
-  },
-  "aggregate_api": {
-    "url": "http://api:8000"
-  }
+  "sector": "Tecnología",
+  "size": "Mediana",
+  "url": "http://api:8000"
 }

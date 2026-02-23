@@ -1,8 +1,7 @@
-from pytest import raises
-
 from src.algorithm import algorithm
 
 
 def test_main():
-    with raises(NotImplementedError):
-        algorithm()
+    algorithm()
+
+    assert len(algorithm.job_details.paths.outputs.glob("*")), "There are no outputs"
