@@ -3,10 +3,10 @@ name = "algorithm"
 version = "0.1.0"
 description = ""
 authors = [{ name = "AgrospAI", email = "<your-name>@udl.cat" }]
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 readme = "README.md"
 license = { file = "LICENSE" }
-dependencies = ["ocean-runner>=0.2.24", "pytest>=8.3.4,<9"]
+dependencies = ["ocean-runner>=0.3.6", "pytest>=8.3.4,<9"]
 
 [tool.uv]
 package = false

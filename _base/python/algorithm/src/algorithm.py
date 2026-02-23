@@ -1,34 +1,29 @@
 from pathlib import Path
-from typing import TypeVar
 
-from ocean_runner import Algorithm, Config
+from ocean_runner import Algorithm, Config, ParametrizedAlgorithm
 
 from .data import InputParameters
 
-# Change to real result type
-ResultsT = TypeVar("ResultsT")
-algorithm = Algorithm(config=Config(custom_input=InputParameters))
+# TODO: Change to real result type
+type ResultsT = None
+algorithm: ParametrizedAlgorithm[InputParameters, ResultsT] = Algorithm.create(
+    Config(custom_input=InputParameters)
+)
 
 
 @algorithm.validate
-def validate() -> None:
+async def validate(_) -> None:
     # Can remove this function to use the default behaviour. DEFAULT: Check DDOs and input files
     raise NotImplementedError()
 
 
 @algorithm.run
-def run() -> ResultsT:
+async def run(_) -> ResultsT:
+    # TODO: Implement algorithm run function
     raise NotImplementedError()
 
 
 @algorithm.save_results
-def save(
-    results: ResultsT,
-    base_path: Path,
-) -> None:
-    # Can remove this function to use the default behaviour. DEFAULT: Save to results.txt
+async def save(_, results: ResultsT, base_path: Path) -> None:
+    # Remove this function to use the default behaviour. DEFAULT: Save to results.txt
     raise NotImplementedError()
-
-
-if __name__ == "__main__":
-    algorithm()

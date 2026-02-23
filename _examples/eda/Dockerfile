@@ -40,5 +40,9 @@ COPY algorithm/tests /algorithm/tests
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
+RUN ["touch", "__init__.py"]
+
 ENV PATH="/algorithm/.venv/bin:$PATH"
-CMD ["python", "-m", "src.algorithm"]
+ENV PYTHONPATH="/algorithm"
+
+CMD ["ocean-execute", "src.algorithm"]

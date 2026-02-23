@@ -1,0 +1,45 @@
+﻿Campo;Valor
+"Perfil empresa/ CNAE (Tipo de empresa según su actividad y naturaleza)";"Servicios de formación"
+"Código postal de la empresa";43500
+"Número de trabajadores (Tamaño del equipo humano)";5
+"Edad media de los trabajadores (Rango de edad promedio del personal)";"Entre 41 y 50"
+"Número de clientes (Total de clientes activos)";292
+"Número de proveedores (Total de proveedores activos)";231
+"Facturación anual (Ingresos brutos anuales)";"Menor que 1M"
+"Nivel de externalización TI (Grado de subcontratación de servicios tecnológicos)";Medio
+"¿Existe política de uso aceptable para el teletrabajo? (Define si hay políticas para el trabajo remoto)";Sí
+"Acceso remoto seguro (Evaluación de mecanismos seguros de acceso remoto)";Sí
+"Verificación de doble factor (Evaluación de verificación de doble factor en el login de los equipos, aplicativos, etc.)";Sí
+"Tipo de infraestructura TI (Tipo de infraestructura tecnológica predominante)";Cloud
+"% de procesos clave digitalizados (Nivel de automatización/digitalización de procesos internos)";"Entre 26 y 50%"
+"¿Qué ERP utilizas? (ERP en uso para la gestión operativa)";A3ERP
+"¿Qué CRM utilizas? (CRM en uso para la gestión de clientes)";Digiforma
+"Uso de IA para automatización (Aplicación de inteligencia artificial en procesos)";Explorando
+"Tipo de base de datos utilizada (Sistemas actuales de bases de datos)";"Cloud( AWS. Google, Azure,…)"
+"¿Usas PowerBI para la analítica empresarias de tu negocio? (Tecnologías empleadas para generar informes)";Excel
+"% empleados con competencias digitales avanzadas (Personal con conocimientos digitales técnicos/avanzados)";"Entre 51 y 75%"
+"Uso de la suite Microsoft 365 (Uso de la plataforma empresarial Microsoft 365)";Sí
+"Uso de herramientas colaborativas (Uso de plataformas tipo Teams, Google Workspace, Slack, etc.)";Sí
+"Formación continua digital (Programas internos de formación tecnológica)";Sí
+"Formación en ciberseguridad (Cursos o talleres de concienciación en seguridad digital)";Sí
+"Formación FTFE/Bonificada (Se infique si partifica en formaciones de la Funcación Tripartita o formaciones bonificables)";Sí
+"Simulacros o tests de phishing (Evaluaciones prácticas de seguridad para empleados)";No
+"Presencia activa en Internet (Página web y perfiles sociales actualizados)";Sí
+"Gestión activa de redes sociales (Actualización frecuente para interacción con clientes)";Sí
+"Uso de marketing digital (Utilización de campañas digitales (SEO, SEM, RRSS, etc.))";Sí
+"Análisis de visitantes y seguidores (Medición y análisis del tráfico y actividad digital)";Sí
+"Canales de venta digitales accesibles (E-commerce propio o plataformas funcionales)";Sí
+"Ingresos digitales (Porcentaje de ingresos procedentes de canales digitales)";"Menos del 10%"
+"Canal habitual comunicación cliente (Definición del canal habitual de comunicación con el cliente)";"Corre electrónico"
+"Canal preferente comunicación cliente (Definición del canal preferente de comunicación con el cliente)";"Correo electrónico"
+"¿Qué antivirus usan los empleados? (Antivirus que usan los empleados)";"ESET Security"
+"Qué porcentaje de tus empleados usan antivirus? (Porcentaje de empleados que están cubiertos por uso de antivirus)";0
+"Aplicación regular de parches y actualizaciones (Mantenimiento de sistemas actualizados)";Sí
+"Controles de red implementados (Firewalls, segmentación, VLANs, etc.)";No
+"Proceso documentado de alta, modificación y baja de usuarios (Procedimientos formales de gestión de cuentas)";No
+"Asignación clara de roles y privilegios (Gestión basada en el principio de mínimo privilegio)";No
+"Plan de respuesta a incidentes aprobado (Existencia formal de plan documentado)";No
+"Planes de continuidad y recuperación (BCP/DRP) (Existencia de planes ante interrupciones graves)";No
+"Cumplimiento con normativa de protección de datos (Cumplimiento con GDPR, LOPD o local correspondiente)";No
+"Formación en cumplimiento legal y normativo digital (Formación al personal sobre aspectos legales tecnológicos)";No
+"De los ámbitos evaluados, ¿cuál considera que es prioritario para su organización y le gustaría abordar con mayor profundidad?";"Procesos y automatización"

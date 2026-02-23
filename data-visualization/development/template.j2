@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte de referencia</title>
+
+    <style>
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; color: #333; background: #f4f7f6; }
+        h1 { font-size: 2.2em; margin: 0; color: #0062a4; }
+        h2 { color: #0062a4; border-left: 5px solid #2ecc71; padding-left: 15px; margin: 0; page-break-after: avoid; }
+        h3 { color: #0062a4; margin: 0; }
+        ol { padding: 0 48px; }
+        li { color: #0062a4 ; }
+        strong { color: #0062a4; }
+        .odd-row { background-color: #4a91e22b; }
+        .muted { color: #6b7280; font-size: 0.95em; }
+        a:visited { color: #0062a4; }
+        table { width: 100%; border-collapse: collapse; }
+        img { object-fit: scale-down; }
+        table caption { caption-side: bottom; font-size: medium; }
+        table th { background: #003366; color: white; padding: 8px; text-align: center;  }
+        table td { border-bottom: 1px solid #eee; padding: 8px; vertical-align: center; text-align: center; }
+        footer { text-align: center; font-size: 11px; color: #999; border-top: 1px solid #eee; padding: 2rem 0; }
+        
+        .kpi-row { display: flex; justify-content: space-between; gap: 2rem; }
+        .kpi-card { background: #eef2f5; padding: 20px; border-radius: 8px; width: 30%; text-align: center; border-top: 4px solid #0062a4; display: flex; flex-direction: column; gap: 0.2rem; }
+        .kpi-value { font-size: 32px; font-weight: bold; color: #0062a4; display: flex; align-items: center; justify-content: center; gap: 0.3em; }
+        
+        .caption { padding-top: 1rem; font-size: 13px; }
+        .detail { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #0062a4; text-style: italic; }
+        .content { padding: 40px; width: 900px; box-shadow: 0 0 10px rgba(0,0,0,0.1); margin: 0 auto; background: white; display: flex; flex-direction: column; gap: 2rem; }
+        .methodology-box { background: #fff; border: 1px solid #ddd; padding: 15px; border-radius: 5px; }
+        small { color: #666; font-size: 11px; }
+        .small { font-size: 13px; }
+        .logo { height: 100%; padding-left: 1rem; }
+        .header { background: #0062a4; width: auto; height: 70px; align-content: center; padding: 1rem; }
+        .resume { border-bottom: 3px solid #0062a4; padding-bottom: 2rem; }
+
+        .badge { padding: 4px 10px; border-radius: 14px; font-size: 0.8em; font-weight: 600; white-space: nowrap; }
+        .badge-sm { padding: 2px 6px; font-size: 0.7em; border-radius: 10px; }
+
+        .status-good { color: #2ecc71; border-top: 4px solid #2ecc71; }
+        .status-avg  { color: #f1c40f; border-top: 4px solid #f1c40f; }
+        .status-bad  { color: #e74c3c; border-top: 4px solid #e74c3c; }
+        .good { background: #0062a4; color: white; }
+        .avg  { background: #fef3c7; color: #92400e; }
+        .bad  { background: #fee2e2; color: #991b1b; }
+        
+        .section { display: flex; flex-direction: column; gap: 0.5rem; }
+        .chart { margin: 18px auto; text-align: center; max-width: 400px; max-height: 400px; gap: 1rem; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; align-items: center; padding: 1rem 0; }
+        .dimension-header { background-color: #4a90e2; color: white; font-weight: bold; text-align: left; }
+        .indent { padding-left: 1rem; display: flex; }
+        .indent2 { padding-left: 2rem; display: flex; }
+
+        .scoring-grid { display: flex; flex-wrap: wrap; gap: 15px; }
+        .scoring-card { flex: 1; min-width: 180px; background: #f8f9fa; border-left: 4px solid #0062a4; border-radius: 4px; padding: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .scoring-card h4 { color: #0062a4; margin: 0 0 10px 0; font-size: 13px; text-transform: uppercase; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
+        .score-row { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px; color: #555; }
+        .score-val { font-weight: bold; color: #27ae60; }
+
+        .conclusion { padding: 25px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .conclusion ul { list-style-type: square; }
+        .conclusion li { font-size: 0.95em; color: #333; } 
+        .conclusion strong { color: #0062a4; }
+        
+        .row { display: flex; justify-content: space-between; }
+        .print-btn { padding: 10px 20px; background: #0062a4; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: bold; float: right; margin-top: -10px; }
+        
+        .print-btn:hover { background-color: #004d80; }
+        
+        tr.hoverable:hover, .adoption-row:hover { opacity: 0.9; cursor: pointer; }
+        
+        @media print {
+        @page { size: A4; margin: 15mm 15mm; }
+ 
+        body {
+            background-color: white;
+            -webkit-print-color-adjust: exact; /* OBLIGATORIO: Para que salgan los colores de fondo y barras */
+            print-color-adjust: exact;
+            margin: 0;
+            padding: 0;
+        }
+ 
+        .container {
+            width: 100% !important; /* Que ocupe todo el ancho del papel */
+            max-width: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            box-shadow: none !important; /* Quitar la sombra de la "hoja" web */
+            border: none !important;
+        }
+ 
+        .section {
+            page-break-inside: avoid;
+            break-inside: avoid;
+            margin-bottom: 20px; /* Espacio entre secciones */
+        }
+ 
+        h2 { page-break-after: avoid; break-after: avoid; }
+ 
+        .actions, .no-print { display: none !important; }
+        .page-break { page-break-before: always; }
+        body, p, td, th { font-size: 12pt; color: #000; }
+        }
+    </style>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<div class="content">
+<header class="header">
+    <img src="https://disi.tareando.es/img/disiLogoTareandoBlanco.png" alt="Tareando Logo" class="logo"/>
+</header>
+
+<div class="resume row">
+    <div>
+        <h1>Informe Digital de Referencia</h1>
+        <div class="subtitle">Informe estratégico | {{ date }}</div> 
+    </div>
+    <div class="actions">
+        <button onclick="window.print()" class="print-btn">
+            📄 Guardar como PDF
+        </button>
+    </div>
+</div>
+
+
+<div class="section">
+    <h2>Descripción breve y objetivo del informe</h2>
+    <p>
+        Este informe presenta un análisis digital de referencia orientado a la comparación estructurada entre las respuestas proporcionadas por la empresa evaluada y los resultados agregados correspondientes al filtro sectorial aplicado. A lo largo del documento se incluyen diversas tablas y representaciones gráficas diseñadas para facilitar la interpretación comparativa de los principales indicadores, permitiendo identificar posicionamientos relativos, fortalezas diferenciales y posibles áreas de mejora en relación con el conjunto de empresas del sector.
+    </p>
+    
+    <div class="kpi-row">
+        {% for key, value in meta.items() %}
+            {% if value is not none %}
+                <div class="kpi-card">
+                    <span class="kpi-value" data-key={{ value }}></span><br>
+                    <span data-key={{ key }}_key></span><br>
+                    <small data-key={{ key }}_description></small><br>
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+    <div class="kpi-row">
+        {% set g = kpis['GLOBAL_SCORE'] %}
+        
+        {% if g %}
+        {# Logic for dynamic color coding #}
+        {% set global_diff = (g.company|default(0) - g.aggregate_median|default(0))|round(2) %}
+        {% set sector_diff = (g.company|default(0) - g.sector_median|default(0))|round(2) %}
+
+        <div class="kpi-card {{ 'status-good' if g.company >= 70 else ('status-avg' if g.company >= 50 else 'status-bad') }}">
+            <span class="kpi-value"><strong>{{ g.company | default(0) }}</strong></span>
+            <span class="i18n" data-key="global_score_own_key">Tu Score</span>
+            <small class="i18n" data-key="global_score_own_desc">Puntuación general obtenida.</small>
+        </div>
+
+        <div class="kpi-card">
+            <span class="kpi-value">
+                {{ g.sector_median | default(0) }}
+                <span class="badge-sm {{ 'good' if sector_diff > 0 else ('avg' if sector_diff == 0 else 'bad') }}">
+                    {{ '+' if sector_diff > 0 }}{{ sector_diff }}
+                </span>
+            </span>
+            <span class="i18n" data-key="global_score_sector_key">Media Sector</span>
+            <small class="i18n" data-key="global_score_sector_desc">Comparativa con tu industria.</small>
+        </div>
+
+        <div class="kpi-card">
+            <span class="kpi-value">
+                {{ g.aggregate_median | default(0) }}
+                <span class="badge-sm {{ 'good' if global_diff > 0 else ('avg' if global_diff == 0 else 'bad') }}">
+                    {{ '+' if global_diff > 0 }}{{ global_diff }}
+                </span>
+            </span>
+            <span class="i18n" data-key="global_score_all_key">Media Global</span>
+            <small class="i18n" data-key="global_score_all_desc">Comparativa con todos los usuarios.</small>
+        </div>
+    {% endif %}
+    </div>
+</div>
+
+<!-- ================= KPI RADAR + GLOBAL SCORE ================= -->
+<div class="section">
+    <h2 id="logica-puntuacion">Lógica de Puntuación</h2>
+    <p>La puntuación global de madurez digital se calcula a partir de cuatro dimensiones clave: Operaciones, Negocio Digital, Ciberseguridad y Cultura Digital. Cada dimensión se compone de varias preguntas específicas que se ponderan para reflejar su importancia relativa en la madurez digital general.</p>
+    <div class="methodology-box">
+        <div class="scoring-grid">
+        {% for category, items in scoring_logic.items() %}
+            <div class="scoring-card">
+                <h4>{{ category }}</h4>
+
+                {% for label, score in items.items() %}
+                    <div class="score-row">
+                        <span>{{ label }}</span>
+                        <span class="score-val">{{ score }} pts</span>
+                    </div>
+                {% endfor %}
+
+            </div>
+        {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div class="section">
+    <h2 id="metodologia-evaluacion">Metodología de Evaluación</h2>
+    <p>Para obtener una radiografía precisa de la madurez digital, no nos basamos en una única métrica. Nuestro algoritmo evalúa la empresa desde cuatro dimensiones estratégicas (KPIs), asignando un peso específico a cada respuesta según su impacto real en el negocio.<br />La puntuación global (0-100) es el resultado ponderado de estos cuatro pilares. A continuación, desglosamos la "fórmula" exacta utilizada para calcular cada indicador, detallando qué preguntas componen cada bloque y cuánto influyen en la nota final: </p>
+    <div class="methodology-box"><table id="kpi-description" class="small">
+        <tr>
+            <th>KPI (Dimensión)</th>
+            <th>Qué mide</th>
+            <th>Columnas / Preguntas utilizadas</th>
+        </tr>
+        <tr>
+            <td><strong>Eficiencia Operativa</strong></td>
+            <td>Nivel de modernización de la infraestructura y procesos.</td>
+            <td>
+                <ul>
+                    <li><em>% Procesos digitalizados (40%)</em></li>
+                    <li><em>Infraestructura (Cloud vs On-Prem) (30%)</em></li>
+                    <li><em>Uso de herramientas colaborativas (15%)</em></li>
+                    <li><em>¿Usas PowerBI para la analítica empresarias de tu negocio? (15%)</em></li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td><strong>Negocio Digital</strong></td>
+            <td>Capacidad de generar valor e ingresos a través de la tecnología.</td>
+            <td>
+                <ul>
+                    <li><em>% Ingresos Digitales (40%)</em></li>
+                    <li><em>Uso de IA para automatización (20%)</em></li>
+                    <li><em>Presencia activa en Internet (20%)</em></li>
+                    <li><em>Uso de marketing digital (20%)</em></li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td><strong>Ciberseguridad</strong></td>
+            <td>Nivel de protección y cumplimiento normativo (Higiene Digital).</td>
+            <td>
+                <ul>
+                    <li><em>Autenticación de Doble Factor (2FA) (25%)</em></li>
+                    <li><em>Planes de Continuidad/Backups (25%)</em></li>
+                    <li><em>Simulacros de Phishing (25%)</em></li>
+                    <li><em>Cumplimiento RGPD/Datos (25%)</em></li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td><strong>Cultura Digital</strong></td>
+            <td>Capacitación y preparación del capital humano.</td>
+            <td>
+                <ul>
+                    <li><em>% Empleados con skills avanzados (25%)</em></li>
+                    <li><em>Formación específica en Ciberseguridad (25%)</em></li>
+                    <li><em>¿Existe política de uso aceptable para el teletrabajo? (25%)</em></li>
+                    <li><em>¿Qué porcentaje de tus empleados usan antivirus? (25%)</em></li>
+                </ul>
+            </td>
+        </tr>
+    </table></div>
+</div>
+
+<div class="section">
+    <h2 id="indices-globales">Indicadores Clave</h2>
+    <p>A continuación presentamos un gráfico de radar de los Indicadores Clave de Desempeño (KPI) y la Puntuación Global (promedio de KPIs) en comparación con las medianas del sector filtrado y del agregado total; incluídas tablas con los datos originales de las gráficas. Representa un indicador fiable del nivel competitivo general frente al sector de referencia y el global.</p>
+
+    <div class="grid">
+        <div class="chart">
+            <canvas id="kpi-radar-chart" width="400" height="400"></canvas>
+        </div>
+
+        <div class="chart">
+            <canvas id="global-score-chart" width="400" height="200"></canvas>
+        </div>
+    </div>
+
+    <table id="kpi-comparison" class="small">
+        <tbody>
+            <tr>
+                <th>KPI</th>
+                <th>Puntuación</th>
+                <th>Mediana Sectorial</th>
+                <th>Diferencia Sectorial</th>
+                <th>Posición Sectorial</th>
+                <th>Mediana Agregada</th>
+                <th>Diferencia Agregada</th>
+            </tr>
+            {% for kpi, d in kpis.items() %}
+            {% if loop.index % 2 == 0 %}
+            <tr class="odd-row">
+            {% else %}
+            <tr>
+            {% endif %}
+            <td class="i18n" data-key={{ kpi }} />
+            <td><strong>{{ d.company | default(0) }}</strong></td>
+            <td>{{ d.sector_median | default(0) }}</td>
+            <td>
+            {% if d.company-d.sector_median > 0 %}
+            <span class="badge good">+{{ (d.company-d.sector_median)|round(2) }}</span>
+            {% elif d.sector_median - d.company == 0 %}
+            <span class="badge avg">{{ (d.company-d.sector_median)|round(2) }}</span>
+            {% else %}
+            <span class="badge bad">{{ (d.company-d.sector_median)|round(2) }}</span>
+            {% endif %}
+            </td>
+            <td>
+                {% if d.position in ["above_p75", "between_median_p75"] %}
+                    <span class="badge good">Por encima de la media</span>
+                {% elif d.position == "between_p25_median" %}
+                    <span class="badge avg">Media</span>
+                {% else %}
+                    <span class="badge bad">Por debajo de la media</span>
+                {% endif %}
+            </td>
+            <td>{{ d.aggregate_median | default(0) }}</td>
+            <td>
+            {% if d.company-d.aggregate_median > 0 %}
+            <span class="badge good">+{{ (d.company-d.aggregate_median)|round(2) }}</span>
+            {% elif d.aggregate_median - d.company == 0 %}
+            <span class="badge avg">{{ (d.company-d.aggregate_median)|round(2) }}</span>
+            {% else %}
+            <span class="badge bad">{{ (d.company-d.aggregate_median)|round(2) }}</span>
+            {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- ================= ADOPTION (INTERACTIVE) ================= -->
+<div class="section">
+    <h2 id="adopcion-tecnologica">Adopción Tecnológica</h2>
+    <p>Este análisis de adopción sectorial ofrece una perspectiva objetiva sobre la singularidad del perfil empresarial. Contrastando las competencias poseídas con las del mercado para ayudar a categorizar si la empresa cumple con la norma general o si tiene características de alta especialización.</p>
+    <div class="grid">
+        <div>
+            <table id="adoption-table" class="small">
+                <tr>
+                    <th>Competencias</th>
+                    <th>Respuesta</th>
+                    <th>Adopción del mercado</th>
+                </tr>
+                {% for item, d in adoption.items() %}
+                {% if loop.index % 2 == 0 %}
+                <tr class="adoption-row odd-row" data-label="{{ item }}" data-sector="{{ d.sector_adoption_pct | default(0) }}">
+                {% else %}
+                <tr class="adoption-row" data-label="{{ item }}" data-sector="{{ d.sector_adoption_pct | default(0) }}">
+                {% endif %}
+                    <td class="i18n" data-key={{ item }} />
+                    <td>{{ '<span class="badge good">Sí</span>' if d.company else '<span class="badge bad">No</span>' }}</td>
+                    <td>{{ d.sector_adoption_pct | default(0) }}%</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+        <div class="chart">
+            <p class="detail" id="adoption-detail-label">Pasa el ratón por encima de la competecia o clica para ver la Adopción del Sector</p>
+            <canvas id="adoption-detail-chart" width="200" height="200"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- ================= MARKET POSITION ================= -->
+<div class="section">
+    <h2 id="posicion-mercado">Posición del Mercado</h2>
+    <p>A continuación, se presenta un desglose del posicionamiento competitivo basado en la popularidad de las respuestas proporcionadas. El objetivo es determinar la frecuencia relativa de cada dimensión organizativa dentro del ecosistema sectorial.</p>
+    
+    <div class="grid">
+        <table id="posicion-mercado" class="small"> 
+            <tr>
+                <th>Dimensión</th>
+                <th>Respuesta</th>
+                <th>Posición en el Mercado</th>
+                <th>Cuota de Mercado</th>
+            </tr>
+            {% for item, d in market_position.items() %}
+            {% if loop.index % 2 == 0 %}
+            <tr class="hoverable market-row odd-row"
+            {% else %}
+            <tr class="hoverable market-row"
+            {% endif %}
+                data-dim="{{ item }}"
+                data-share="{{ d.market_share_pct | default(0) }}">
+                <td class="i18n" data-key={{ item }} />
+                <td>{{ d.company }}</td>
+                <td>{{ "#" ~ d.market_rank if d.market_rank else "Nicho" }}</td>
+                <td>{{ d.market_share_pct | default(0) }}%</td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        <div class="chart">
+            <p class="detail" id="market-detail-label">Pasa el ratón por encima de la dimensión o clica para ver la Posición del Mercado</p>
+            <canvas id="market-detail-chart" width="200" height="200"></canvas>
+        </div>
+    </div>
+</div>
+
+<div class="section">
+    <h2 id="respuestas">Respuestas</h2>
+    <p class="muted">Por último, mostraremos directamente las respuestas proporcionadas comparadas con los datos agregados. Para leer esta <a href="#respuestas-table">Tabla <span id="table-number"></span></a>, deberemos tener en cuenta que en la columna <i>Comparación sectorial</i> hay dos tipos de datos. Primero, el dato numérico, que es un valor numérico abierto (el caso de <i>Número clientes</i>), en el cual se mostrará la diferencia entre el valor aportado y la mediana del sector. Por último, con el dato categórico, el cual es mayoritario, mostrará el porcentaje del sector que ha proporcionado la misma respuesta que la proporcionada.</p>
+
+    <table id="respuestas-table" class="small">
+        <thead>
+            <tr>
+                <th>Pregunta</th>
+                <th>Respuesta</th>
+                <th>Comparación sectorial</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% set ns = namespace(counter=0) %}
+            {% for dimension in responses %}
+                {% if dimension %}
+                    <tr class="dimension-header">
+                        <td colspan="3"><div class="indent">{{loop.index0}}. {{ dimension_labels[loop.index0] }}</div></td>
+                    </tr>
+
+                    {% for row in dimension %}
+                        {% set ns.counter = ns.counter + 1 %}
+                        {% if ns.counter % 2 == 0 %}
+                        <tr class="odd-row">
+                        {% else %}
+                        <tr class="">
+                        {% endif %}
+                            <td><div class="indent2">{{ ns.counter }}. {{ row.question }}</div></td>
+                            <td>{{ row.company }}</td>
+                            <td>
+                                {% if row.comparison.type == "numerical" %}
+                                    {% if row.comparison.gap > 0 %}
+                                        <span class="badge good">+{{ row.comparison.gap }}</span>
+                                    {% elif row.comparison.gap == 0 %}
+                                        <span class="badge avg">{{ row.comparison.gap }}</span>
+                                    {% else %}
+                                        <span class="badge bad">{{ row.comparison.gap }}</span>
+                                    {% endif %}
+                                {% elif row.comparison.type == "categorical" %}
+                                    {{ row.comparison.value }}%
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% endif %}
+            {% endfor %}
+        </tbody>
+    </table>
+
+</div>
+
+
+<div class="section">
+{% set global = kpis['GLOBAL_SCORE'] %}
+{% set kpi_items = kpis.items() | rejectattr(0, 'equalto', 'GLOBAL_SCORE') | list %}
+
+{% set strongest = kpi_items | sort(attribute='1.company', reverse=True) | first %}
+{% set weakest = kpi_items | sort(attribute='1.company') | first %}
+
+{% if global.position == 'above_p75' %}
+    {% set color = "#2ecc71" %}
+    {% set position_title = "Posicionamiento Avanzado" %}
+{% elif global.position == 'between_median_p75' %}
+    {% set color = "#f39c12" %}
+    {% set position_title = "Por Encima de la Media Sectorial" %}
+{% elif global.position == 'between_p25_median' %}
+    {% set color = "#e67e22" %}
+    {% set position_title = "En Línea con el Mercado" %}
+{% else %}
+    {% set color = "#e74c3c" %}
+    {% set position_title = "Por Debajo del Mercado" %}
+{% endif %}
+
+<h2>Conclusiones</h2>
+<div class="conclusion" style="border-left: 6px solid {{ color }}; background-color: #eef2f5; margin-top: 2rem;">
+
+    <h3 style="color: {{ color }}; margin-top: 0; margin-bottom: 0.5rem;">{{ position_title }}</h3>
+    
+    <p style="margin-bottom: 1.5rem;">
+        En comparación con el segmento de referencia 
+        <span class="muted">
+            ({% if meta.company_profile_cnae %}Sector: <strong>{{ meta.company_profile_cnae }}</strong>{% endif %}
+            {% if meta.company_size and meta.company_profile_cnae %} | {% endif %}
+            {% if meta.company_size %}Tamaño: <strong>{{ meta.company_size }}</strong>{% endif %}
+            {% if meta.province and (meta.company_size or meta.company_profile_cnae) %} | {% endif %}
+            {% if meta.province %}Provincia: <strong>{{ meta.province }}</strong>{% endif %}),
+        </span> 
+        la empresa obtiene un índice global de madurez de <strong>{{ global.company }}</strong>. 
+        Este resultado la sitúa en la posición <strong class="i18n" data-key="{{ global.position }}"></strong> 
+        respecto a la mediana del grupo comparativo (<strong>{{ global.sector_median }}</strong>), 
+        calculada sobre una muestra de {{ meta.sample_size }} empresas.
+    </p>
+
+    <div class="section-divider" style="border-top: 1px solid #ddd; margin: 1.5rem 0;"></div>
+
+    <h4 style="color:#0062a4; margin-bottom: 0.8rem;">Fortalezas y Áreas de Mejora</h4>
+
+    <p>
+        La dimensión más sólida es 
+        <strong data-key={{ strongest[0] }}></strong> 
+        con una puntuación de <strong>{{ strongest[1].company }}</strong>, 
+        posicionándose como <em class="i18n" data-key="{{ strongest[1].position }}"></em> respecto al sector.
+    </p>
+
+    <p style="margin-bottom: 1.5rem;">
+        La principal área de mejora es <strong data-key={{ weakest[0] }}></strong> con <strong>{{ weakest[1].company }}</strong>, donde la mediana sectorial es <strong>{{ weakest[1].sector_median }}</strong>.
+    </p>
+
+    <h4 style="color:#0062a4; margin-bottom: 0.8rem;">Brechas en Adopción Tecnológica</h4>
+
+    <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start;">
+        {% set positive_gaps = adoption.items() | selectattr('1.gap_pct', 'gt', 0) | list %}
+        {% set negative_gaps = adoption.items() | selectattr('1.gap_pct', 'lt', 0) | list %}
+
+        {% if positive_gaps %}
+            <div>
+                <p class="small" style="font-weight: bold; color: #2ecc71;">Liderazgo en adopción:</p>
+                <ul style="padding-left: 20px; margin-top: 0.5rem;">
+                {% set sorted_positive = positive_gaps | sort(attribute='1.gap_pct', reverse=True) %}
+                {% for item in sorted_positive[:3] %}
+                    <li style="margin-bottom: 4px;">
+                        <span data-key={{ item[0] }}></span>
+                        <strong>(+{{ item[1].gap_pct }}%)</strong>
+                    </li>
+                {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
+        {% if negative_gaps %}
+            <div>
+                <p class="small" style="font-weight: bold; color: #991b1b;">Prioridades de inversión:</p>
+                <ul style="padding-left: 20px; margin-top: 0.5rem;">
+                {% set sorted_negative = negative_gaps | sort(attribute='1.gap_pct') %}
+                {% for item in sorted_negative[:3] %}
+                    <li style="margin-bottom: 4px; color: #333;">
+                        <span data-key={{ item[0] }}></span>
+                        <strong style="color: #991b1b;">({{ item[1].gap_pct }}%)</strong>
+                    </li>
+                {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- ================= FOOTER ================= -->
+<footer>Generado automáticamente · Valores comparados contra datos sectoriales agregados.</footer>
+
+
+<!-- ================= CHART.JS SCRIPTS ================= -->
+<script>
+    /* Tables and Graphs */
+    let tableNumber = 0;
+    let graphNumber = 0;
+    
+    const translatedCaption = (key, type) => ({
+        "number": type == "table" ? ++tableNumber : ++graphNumber,
+        "label": translate(key)
+        }
+    )
+
+    /* Translations */
+    TRANSLATIONS = {{ translations }}
+    
+    const translate = (s) => {
+        return TRANSLATIONS[s] ?? s
+    }
+    
+    document.addEventListener("DOMContentLoaded", () => {
+        document.querySelectorAll(".i18n").forEach((el) => {
+            el.textContent = translate(el.dataset.i18n);
+        });
+        document.querySelectorAll("[data-key]").forEach((el) => {
+            el.textContent = translate(el.dataset.key);
+        });
+        document.querySelectorAll("canvas[id]").forEach(canvas => {
+            if (canvas.parentElement.tagName.toLowerCase() === "figure") return;
+
+            const content = translatedCaption(canvas.id, "graph")
+
+            const figure = document.createElement("figure");
+            figure.style.display = "inline-block"; 
+            figure.style.textAlign = "center";     
+            figure.style.margin = "0";     
+            
+            canvas.parentNode.insertBefore(figure, canvas);
+            figure.appendChild(canvas);
+
+            const figcaption = document.createElement("figcaption");
+
+            const strong = document.createElement("strong");
+            strong.textContent = `Gráfico ${content.number} `;
+            const labelSpan = document.createElement("span");
+            labelSpan.textContent = content.label;
+
+            figcaption.classList.add("caption")
+
+            figcaption.appendChild(strong)
+            figcaption.appendChild(labelSpan)
+
+            figure.appendChild(figcaption);
+        });
+        document.querySelectorAll("table[id]").forEach(table => {
+            if (table.querySelector("caption")) return;
+
+            const content = translatedCaption(table.id, "table");
+
+            const caption = document.createElement("caption");
+            caption.classList.add("caption")
+
+            const strong = document.createElement("strong");
+            strong.textContent = `Tabla ${content.number} `;
+
+            const labelSpan = document.createElement("span");
+            labelSpan.textContent = content.label;
+
+            caption.appendChild(strong);
+            caption.appendChild(labelSpan);
+
+            table.appendChild(caption);
+        });
+
+        document.querySelectorAll("#table-number").forEach((el) => {
+            el.textContent = tableNumber;
+        })
+    });
+
+    /* KPI Radar */
+    const kpiKeys = {{ kpis.keys() | list | tojson }};
+    const kpiLabels = kpiKeys.map(translate)
+    const companyData = {{ kpis.values() | map(attribute='company') | list | tojson }};
+    const sectorData = {{ kpis.values() | map(attribute='sector_median') | list | tojson }};
+    const aggregateData = {{ kpis.values() | map(attribute='aggregate_median') | list | tojson }};
+
+    new Chart(document.getElementById("kpi-radar-chart"), {
+        type:'radar',
+        data:{
+            labels: kpiLabels,
+            datasets:[
+                { label:'Empresa Encuestada', data:companyData, fill:true, backgroundColor:'rgba(37,99,235,0.25)', borderColor:'#0062a4', pointBackgroundColor:'#0062a4' },
+                { label:'Mediana del Sector', data:sectorData, fill:true, backgroundColor:'rgba(156,163,175,0.15)', borderColor:'#9ca3af', borderDash:[5,5], pointBackgroundColor:'#9ca3af' },
+                { label:'Mediana Agregada', data:aggregateData, fill:true, backgroundColor:'rgba(18, 164, 88, 0.15)', borderColor:'#9ca3af', borderDash:[2,2], pointBackgroundColor:'#4b5563' }
+            ]
+        },
+        options:{ responsive:true, scales:{ r:{ min:0, max:100, ticks:{ stepSize:20 } } }, plugins:{ legend:{ position:'top' }, title:{ display:true, text:'Comparación de KPIs' } } }
+    });
+
+    /* Global Score */
+    const globalScoreData = [{{ kpis.GLOBAL_SCORE.company | default(0) }}, {{ kpis.GLOBAL_SCORE.sector_median | default(0) }}, {{ kpis.GLOBAL_SCORE.aggregate_median | default(0) }}];
+    new Chart(document.getElementById("global-score-chart"), {
+    type: 'bar',
+    data: {
+        labels: ['Empresa encuestada', 'Mediana del Sector', 'Mediana Agregada'],
+        datasets: [{
+            data: globalScoreData,
+            backgroundColor: [
+                "{{ '#0062a4' if kpis.GLOBAL_SCORE.company >= kpis.GLOBAL_SCORE.sector_median else '#dc2626' }}",
+                '#9ca3af',
+                'rgba(18, 164, 88)'
+            ]
+        }]
+    },
+    options: {
+        indexAxis: 'y',
+        responsive: true,
+        scales: {
+            x: {
+                max: 100,
+                title: {
+                    display: true,
+                    text: 'Puntuación (%)'
+                }
+            }
+        },
+        plugins: {
+            legend: { display: false },
+            title: {
+                display: true,
+                text: 'Puntuación Global'
+            }
+        }
+    }
+});
+
+    /* Adoption Interactive */
+    const adoptionCtx = document.getElementById("adoption-detail-chart");
+    const adoptionChart = new Chart(adoptionCtx, {
+        type:'pie',
+        data:{ labels:['Adopted','Not Adopted'], datasets:[{ data:[0,100], backgroundColor:['#0062a4','#e5e7eb'] }] },
+        options:{ responsive:true, plugins:{ legend:{ position:'bottom' } } }
+    });
+    const updateAdoptionChart = (row) => {
+        const label = row.dataset.label;
+        const sector = parseInt(row.dataset.sector,10);
+        adoptionChart.data.datasets[0].data = [sector,100-sector];
+        adoptionChart.update();
+        document.getElementById("adoption-detail-label").textContent=`Competencia: ${translate(label)}`;
+    }
+    
+    const adoptionRows = document.querySelectorAll(".adoption-row");
+    adoptionRows.forEach((row) => {
+        row.addEventListener("click", () => updateAdoptionChart(row));
+        row.addEventListener("mouseenter", () => updateAdoptionChart(row));
+    });
+
+    if (adoptionRows.length > 0) updateAdoptionChart(adoptionRows[0])
+
+    /* ---------------- Market Position Interactive ---------------- */
+    const marketCtx = document.getElementById("market-detail-chart");
+    const marketChart = new Chart(marketCtx, {
+        type: 'pie',
+        data: {
+            labels: ['Company', 'Others'],
+            datasets: [{
+                data: [0, 100],
+                backgroundColor: ['#0062a4', '#e5e7eb']
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { position: 'bottom' } }
+        }
+    });
+
+    const marketRows = document.querySelectorAll(".market-row");
+    const updateMarketChart = (row) => {
+        const dim = row.dataset.dim;
+        const share = parseFloat(row.dataset.share || 0);
+
+        marketChart.data.datasets[0].data = [share, 100 - share];
+        marketChart.update();
+
+        document.getElementById("market-detail-label").textContent =
+            `Competencia: ${translate(dim)}`;
+    }
+
+    marketRows.forEach(row => {
+        row.addEventListener("click", (_) => updateMarketChart(row));
+        row.addEventListener("mouseenter", (_) => updateMarketChart(row));
+    });
+
+    if (marketRows.length > 0) updateMarketChart(marketRows[0]);
+
+</script>
+</div>
+</body>
+</html>
