@@ -60,7 +60,7 @@ class Preprocessing:
                 if keyword in clean_text:
                     return category
 
-        return str(text).title()
+        return "Otro"
 
     def _normalize_response_value(self, row: pd.Series) -> str | int | float:
         """
