@@ -5,7 +5,6 @@ from typing import Any, Dict, TypeAlias
 import aiofiles
 import httpx
 import jinja2
-import orjson
 from ocean_runner import Algorithm, Config
 from returns.io import IOFailure, IOResult, IOSuccess
 from returns.result import Failure, Success
@@ -48,8 +47,17 @@ async def aggregation(
 ) -> IOResult[str, Algorithm.Error]:
     inputs = [(path.parent.name, path) for _, path in algorithm.job_details.inputs()]
 
-    with open("/algorithm/src/config_schema.json", "r") as file:
-        config_file = orjson.loads(file.read())
+    config_schema_response = await get_object(url, ObjectType.CONFIG_SCHEMA)
+
+    match config_schema_response:
+        case IOSuccess(Success(response)):
+            config_file = response.json()
+        case IOFailure(Failure(error)):
+            return IOFailure(Algorithm.Error(f"Failed to fetch config schema: {error}"))
+        case _:
+            return IOFailure(
+                Algorithm.Error("Unknown error occurred while fetching template")
+            )
 
     preprocessor = Preprocessing(config_file)
     surveys_df = preprocessor.process_surveys(inputs)
@@ -92,7 +100,6 @@ async def aggregation(
             return IOSuccess(rendered)
         case IOFailure(Failure(error)):
             return IOFailure(Algorithm.Error(f"Failed to fetch template: {error}"))
-
         case _:
             return IOFailure(
                 Algorithm.Error("Unknown error occurred while fetching template")
