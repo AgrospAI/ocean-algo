@@ -82,9 +82,12 @@ class Preprocessing:
             except ValueError:
                 return 0
 
-        if "cnae" in field_id or "profile" in field_id:
-            if raw_val.isdigit() or re.match(r"^-?\d+\.?\d*$", raw_val):
-                return self.config["cnae_map"].get(raw_val, "Otro")
+        if "cnae" in field_id:
+            cnae_code = re.sub(r"[^0-9]", "", str(raw_val)) if raw_val else ""
+            if cnae_code:
+                prefix = cnae_code[:2]
+                mapping = self.config.get("cnae_map", {})
+                return mapping.get(prefix, "Otro")
             return self._normalize_free_text(raw_val, rule_type="sector")
 
         if field_id in ["erp_in_use", "crm_in_use", "powerbi_usage"]:

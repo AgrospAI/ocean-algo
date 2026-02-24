@@ -18,7 +18,7 @@
     "HubSpot": ["hubspot"],
     "Power BI": ["power", "powerbi", "srss"],
     "A3ERP BI": ["bi", "a3 bi"],
-    "DIgiforma": ["digiforma", "digi"],
+    "Digiforma": ["digiforma", "digi"],
     "WolfCRM": ["wolfcrm", "wolf crm", "wolf"],
     "FacturaScripts": ["facturascripts", "fscript", "f script"],
     "Ninguno": ["no", "-", " ", "ninguno"]
@@ -95,15 +95,30 @@
     "Otro": ["otro", "varios", "diversos"]
   },
   "cnae_map": {
-    "6920": "Servicios",
-    "6201": "Tecnología",
-    "6202": "Tecnología",
-    "4120": "Industrial",
-    "2222": "Industrial",
-    "1721": "Industrial",
-    "2849": "Industrial",
-    "6022": "Servicios",
-    "694.1": "Otro"
+    "01": "Industrial",
+    "02": "Industrial",
+    "03": "Industrial",
+    "10": "Industrial",
+    "17": "Industrial",
+    "22": "Industrial",
+    "28": "Industrial",
+    "32": "Industrial",
+    "33": "Industrial",
+    "35": "Industrial",
+    "41": "Industrial",
+    "42": "Industrial",
+    "43": "Industrial",
+    "45": "Comercio",
+    "46": "Comercio",
+    "47": "Comercio",
+    "60": "Servicios",
+    "62": "Tecnología",
+    "63": "Tecnología",
+    "69": "Servicios",
+    "70": "Servicios",
+    "71": "Servicios",
+    "85": "Servicios",
+    "86": "Servicios"
   },
   "survey_schema": {
     "company_profile_cnae": [
