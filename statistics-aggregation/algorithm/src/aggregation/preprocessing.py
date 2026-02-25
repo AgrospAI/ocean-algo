@@ -172,6 +172,7 @@ class Preprocessing:
 
         if all_data:
             return pd.concat(all_data, ignore_index=True)
+
         return pd.DataFrame()
 
     def calculate_maturity_kpis(self, df: pd.DataFrame) -> pd.DataFrame:

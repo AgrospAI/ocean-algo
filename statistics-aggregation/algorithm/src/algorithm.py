@@ -61,6 +61,7 @@ async def aggregation(
 
     preprocessor = Preprocessing(config_file)
     surveys_df = preprocessor.process_surveys(inputs)
+
     if surveys_df.empty:
         algorithm.logger.warning("No survey data found")
         return IOFailure(Algorithm.Error("No survey data found"))
@@ -145,3 +146,5 @@ if __name__ == "__main__":
     algorithm.logger.setLevel("INFO")
 
     algorithm()
+
+# docker buildx build --platform linux/amd64 -t registry.agrospai.udl.cat/library/tareando-aggregate:0.0.1 . --pus

@@ -194,7 +194,9 @@ def create_int_priority_chart(df):
 
 
 def create_pie_chart(df):
-    clean_series = df["erp_in_use"] != "Ninguno"
+    clean_series = df[
+        ~df["erp_in_use"].astype(str).str.contains("ninguno", case=False, na=False)
+    ]["erp_in_use"]
     counts = clean_series.value_counts().head(6).sort_values()
 
     fig_erp = go.Figure(
@@ -215,7 +217,10 @@ def create_pie_chart(df):
         yaxis=dict(title="Herramienta"),
     )
 
-    clean_series_crm = df["crm_in_use"] != "Ninguno"
+    clean_series_crm = df[
+        ~df["crm_in_use"].astype(str).str.contains("ninguno", case=False, na=False)
+    ]["crm_in_use"]
+
     counts_crm = clean_series_crm.value_counts().head(6).sort_values()
     fig_crm = go.Figure(
         data=[
