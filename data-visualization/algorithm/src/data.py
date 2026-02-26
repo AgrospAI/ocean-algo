@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field, model_validator
 class Sector(StrEnum):
     Industrial = "Industrial"
     Servicios = "Servicios"
-    Comercial = "Comercial"
+    Comercio = "Comercio"
     Tecnologia = "Tecnología"
     Otro = "Otro"
 

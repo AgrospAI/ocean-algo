@@ -41,7 +41,7 @@ requires-dist = [
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "jinja2", specifier = ">=3.1.6" },
     { name = "jsonschema", specifier = ">=4.26.0" },
-    { name = "ocean-runner", specifier = ">=0.2.33" },
+    { name = "ocean-runner", specifier = ">=0.3.9" },
     { name = "pandas", specifier = ">=2.3.3" },
     { name = "pytest", specifier = ">=8.3.4,<9" },
     { name = "returns", extras = ["compatible-mypy"], specifier = ">=0.26.0" },
@@ -250,6 +250,11 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/1d/f3/8fcd2af0f5b806f6cf463efaffd3c9548a28f84220493ecd38d127b6b66d/mypy-1.17.1-py3-none-any.whl", hash = "sha256:a9f52c0351c21fe24c21d8c0eb1f62967b262d6729393397b6f443c3b773c3b9", size = 2283411, upload-time = "2025-07-31T07:53:24.664Z" },
 ]
 
+[package.optional-dependencies]
+faster-cache = [
+    { name = "orjson" },
+]
+
 [[package]]
 name = "mypy-extensions"
 version = "1.1.0"
@@ -280,34 +285,36 @@ wheels = [
 
 [[package]]
 name = "ocean-runner"
-version = "0.2.33"
+version = "0.3.9"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiofiles" },
     { name = "oceanprotocol-job-details" },
     { name = "pydantic" },
     { name = "pydantic-settings" },
-    { name = "pytest" },
+    { name = "returns", extra = ["compatible-mypy"] },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/69/bd/f228960ac3bf6fce8990acbf8a3dcf36783ff57555fd62ffc07578055642/ocean_runner-0.2.33.tar.gz", hash = "sha256:f9b7a5c24176d7bbcbedf95aea97b35c9fe9fef09a18dc5c0e0fa35fce6ed404", size = 6060, upload-time = "2026-02-13T09:34:06.987Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d1/79/1367687c084dc58295743d9bc675c277ef12452a6c55365cd3dd11c6b0e3/ocean_runner-0.3.9.tar.gz", hash = "sha256:b523cd969c04208251c51195fca3b095e42a4b181ee330debe28a64c406d199f", size = 7607, upload-time = "2026-02-26T11:14:21.599Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b5/94/3d21229ff4ee9d4e7cb0ecc55898035ba571e4786b0c832a60df82e2f6c1/ocean_runner-0.2.33-py3-none-any.whl", hash = "sha256:48cd72ce6e2e7142eabe78e2c603585f78be2af90e24957f875cfe579f49c725", size = 7848, upload-time = "2026-02-13T09:34:05.842Z" },
+    { url = "https://files.pythonhosted.org/packages/79/2c/38d0f17a91b975c1a2721b3b57c36548175ef9538c4342690f89f461c531/ocean_runner-0.3.9-py3-none-any.whl", hash = "sha256:a48669fac643d7d5ed8ca2b00ca07c46ce9ec2d187ba47f9bfae46d3b5958472", size = 10013, upload-time = "2026-02-26T11:14:20.541Z" },
 ]
 
 [[package]]
 name = "oceanprotocol-job-details"
-version = "0.3.22"
+version = "0.4.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiofiles" },
     { name = "dependency-injector" },
+    { name = "mypy", extra = ["faster-cache"] },
     { name = "orjson" },
     { name = "pydantic" },
     { name = "pydantic-settings" },
+    { name = "returns", extra = ["compatible-mypy"] },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/0e/d6/444779a7dd0b6328aa17cb85074dc38a7b3f6248738d6328e6235a145808/oceanprotocol_job_details-0.3.22.tar.gz", hash = "sha256:4d2e7a41c1b5b6f33619d60a0e9129dc53ddd77b76a1750e4ffcebf991f3e486", size = 7047, upload-time = "2026-02-12T14:59:43.524Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/28/d8/bcb952ae3e9c7841b8c76a9e34579d631639e276dec2e4e9d7dd7e1d8006/oceanprotocol_job_details-0.4.3.tar.gz", hash = "sha256:ea8d09c0a94c119d378a3c4f89b89f8fe1a261f844c8ca0a8a26f3a4c07a4d24", size = 8119, upload-time = "2026-02-25T15:28:58.884Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a0/56/709dc219976c8d2eb54108f307eaa1216e1ccea0ef32018b28b81ff85c3b/oceanprotocol_job_details-0.3.22-py3-none-any.whl", hash = "sha256:2760ece554c5b8fee536daeb260d90f5e303c01bee6afe5c0be1e353892f1fcd", size = 12594, upload-time = "2026-02-12T14:59:42.741Z" },
+    { url = "https://files.pythonhosted.org/packages/0a/af/8410a1a8efa7ab39f47969c1cdc8697b6c21f613b4dd9976f1d2a4fbb645/oceanprotocol_job_details-0.4.3-py3-none-any.whl", hash = "sha256:1fbc1c2a7564d0968456f4815a84426d341b91327bf1d07e2279be13a1f41ba0", size = 13941, upload-time = "2026-02-25T15:28:56.891Z" },
 ]
 
 [[package]]
