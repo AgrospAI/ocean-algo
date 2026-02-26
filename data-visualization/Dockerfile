@@ -26,7 +26,7 @@ ENV UV_LINK_MODE=copy
 RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=algorithm/uv.lock,target=uv.lock \
     --mount=type=bind,source=algorithm/pyproject.toml,target=pyproject.toml \
-    uv sync --frozen --no-install-project
+    uv sync --frozen --no-dev --no-install-project
 
 FROM python:3.12-slim
 

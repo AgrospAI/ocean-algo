@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from dotenv import load_dotenv, get_key
 from enum import StrEnum
 
+from dotenv import get_key
 from pydantic import BaseModel, Field, model_validator
 
 
