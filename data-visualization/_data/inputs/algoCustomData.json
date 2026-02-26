@@ -1,5 +1,5 @@
 {
-  "sector": "Tecnología",
-  "size": "Mediana",
-  "url": "http://api:8000"
+  "sector": "Servicios",
+  "size": "Micro",
+  "url": "http://localhost:8000"
 }

@@ -43,4 +43,4 @@ ENV PYTHONUNBUFFERED=1
 ENV PATH="/algorithm/.venv/bin:$PATH"
 ENV PYTHONPATH="/algorithm"
 
-CMD ["ocean-execute", "src.algorithm"]
+CMD ["ocean-execute", "--base-dir", "/data"]
