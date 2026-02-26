@@ -1,5 +1,7 @@
 #!/bin/bash
 
+IMAGE_DIGEST=$1
+
 set -euo pipefail
 
 unset DOCKER_TLS_VERIFY DOCKER_CERT_PATH DOCKER_HOST
@@ -13,13 +15,13 @@ until docker info >/dev/null 2>&1; do
 done
 echo "Docker is ready."
 
-docker pull $1
+docker pull "$IMAGE_DIGEST"
 
 docker run -d \
     -v /workspace:/workspace \
     -v /predictions/runs/segment:/predictions/runs/segment \
-    --name agrospai_algo_validation \
-    registry.agrospai.udl.cat/library/agrospai_apple_inference \
+    --name model \
+    "$IMAGE_DIGEST" \
     tail -f /dev/null
 
 exec python3 /algorithm/src/algorithm.py
