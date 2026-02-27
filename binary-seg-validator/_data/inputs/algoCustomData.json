@@ -1,0 +1,4 @@
+{
+    "model_image_digest_reference": "ultralytics/ultralytics:latest-cpu",
+    "inference_cmd": "python3 inference.py"
+}

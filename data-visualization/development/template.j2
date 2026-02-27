@@ -17,35 +17,42 @@
         .muted { color: #6b7280; font-size: 0.95em; }
         a:visited { color: #0062a4; }
         table { width: 100%; border-collapse: collapse; }
-        th { background: #f9fafb; font-weight: 600; }
         img { object-fit: scale-down; }
         table caption { caption-side: bottom; font-size: medium; }
         table th { background: #003366; color: white; padding: 8px; text-align: center;  }
         table td { border-bottom: 1px solid #eee; padding: 8px; vertical-align: center; text-align: center; }
         footer { text-align: center; font-size: 11px; color: #999; border-top: 1px solid #eee; padding: 2rem 0; }
+        
         .kpi-row { display: flex; justify-content: space-between; gap: 2rem; }
         .kpi-card { background: #eef2f5; padding: 20px; border-radius: 8px; width: 30%; text-align: center; border-top: 4px solid #0062a4; display: flex; flex-direction: column; gap: 0.2rem; }
-        .kpi-value { font-size: 32px; font-weight: bold; color: #0062a4; }
+        .kpi-value { font-size: 32px; font-weight: bold; color: #0062a4; display: flex; align-items: center; justify-content: center; gap: 0.3em; }
+        
         .caption { padding-top: 1rem; font-size: 13px; }
         .detail { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #0062a4; text-style: italic; }
         .content { padding: 40px; width: 900px; box-shadow: 0 0 10px rgba(0,0,0,0.1); margin: 0 auto; background: white; display: flex; flex-direction: column; gap: 2rem; }
         .methodology-box { background: #fff; border: 1px solid #ddd; padding: 15px; border-radius: 5px; }
         small { color: #666; font-size: 11px; }
         .small { font-size: 13px; }
-        .li-section { font-size: x-large; }
         .logo { height: 100%; padding-left: 1rem; }
         .header { background: #0062a4; width: auto; height: 70px; align-content: center; padding: 1rem; }
         .resume { border-bottom: 3px solid #0062a4; padding-bottom: 2rem; }
+
         .badge { padding: 4px 10px; border-radius: 14px; font-size: 0.8em; font-weight: 600; white-space: nowrap; }
+        .badge-sm { padding: 2px 6px; font-size: 0.7em; border-radius: 10px; }
+
+        .status-good { color: #2ecc71; border-top: 4px solid #2ecc71; }
+        .status-avg  { color: #f1c40f; border-top: 4px solid #f1c40f; }
+        .status-bad  { color: #e74c3c; border-top: 4px solid #e74c3c; }
         .good { background: #0062a4; color: white; }
         .avg  { background: #fef3c7; color: #92400e; }
         .bad  { background: #fee2e2; color: #991b1b; }
+        
         .section { display: flex; flex-direction: column; gap: 0.5rem; }
         .chart { margin: 18px auto; text-align: center; max-width: 400px; max-height: 400px; gap: 1rem; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; align-items: center; padding: 1rem 0; }
         .dimension-header { background-color: #4a90e2; color: white; font-weight: bold; text-align: left; }
-        .indent { padding-left: 1rem; display: flex}
-        .indent2 { padding-left: 2rem; display: flex}
+        .indent { padding-left: 1rem; display: flex; }
+        .indent2 { padding-left: 2rem; display: flex; }
 
         .scoring-grid { display: flex; flex-wrap: wrap; gap: 15px; }
         .scoring-card { flex: 1; min-width: 180px; background: #f8f9fa; border-left: 4px solid #0062a4; border-radius: 4px; padding: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
@@ -138,6 +145,43 @@
                 </div>
             {% endif %}
         {% endfor %}
+    </div>
+    <div class="kpi-row">
+        {% set g = kpis['GLOBAL_SCORE'] %}
+        
+        {% if g %}
+        {# Logic for dynamic color coding #}
+        {% set global_diff = (g.company|default(0) - g.aggregate_median|default(0))|round(2) %}
+        {% set sector_diff = (g.company|default(0) - g.sector_median|default(0))|round(2) %}
+
+        <div class="kpi-card {{ 'status-good' if g.company >= 70 else ('status-avg' if g.company >= 50 else 'status-bad') }}">
+            <span class="kpi-value"><strong>{{ g.company | default(0) }}</strong></span>
+            <span class="i18n" data-key="global_score_own_key">Tu Score</span>
+            <small class="i18n" data-key="global_score_own_desc">Puntuación general obtenida.</small>
+        </div>
+
+        <div class="kpi-card">
+            <span class="kpi-value">
+                {{ g.sector_median | default(0) }}
+                <span class="badge-sm {{ 'good' if sector_diff > 0 else ('avg' if sector_diff == 0 else 'bad') }}">
+                    {{ '+' if sector_diff > 0 }}{{ sector_diff }}
+                </span>
+            </span>
+            <span class="i18n" data-key="global_score_sector_key">Media Sector</span>
+            <small class="i18n" data-key="global_score_sector_desc">Comparativa con tu industria.</small>
+        </div>
+
+        <div class="kpi-card">
+            <span class="kpi-value">
+                {{ g.aggregate_median | default(0) }}
+                <span class="badge-sm {{ 'good' if global_diff > 0 else ('avg' if global_diff == 0 else 'bad') }}">
+                    {{ '+' if global_diff > 0 }}{{ global_diff }}
+                </span>
+            </span>
+            <span class="i18n" data-key="global_score_all_key">Media Global</span>
+            <small class="i18n" data-key="global_score_all_desc">Comparativa con todos los usuarios.</small>
+        </div>
+    {% endif %}
     </div>
 </div>
 

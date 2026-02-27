@@ -1,17 +1,17 @@
 import re
 import unicodedata
 from collections import defaultdict
+from typing import Any, Dict
 
 import pandas as pd  # type: ignore
 
-from .config_schema import (
-    CNAE_MAP,
-    KEYWORD_RULES,
-    QUEST_MAPPING,
-    QUESTION_REGISTRY,
-    SCORING_MAPS,
-    SURVEY_SCHEMA,
-)
+configuration: Dict[str, Any] = {}
+
+
+def set_configuration(config: Dict[str, Any]) -> None:
+    global configuration
+
+    configuration.update(config)
 
 
 def read_parse_csv(file_path: str) -> pd.DataFrame:
@@ -57,7 +57,7 @@ def normalize_free_text(text: str, rule_type: str) -> str:
         return "No especificado"
 
     clean_text = str(text).lower().strip()
-    rules = KEYWORD_RULES.get(rule_type, {})
+    rules = configuration.get(rule_type, {})
 
     for category, keywords in rules.items():
         for keyword in keywords:
@@ -74,7 +74,7 @@ def normalize_response_value(row: pd.Series) -> str | int | float:
     raw_val = str(row["Valor"]).strip()
     field_id = str(row.get("internal_id", ""))
 
-    schema_options = SURVEY_SCHEMA.get(field_id, [])
+    schema_options = configuration["survey_schema"].get(field_id, [])
     if schema_options == ["NUMERIC"]:
         digits = re.sub(r"[^\d\.,]", "", raw_val).replace(",", ".")
         try:
@@ -85,7 +85,7 @@ def normalize_response_value(row: pd.Series) -> str | int | float:
 
     if "cnae" in field_id or "profile" in field_id:
         if raw_val.isdigit():
-            return CNAE_MAP.get(raw_val, "Otro")
+            return configuration["cnae_map"].get(raw_val, "Otro")
         return normalize_free_text(raw_val, rule_type="sector")
 
     if field_id in ["erp_in_use", "crm_in_use", "powerbi_usage"]:
@@ -133,7 +133,9 @@ def process_survey(df: pd.DataFrame) -> pd.DataFrame:
 
     df["questions"] = df["Campo"].apply(normalize_questions_id)
     df = df.dropna(subset=["questions"])
-    df["internal_id"] = df["questions"].map(QUEST_MAPPING).fillna(df["questions"])
+    df["internal_id"] = (
+        df["questions"].map(configuration["quest_mapping"]).fillna(df["questions"])
+    )
     df["normalized_value"] = df.apply(normalize_response_value, axis=1)
 
     # Create a single row dataframe for this client
@@ -178,7 +180,7 @@ def calculate_maturity_kpis(df: pd.DataFrame) -> pd.DataFrame:
             return df[col_name].apply(percentage_score)
 
         # Select scoring maps from config schema
-        mapping_dict = SCORING_MAPS.get(map_type, {})
+        mapping_dict = configuration.get(map_type, {})
 
         return df[col_name].map(mapping_dict).fillna(0)
 
@@ -315,12 +317,14 @@ def compare_ordinal(company_row, aggregate_block):
 
 
 def compare_responses(company_row: pd.DataFrame, aggregate_block: dict):
-    max_dim: int = max(cfg["dimension"] for cfg in QUESTION_REGISTRY.values())
+    max_dim: int = max(
+        cfg["dimension"] for cfg in configuration["question_registry"].values()
+    )
     result: list = [[] for _ in range(max_dim + 1)]
 
     all_questions = aggregate_block.get("all_questions", {})
 
-    for survey_key, cfg in QUESTION_REGISTRY.items():
+    for survey_key, cfg in configuration["question_registry"].items():
         column = cfg["column"]
         dim = cfg["dimension"]
 

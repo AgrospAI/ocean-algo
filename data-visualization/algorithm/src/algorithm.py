@@ -5,44 +5,62 @@ from pathlib import Path
 from typing import Any, Dict, List, Tuple, TypeAlias
 
 import aiofiles
-import httpx
 import jinja2
 import pandas as pd  # type: ignore
 from jsonschema import Draft202012Validator, ValidationError  # type: ignore
-from ocean_runner import Algorithm, Config
+from ocean_runner import Algorithm, Config, ParametrizedAlgorithm
 from returns.io import IOFailure, IOResult, IOSuccess
 from returns.result import Failure, Success
 
-from src.benchmarking.config_schema import DIMENSION_LABELS
 from src.benchmarking.preprocessing import (
     calculate_maturity_kpis,
     compare_company_to_aggregate,
+    configuration,
     get_overall_kpis,
     process_survey,
+    set_configuration,
 )
-from src.benchmarking.requests import ObjectType, get_object, make_request
+from src.benchmarking.requests import ObjectType, get_object
 from src.data import InputParameters
 
 ResultT: TypeAlias = List[IOResult[Tuple[str, str], Algorithm.Error]]
-algorithm = Algorithm[InputParameters, ResultT](Config(custom_input=InputParameters))
+algorithm = ParametrizedAlgorithm[InputParameters, ResultT].create(
+    Config(custom_input=InputParameters)
+)
 Aggregate: TypeAlias = Dict[str, Dict[str, Any]]
 
 
+logging.getLogger("asyncio").setLevel("WARNING")
+logging.getLogger("httpx").setLevel("WARNING")
+logging.getLogger("httpcore").setLevel("WARNING")
+algorithm.logger.setLevel("INFO")
+
+
 @algorithm.validate
-async def validate(algorithm: Algorithm[InputParameters, ResultT]) -> None:
+async def validate(_) -> None:
     assert algorithm.job_details.metadata, "DDOs missing"
     assert algorithm.job_details.files, "Files missing"
 
-    input_parameters = await algorithm.job_details.input_parameters()
-    assert input_parameters is not None
+    url = algorithm.job_details.input_parameters.url
+    (healthcheck_response, config_schema_response) = await asyncio.gather(
+        *(
+            get_object(url, ObjectType.HEALTHCHECK),
+            get_object(url, ObjectType.CONFIG_SCHEMA),
+        )
+    )
 
-    request = httpx.Request("GET", f"{input_parameters.aggregate_api.url}/api/health/")
-    match await make_request(request):
+    match healthcheck_response:
         case IOSuccess(Success(_)):
-            algorithm.logger.info("API Healthcheck done")
+            algorithm.logger.info("API Healthcheck: OK")
         case IOFailure(Failure(error)):
             algorithm.logger.error(error)
             raise Algorithm.Error("API is not healthy") from error
+
+    match config_schema_response:
+        case IOSuccess(Success(response)):
+            set_configuration(response.json())
+        case IOFailure(Failure(error)):
+            raise Algorithm.Error("Error loading config shcema") from error
 
 
 async def benchmark(
@@ -52,16 +70,16 @@ async def benchmark(
     overall_kpis: dict,
     url: str,
 ) -> IOResult[Tuple[str, str], Algorithm.Error]:
-    algorithm.logger.info(f"Benchmarking {did}")
+    algorithm.logger.info("Benchmarking %s", did)
 
     survey = process_survey(survey)
     survey = calculate_maturity_kpis(survey)
     comparison = compare_company_to_aggregate(survey.iloc[0], aggregate)
 
-    for kpi, values in comparison["kpis"].items():
+    for kpi, _ in comparison["kpis"].items():
         comparison["kpis"][kpi]["aggregate_median"] = overall_kpis[kpi]["median"]
 
-    translations_response, template_response = await asyncio.gather(
+    (translations_response, template_response) = await asyncio.gather(
         get_object(url, ObjectType.BENCHMARKING_TRANSLATIONS),
         get_object(url, ObjectType.BENCHMARKING_TEMPLATE),
     )
@@ -84,7 +102,7 @@ async def benchmark(
             template.render(
                 **comparison,
                 translations=translations,
-                dimension_labels=DIMENSION_LABELS,
+                dimension_labels=configuration["dimension_labels"],
                 date=datetime.date.today().strftime("%d %b %Y"),
             ),
         )
@@ -92,28 +110,34 @@ async def benchmark(
 
 
 async def run_benchmarks(
-    algorithm: Algorithm[InputParameters, ResultT],
+    algorithm: ParametrizedAlgorithm[InputParameters, ResultT],
     aggregate: Aggregate,
 ) -> ResultT:
-    parameters = await algorithm.job_details.input_parameters()
-    assert parameters is not None
+    parameters = algorithm.job_details.input_parameters
 
     inputs = [
         (path.parent.name, pd.read_csv(path, sep=parameters.responses_separator))
         for _, path in algorithm.job_details.inputs()
     ]
 
-    algorithm.logger.info(f"Loaded {len(inputs)} file(s)")
+    algorithm.logger.info("Loaded {%s} file(s)", len(inputs))
+
+    filtered_aggregate = aggregate.get(str(parameters.filter_key), None)
+
+    if filtered_aggregate is None:
+        raise RuntimeError(
+            f"The applied sector filters do not have enough data or is ill-formed. Filter: {str(parameters.filter_key)}"
+        )
 
     overall_kpis = get_overall_kpis(aggregate)
     return await asyncio.gather(
         *(
             benchmark(
                 did,
-                aggregate[str(parameters.aggregate_filter)],
+                filtered_aggregate,
                 content,
                 overall_kpis,
-                parameters.aggregate_api.url,
+                parameters.url,
             )
             for did, content in inputs
         )
@@ -144,24 +168,18 @@ async def get_aggregate(url: str) -> IOResult[Aggregate, AggregateError]:  # typ
 
 
 @algorithm.run
-async def run(algorithm: Algorithm[InputParameters, ResultT]) -> ResultT:  # type: ignore[return]
-    parameters = await algorithm.job_details.input_parameters()
-    assert parameters is not None
+async def run(_) -> ResultT:  # type: ignore[return]
+    parameters = algorithm.job_details.input_parameters
 
-    match await get_aggregate(parameters.aggregate_api.url):
+    match await get_aggregate(parameters.url):
         case IOSuccess(Success(aggregate)):
-            algorithm.logger.info("Running benchmarks")
             return await run_benchmarks(algorithm, aggregate)
         case IOFailure(Failure(error)):
             algorithm.logger.error(error)
 
 
 @algorithm.save_results
-async def save(
-    _: Algorithm[InputParameters, ResultT],
-    result: ResultT,
-    base: Path,
-) -> None:
+async def save(_, result: ResultT, base: Path) -> None:
     async def save_render_batch(
         result: IOResult[Tuple[str, str], Algorithm.Error],
     ) -> None:
@@ -184,11 +202,3 @@ async def save(
     assert result is not None
 
     await asyncio.gather(*(save_render_batch(res) for res in result))
-
-
-if __name__ == "__main__":
-    logging.getLogger("httpx").setLevel("WARNING")
-    logging.getLogger("httpcore").setLevel("WARNING")
-    algorithm.logger.setLevel("INFO")
-
-    algorithm()

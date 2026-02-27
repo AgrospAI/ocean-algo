@@ -1,6 +1,8 @@
 import os
 import re
+import sys
 import cv2
+import time
 import json
 import zipfile
 import subprocess
@@ -12,17 +14,16 @@ from logging import getLogger
 from typing import Tuple, Any, Optional
 from metrics import IoU, dice_coeff, precision_recall_f1, accuracy
 
+algorithm = Algorithm(config=Config(custom_input=InputParameters))
+input_parameters: InputParameters = algorithm.job_details.input_parameters
+digest = input_parameters.model_image_digest_reference
+inference_cmd = input_parameters.inference_cmd
 
 # Dataset data
 SOURCE_VOLUME    = '/workspace'
 RECOVER_VOLUME   = '/predictions/runs/segment'
 
-# Algorithm data
-CONTAINER_NAME     = 'agrospai_algo_validation'
-
 logger = getLogger(__name__)
-
-algorithm = Algorithm(config=Config(custom_input=InputParameters))
 
 class Algorithm_:
     def __init__(self):
@@ -119,10 +120,12 @@ class Algorithm_:
         images = list(filter(lambda file: file not in ['config.txt', annotations_file], all_files))
 
         try:
-            result = subprocess.run([
-                'docker', 'exec', f'{CONTAINER_NAME}',
-                'python3', 'inference.py'
-            ], check=True)
+            if 'ultralytics' in digest:
+                cmd = ['docker', 'exec', 'model', 'yolo', 'predict', 'model=yolov8s-seg.pt', f'source={SOURCE_VOLUME}', 'save=True', f'project={RECOVER_VOLUME}']
+                result = subprocess.run(cmd, check=True)
+            else:
+                cmd = ['docker', 'exec', 'model'] + inference_cmd.split()
+                result = subprocess.run(cmd, check=True)
         except subprocess.CalledProcessError as e:
             logger.error(f'Error launching prediction algorithm. Error code = {e.returncode}')
             exit(1)
@@ -335,3 +338,9 @@ class Algorithm_:
 
 algo = Algorithm_().run().save_result()
 algo.build_template()
+
+
+subprocess.run(["docker", "rm", "-f", "model"], check=False)
+subprocess.run("kill -15 $(pidof dockerd)", shell=True, check=False)
+time.sleep(3)
+sys.exit(0)

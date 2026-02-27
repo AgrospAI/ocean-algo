@@ -2,11 +2,14 @@
 name = "algorithm"
 version = "0.1.0"
 description = ""
-authors = [{ name = "AgrospAI", email = "<your-name>@udl.cat" }]
-requires-python = ">=3.10"
+authors = [{ name = "AgrospAI", email = "agrospai@udl.cat" }]
+requires-python = ">=3.12"
 readme = "README.md"
 license = { file = "LICENSE" }
-dependencies = ["pytest>=8.3.4,<9", "pandas>=2.2.3,<3", "ocean-runner>=0.2.24"]
+dependencies = ["pandas>=2.2.3,<3", "ocean-runner>=0.3.11"]
 
 [tool.uv]
 package = false
+
+[dependency-groups]
+dev = ["mypy>=1.17.1", "pandas-stubs>=3.0.0.260204", "pytest>=8.4.2"]

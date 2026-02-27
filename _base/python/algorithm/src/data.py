@@ -1,7 +1,6 @@
-from dataclasses import dataclass
+from pydantic import BaseModel
 
 
-@dataclass
-class InputParameters:
+class InputParameters(BaseModel):
     age: int
     name: str
