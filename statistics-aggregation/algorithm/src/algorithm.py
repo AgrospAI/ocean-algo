@@ -150,6 +150,3 @@ async def save(
 
 def get_url() -> str | None:
     return get_key("/data/transformations/algorithm", "S3_WRAPPER_URL")
-
-
-# docker buildx build --platform linux/amd64 -t registry.agrospai.udl.cat/library/tareando-aggregate:0.0.1 . --push
