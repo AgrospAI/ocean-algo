@@ -1,21 +1,37 @@
 [project]
 name = "algorithm"
 version = "0.1.0"
-description = "Add your description here"
+description = ""
+authors = [{ name = "AgrospAI", email = "agrospai@udl.cat" }]
+requires-python = ">=3.12,<3.13"
 readme = "README.md"
-requires-python = ">=3.12"
+license = { file = "LICENSE" }
 dependencies = [
     "aiofiles>=25.1.0",
     "httpx>=0.28.1",
     "jinja2>=3.1.6",
     "matplotlib>=3.10.8",
     "numpy>=2.3.5",
-    "ocean-runner>=0.2.33",
+    "ocean-runner>=0.3.11",
+    "orjson>=3.11.7",
     "pandas>=2.3.3",
     "plotly>=6.5.2",
     "returns>=0.26.0",
     "ruff>=0.15.1",
     "seaborn>=0.13.2",
 ]
-[tool.ruff]
-builtins = ["_"]
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+
+[tool.mypy]
+plugins = ["returns.contrib.mypy.returns_plugin"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+    "ruff>=0.14.13",
+    "types-aiofiles>=25.1.0.20251011",
+]

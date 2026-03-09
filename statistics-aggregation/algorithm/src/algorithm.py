@@ -1,11 +1,12 @@
+import asyncio
 import logging
 from pathlib import Path
 from typing import Any, Dict, TypeAlias
 
 import aiofiles
-import httpx
 import jinja2
-from ocean_runner import Algorithm, Config
+from dotenv import get_key
+from ocean_runner import Algorithm, Config, ParametrizedAlgorithm
 from returns.io import IOFailure, IOResult, IOSuccess
 from returns.result import Failure, Success
 
@@ -14,36 +15,46 @@ from src.aggregation.preprocessing import Preprocessing
 from src.aggregation.report_rendering import (
     generate_interactive_report,
 )
-from src.aggregation.requests import ObjectType, get_object, make_request, post_object
+from src.aggregation.requests import ObjectType, get_object, post_object
 from src.data import InputParameters
 
 ResultT: TypeAlias = IOResult[str, Algorithm.Error]
-algorithm = Algorithm[InputParameters, ResultT](Config(custom_input=InputParameters))
+algorithm = ParametrizedAlgorithm[InputParameters, ResultT].create(
+    Config(custom_input=InputParameters)
+)
 Aggregate: TypeAlias = Dict[str, Dict[str, Any]]
-# AGGREGATE_API = "http://host.docker.internal:8000"
-AGGREGATE_API = "http://tareando-s3-wrapper-svc.agrospai.svc.cluster.local:8000"
+
+logging.getLogger("asyncio").setLevel("WARNING")
+logging.getLogger("httpx").setLevel("WARNING")
+logging.getLogger("httpcore").setLevel("WARNING")
+logging.getLogger("jinja2").setLevel("WARNING")
+logging.getLogger("pandas").setLevel("WARNING")
+algorithm.logger.setLevel("INFO")
 
 
-@algorithm.validate
-async def validate(algorithm: Algorithm[InputParameters, ResultT]) -> None:
+async def validate(_) -> None:
     assert algorithm.job_details.metadata, "DDOs missing"
     assert algorithm.job_details.files, "Files missing"
 
-    request = httpx.Request(
-        "GET",
-        f"{AGGREGATE_API}/api/health/",
+    url = algorithm.job_details.input_parameters.url
+    (healthcheck_response) = await asyncio.gather(
+        *(
+            get_object(url, ObjectType.HEALTHCHECK),
+            get_object(url, ObjectType.CONFIG_SCHEMA),
+        )
     )
-    match await make_request(request):
+
+    match healthcheck_response:
         case IOSuccess(Success(_)):
-            algorithm.logger.info("API Healthcheck done")
+            algorithm.logger.info("API Healthcheck: OK")
         case IOFailure(Failure(error)):
             algorithm.logger.error(error)
             raise Algorithm.Error("API is not healthy") from error
 
 
 async def aggregation(
-    algorithm: Algorithm[InputParameters, ResultT],
-    url: str,
+    algorithm: ParametrizedAlgorithm[InputParameters, ResultT],
+    url: str | None,
 ) -> IOResult[str, Algorithm.Error]:
     inputs = [(path.parent.name, path) for _, path in algorithm.job_details.inputs()]
 
@@ -108,8 +119,8 @@ async def aggregation(
 
 
 @algorithm.run
-async def run(algorithm: Algorithm[InputParameters, ResultT]) -> ResultT:
-    return await aggregation(algorithm, AGGREGATE_API)
+async def run(algorithm: ParametrizedAlgorithm[InputParameters, ResultT]) -> ResultT:
+    return await aggregation(algorithm, get_url())
 
 
 @algorithm.save_results
@@ -137,14 +148,8 @@ async def save(
     await save_render_batch(result)
 
 
-if __name__ == "__main__":
-    logging.getLogger("httpx").setLevel("WARNING")
-    logging.getLogger("httpcore").setLevel("WARNING")
-    logging.getLogger("pandas").setLevel("ERROR")
-    logging.getLogger("numpy").setLevel("ERROR")
-    logging.getLogger("plotly").setLevel("ERROR")
-    algorithm.logger.setLevel("INFO")
+def get_url() -> str | None:
+    return get_key("/data/transformations/algorithm", "S3_WRAPPER_URL")
 
-    algorithm()
 
-# docker buildx build --platform linux/amd64 -t registry.agrospai.udl.cat/library/tareando-aggregate:0.0.1 . --pus
+# docker buildx build --platform linux/amd64 -t registry.agrospai.udl.cat/library/tareando-aggregate:0.0.1 . --push

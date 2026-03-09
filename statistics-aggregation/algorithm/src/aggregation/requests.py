@@ -9,11 +9,10 @@ class ObjectType(StrEnum):
     AGGREGATE = auto()
     AGGREGATE_TEMPLATE = auto()
     CONFIG_SCHEMA = auto()
+    HEALTHCHECK = auto()
 
 
-type EXCEPTION = (
-    httpx.TransportError | httpx.HTTPStatusError | httpx.InvalidURL | Exception
-)
+type EXCEPTION = httpx.TransportError | httpx.HTTPStatusError | httpx.InvalidURL
 EXCEPTIONS = (httpx.TransportError, httpx.HTTPStatusError, httpx.InvalidURL)
 
 
@@ -27,30 +26,40 @@ async def make_request(request: httpx.Request) -> IOResult[httpx.Response, EXCEP
         return IOFailure(e)
 
 
-async def get_object(
+async def get_object(  # type: ignore[return]
     endpoint: str,
     object_type: ObjectType,
 ) -> IOResult[httpx.Response, EXCEPTION]:
+    """Get one of the defined objects from the S3 wrapper.
 
-    endpoint = f"{endpoint}/api/aggregate/"
+    Args:
+        object_type (ObjectType): Type of object to get
 
-    request = httpx.Request(
-        method="GET",
-        url=endpoint,
-        params={"object_type": str(object_type)},
-    )
+    Returns:
+        IOResult[httpx.Response, EXCEPTION]: Response with the object or one of the defined exceptions.
+    """
 
-    match await make_request(request):
+    match object_type:
+        case ObjectType.HEALTHCHECK:
+            endpoint = f"{endpoint}/api/health/"
+        case _:
+            endpoint = f"{endpoint}/api/aggregate/"
+
+    match await make_request(
+        httpx.Request(
+            method="GET",
+            url=endpoint,
+            params={"object_type": object_type.value},
+        )
+    ):
         case IOSuccess(Success(response)):
             return IOSuccess(response)
         case IOFailure(Failure(error)):
             return IOFailure(error)
-        case _:
-            return IOFailure(Exception("Unknown error occurred while fetching object"))
 
 
 async def post_object(
-    endpoint: str,
+    endpoint: str | None,
     object_type: ObjectType,
     data: dict | str,
 ) -> IOResult[httpx.Response, EXCEPTION]:
