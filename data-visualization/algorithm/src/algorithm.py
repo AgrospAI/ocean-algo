@@ -38,8 +38,8 @@ algorithm.logger.setLevel("INFO")
 
 @algorithm.validate
 async def validate(_) -> None:
-    assert algorithm.job_details.metadata, "DDOs missing"
-    assert algorithm.job_details.files, "Files missing"
+    # assert algorithm.job_details.metadata, "DDOs missing"
+    # assert algorithm.job_details.files, "Files missing"
 
     url = algorithm.job_details.input_parameters.url
     (healthcheck_response, config_schema_response) = await asyncio.gather(

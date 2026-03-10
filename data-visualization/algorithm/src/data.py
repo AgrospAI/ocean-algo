@@ -12,6 +12,14 @@ class Sector(StrEnum):
     Comercio = "Comercio"
     Tecnologia = "Tecnología"
     Otro = "Otro"
+    NONE = "-"
+
+    def __bool__(self) -> bool:
+        match self:
+            case Size.NONE:
+                return False
+            case _:
+                return True
 
 
 class Size(StrEnum):
@@ -19,6 +27,14 @@ class Size(StrEnum):
     Pequeña = "Pequeña"
     Mediana = "Mediana"
     Grande = "Grande"
+    NONE = "-"
+
+    def __bool__(self) -> bool:
+        match self:
+            case Size.NONE:
+                return False
+            case _:
+                return True
 
 
 def get_url() -> str | None:
@@ -43,7 +59,7 @@ class InputParameters(BaseModel):
     @model_validator(mode="after")
     def validate_exactly_two_filters(self) -> InputParameters:
         values = [self.sector, self.size, self.province]
-        if sum(v is not None for v in values) != 2:
+        if sum(bool(v) for v in values) != 2:
             raise ValueError("Exactly two of 'sector', 'size', 'province' must be set")
         return self
 
