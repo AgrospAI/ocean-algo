@@ -1,12 +1,19 @@
 from __future__ import annotations
 
 from enum import StrEnum
+from os import environ, getenv
+from pathlib import Path
 
 from dotenv import get_key
 from pydantic import BaseModel, Field, model_validator
 
 
-class Sector(StrEnum):
+class OptionalEnumMixin:
+    def __bool__(self) -> bool:
+        return self is not getattr(type(self), "NONE")
+
+
+class Sector(OptionalEnumMixin, StrEnum):
     Industrial = "Industrial"
     Servicios = "Servicios"
     Comercio = "Comercio"
@@ -14,47 +21,21 @@ class Sector(StrEnum):
     Otro = "Otro"
     NONE = "-"
 
-    def __bool__(self) -> bool:
-        match self:
-            case Size.NONE:
-                return False
-            case _:
-                return True
 
-
-class Size(StrEnum):
+class Size(OptionalEnumMixin, StrEnum):
     Micro = "Micro"
     Pequeña = "Pequeña"
     Mediana = "Mediana"
     Grande = "Grande"
     NONE = "-"
 
-    def __bool__(self) -> bool:
-        match self:
-            case Size.NONE:
-                return False
-            case _:
-                return True
-
-
-def get_url() -> str | None:
-    return get_key("/data/transformations/algorithm", "S3_WRAPPER_URL")
-
 
 class InputParameters(BaseModel):
-    sector: Sector | None = Field(default=None)
-    size: Size | None = Field(default=None)
+    sector: Sector = Field(default=Sector.NONE)
+    size: Size = Field(default=Size.NONE)
     province: str | None = Field(default=None)
 
-    url: str | None = Field(init=False, default=get_url())
-
     responses_separator: str = ";"
-
-    @model_validator(mode="after")
-    def validate_url_populated(self) -> InputParameters:
-        if not self.url:
-            raise ValueError("URL not populated from environment file")
-        return self
 
     @model_validator(mode="after")
     def validate_exactly_two_filters(self) -> InputParameters:
