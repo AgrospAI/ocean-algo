@@ -1,0 +1,471 @@
+{
+    "Comercio_Micro": {
+        "meta": {
+            "sector": "Comercio",
+            "size": "Micro",
+            "sample_size": 4
+        },
+        "scores": {
+            "KPI_OPERATIONS": {
+                "p25": 77.0,
+                "median": 89.5,
+                "p75": 100.0
+            },
+            "KPI_SECURITY": {
+                "p25": 25.0,
+                "median": 43.8,
+                "p75": 62.5
+            },
+            "KPI_BUSINESS": {
+                "p25": 50.0,
+                "median": 51.0,
+                "p75": 54.6
+            },
+            "KPI_CULTURE": {
+                "p25": 78.1,
+                "median": 93.8,
+                "p75": 100.0
+            },
+            "GLOBAL_SCORE": {
+                "p25": 66.9,
+                "median": 67.5,
+                "p75": 67.6
+            }
+        },
+        "adoption_rates": {
+            "two_factor_authentication": 25.0,
+            "continuity_and_recovery_plans": 25.0,
+            "microsoft_365_usage": 100.0,
+            "remote_work_acceptable_use_policy": 100.0,
+            "phishing_simulations": 0.0,
+            "active_internet_presence": 100.0,
+            "data_protection_compliance": 100.0,
+            "regular_patching_and_updates": 100.0,
+            "incident_response_plan": 0.0,
+            "digital_marketing_use": 75.0,
+            "accessible_digital_sales_channels": 50.0,
+            "continuous_digital_training": 100.0,
+            "ai_for_automation_usage": 0.0
+        },
+        "market_leaders": {
+            "erp_in_use": [
+                {
+                    "tool": "A3 / Wolters Kluwer",
+                    "share_pct": 50.0
+                },
+                {
+                    "tool": "Facturascript",
+                    "share_pct": 25.0
+                },
+                {
+                    "tool": "Odoo",
+                    "share_pct": 25.0
+                }
+            ],
+            "crm_in_use": [
+                {
+                    "tool": "Ninguno",
+                    "share_pct": 75.0
+                },
+                {
+                    "tool": "Facturascript",
+                    "share_pct": 25.0
+                }
+            ],
+            "it_infrastructure_type": [
+                {
+                    "tool": "Cloud",
+                    "share_pct": 50.0
+                },
+                {
+                    "tool": "On-premise",
+                    "share_pct": 25.0
+                },
+                {
+                    "tool": "Híbrida",
+                    "share_pct": 25.0
+                }
+            ],
+            "antivirus_used": [
+                {
+                    "tool": "Norton/Symantec",
+                    "share_pct": 50.0
+                },
+                {
+                    "tool": "Panda Security",
+                    "share_pct": 25.0
+                },
+                {
+                    "tool": "Kaspersky",
+                    "share_pct": 25.0
+                }
+            ],
+            "powerbi_usage": [
+                {
+                    "tool": "Power BI",
+                    "share_pct": 50.0
+                },
+                {
+                    "tool": "Ninguno",
+                    "share_pct": 50.0
+                }
+            ],
+            "average_employee_age": [
+                {
+                    "tool": "30-40",
+                    "share_pct": 50.0
+                },
+                {
+                    "tool": ">50",
+                    "share_pct": 25.0
+                },
+                {
+                    "tool": "41-50",
+                    "share_pct": 25.0
+                }
+            ],
+            "it_outsourcing_level": [
+                {
+                    "tool": "Bajo",
+                    "share_pct": 50.0
+                },
+                {
+                    "tool": "Alto",
+                    "share_pct": 25.0
+                },
+                {
+                    "tool": "Medio",
+                    "share_pct": 25.0
+                }
+            ],
+            "digital_revenue": [
+                {
+                    "tool": "<10%",
+                    "share_pct": 50.0
+                },
+                {
+                    "tool": "10-30%",
+                    "share_pct": 50.0
+                }
+            ]
+        },
+        "averages": {
+            "it_outsourcing_level": {
+                "avg_score": 1.75,
+                "label": "Medio"
+            }
+        },
+        "sector_priorities": [
+            {
+                "tool": "Canales de venta online y experiencia del usuario",
+                "share_pct": 50.0
+            },
+            {
+                "tool": "Procesos y automatización",
+                "share_pct": 25.0
+            },
+            {
+                "tool": "Presencia en Internet y redes sociales",
+                "share_pct": 25.0
+            }
+        ]
+    },
+    "Industrial_Small": {
+        "meta": {
+            "sector": "Industrial",
+            "size": "Small",
+            "sample_size": 3
+        },
+        "scores": {
+            "KPI_OPERATIONS": {
+                "p25": 71.0,
+                "median": 71.0,
+                "p75": 75.0
+            },
+            "KPI_SECURITY": {
+                "p25": 75.0,
+                "median": 75.0,
+                "p75": 87.5
+            },
+            "KPI_BUSINESS": {
+                "p25": 52.0,
+                "median": 52.0,
+                "p75": 57.0
+            },
+            "KPI_CULTURE": {
+                "p25": 31.2,
+                "median": 37.5,
+                "p75": 43.8
+            },
+            "GLOBAL_SCORE": {
+                "p25": 61.4,
+                "median": 63.7,
+                "p75": 68.9
+            }
+        },
+        "adoption_rates": {
+            "two_factor_authentication": 100.0,
+            "continuity_and_recovery_plans": 100.0,
+            "microsoft_365_usage": 100.0,
+            "remote_work_acceptable_use_policy": 0.0,
+            "phishing_simulations": 33.3,
+            "active_internet_presence": 100.0,
+            "data_protection_compliance": 100.0,
+            "regular_patching_and_updates": 100.0,
+            "incident_response_plan": 66.7,
+            "digital_marketing_use": 100.0,
+            "accessible_digital_sales_channels": 33.3,
+            "continuous_digital_training": 33.3,
+            "ai_for_automation_usage": 0.0
+        },
+        "market_leaders": {
+            "erp_in_use": [
+                {
+                    "tool": "A3 / Wolters Kluwer",
+                    "share_pct": 100.0
+                }
+            ],
+            "crm_in_use": [
+                {
+                    "tool": "Wolfcrm",
+                    "share_pct": 66.7
+                },
+                {
+                    "tool": "Ninguno",
+                    "share_pct": 33.3
+                }
+            ],
+            "it_infrastructure_type": [
+                {
+                    "tool": "Híbrida",
+                    "share_pct": 66.7
+                },
+                {
+                    "tool": "On-premise",
+                    "share_pct": 33.3
+                }
+            ],
+            "antivirus_used": [
+                {
+                    "tool": "Eset Nod32",
+                    "share_pct": 66.7
+                },
+                {
+                    "tool": "Panda Security",
+                    "share_pct": 33.3
+                }
+            ],
+            "powerbi_usage": [
+                {
+                    "tool": "Power BI",
+                    "share_pct": 66.7
+                },
+                {
+                    "tool": "Excel",
+                    "share_pct": 33.3
+                }
+            ],
+            "average_employee_age": [
+                {
+                    "tool": "30-40",
+                    "share_pct": 100.0
+                }
+            ],
+            "it_outsourcing_level": [
+                {
+                    "tool": "Bajo",
+                    "share_pct": 100.0
+                }
+            ],
+            "digital_revenue": [
+                {
+                    "tool": "<10%",
+                    "share_pct": 66.7
+                },
+                {
+                    "tool": "10-30%",
+                    "share_pct": 33.3
+                }
+            ]
+        },
+        "averages": {
+            "it_outsourcing_level": {
+                "avg_score": 1.0,
+                "label": "Bajo"
+            }
+        },
+        "sector_priorities": [
+            {
+                "tool": "Datos y analítica",
+                "share_pct": 66.7
+            },
+            {
+                "tool": "Infraestructuras y conectividad",
+                "share_pct": 33.3
+            }
+        ]
+    },
+    "Servicios_Micro": {
+        "meta": {
+            "sector": "Servicios",
+            "size": "Micro",
+            "sample_size": 7
+        },
+        "scores": {
+            "KPI_OPERATIONS": {
+                "p25": 61.0,
+                "median": 71.0,
+                "p75": 75.5
+            },
+            "KPI_SECURITY": {
+                "p25": 50.0,
+                "median": 75.0,
+                "p75": 75.0
+            },
+            "KPI_BUSINESS": {
+                "p25": 29.5,
+                "median": 52.0,
+                "p75": 52.0
+            },
+            "KPI_CULTURE": {
+                "p25": 50.0,
+                "median": 50.0,
+                "p75": 75.0
+            },
+            "GLOBAL_SCORE": {
+                "p25": 54.4,
+                "median": 60.2,
+                "p75": 60.6
+            }
+        },
+        "adoption_rates": {
+            "two_factor_authentication": 57.1,
+            "continuity_and_recovery_plans": 71.4,
+            "microsoft_365_usage": 100.0,
+            "remote_work_acceptable_use_policy": 57.1,
+            "phishing_simulations": 14.3,
+            "active_internet_presence": 57.1,
+            "data_protection_compliance": 85.7,
+            "regular_patching_and_updates": 100.0,
+            "incident_response_plan": 42.9,
+            "digital_marketing_use": 28.6,
+            "accessible_digital_sales_channels": 14.3,
+            "continuous_digital_training": 71.4,
+            "ai_for_automation_usage": 0.0
+        },
+        "market_leaders": {
+            "erp_in_use": [
+                {
+                    "tool": "A3 / Wolters Kluwer",
+                    "share_pct": 85.7
+                },
+                {
+                    "tool": "Holded",
+                    "share_pct": 14.3
+                }
+            ],
+            "crm_in_use": [
+                {
+                    "tool": "A3 / Wolters Kluwer",
+                    "share_pct": 28.6
+                },
+                {
+                    "tool": "Digiforma",
+                    "share_pct": 28.6
+                },
+                {
+                    "tool": "Odoo",
+                    "share_pct": 14.3
+                }
+            ],
+            "it_infrastructure_type": [
+                {
+                    "tool": "Híbrida",
+                    "share_pct": 57.1
+                },
+                {
+                    "tool": "Cloud",
+                    "share_pct": 42.9
+                }
+            ],
+            "antivirus_used": [
+                {
+                    "tool": "Eset Nod32",
+                    "share_pct": 71.4
+                },
+                {
+                    "tool": "Microsoft Defender",
+                    "share_pct": 14.3
+                },
+                {
+                    "tool": "Sentinelone",
+                    "share_pct": 14.3
+                }
+            ],
+            "powerbi_usage": [
+                {
+                    "tool": "Excel",
+                    "share_pct": 28.6
+                },
+                {
+                    "tool": "Ninguno",
+                    "share_pct": 28.6
+                },
+                {
+                    "tool": "Microsoft Excel",
+                    "share_pct": 14.3
+                }
+            ],
+            "average_employee_age": [
+                {
+                    "tool": "41-50",
+                    "share_pct": 57.1
+                },
+                {
+                    "tool": "<30",
+                    "share_pct": 14.3
+                },
+                {
+                    "tool": ">50",
+                    "share_pct": 14.3
+                }
+            ],
+            "it_outsourcing_level": [
+                {
+                    "tool": "Medio",
+                    "share_pct": 57.1
+                },
+                {
+                    "tool": "Alto",
+                    "share_pct": 42.9
+                }
+            ],
+            "digital_revenue": [
+                {
+                    "tool": "<10%",
+                    "share_pct": 100.0
+                }
+            ]
+        },
+        "averages": {
+            "it_outsourcing_level": {
+                "avg_score": 2.43,
+                "label": "Medio"
+            }
+        },
+        "sector_priorities": [
+            {
+                "tool": "Procesos y automatización",
+                "share_pct": 57.1
+            },
+            {
+                "tool": "Datos y analítica",
+                "share_pct": 28.6
+            },
+            {
+                "tool": "Canales de venta online y experiencia del usuario",
+                "share_pct": 14.3
+            }
+        ]
+    }
+}

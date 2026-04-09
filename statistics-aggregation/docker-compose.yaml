@@ -1,0 +1,11 @@
+services:
+  algorithm:
+    build: .
+    volumes:
+      - ./_data/inputs:/data/inputs:ro
+      - ./_data/ddos:/data/ddos:ro
+      - ./_data/outputs:/data/outputs:rw
+      - ./_data/logs:/data/logs:rw
+      - ./.env.stub:/data/transformations/algorithm:ro
+      - ./algorithm/src:/algorithm/src/
+      - ./algorithm/tests:/algorithm/tests/
