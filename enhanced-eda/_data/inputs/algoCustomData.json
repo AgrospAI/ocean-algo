@@ -1,3 +1,3 @@
 {
-  "timeseries_columns_name": ["DATE"]
+  "auto_detect_timeseries_column": true
 }

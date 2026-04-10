@@ -63,15 +63,13 @@ def generator(
             ts_col = valid_ts[0]
 
             df = df.sort_values(by=ts_col)
-            df = df.set_index(ts_col)
 
-        type_schema = {col: "timeseries" for col in valid_ts}
+        type_schema = {col: "datetime" for col in valid_ts}
 
         report_factory: partial[ProfileReport] = partial(
             report_factory,
             df=df,
             title=f"{parameters.title} - Timeseries",
-            tsmode=True,
             type_schema=type_schema,
         )
 
@@ -95,8 +93,8 @@ def get_inputs() -> Iterable[tuple[str, IO[bytes]]]:
             except Exception as e:
                 algorithm.logger.error("Failure reading input path %s: %s", path, e)
 
-    for did, path in algorithm.job_details.inputs():
-        for id, io_stream in open_stream(did, path):
+    for idx, (did, path) in enumerate(algorithm.job_details.inputs()):
+        for id, io_stream in open_stream(f"{did}_{idx}", path):
             yield (id, io_stream)
 
 
