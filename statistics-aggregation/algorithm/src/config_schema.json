@@ -1,0 +1,723 @@
+{
+  "software": {
+    "A3 / Wolters Kluwer": ["a3", "wolter", "kluwer", "a3erp"],
+    "Sage": ["sage", "murano", "sage50", "sage200", "eurowin"],
+    "Microsoft Dynamics": [
+      "navision",
+      "nav",
+      "business central",
+      "dynamics",
+      "bc",
+      "microsoft dynamics",
+      "dinamics 365"
+    ],
+    "Excel": ["excel", "sheet", "hoja", "calculo", "office", "microsoft"],
+    "SAP": ["sap", "b1", "business one", "hana"],
+    "Odoo": ["odoo", "openerp"],
+    "Salesforce": ["salesforce", "force.com"],
+    "HubSpot": ["hubspot"],
+    "Power BI": ["power", "powerbi", "srss"],
+    "A3ERP BI": ["bi", "a3 bi"],
+    "Digiforma": ["digiforma", "digi"],
+    "WolfCRM": ["wolfcrm", "wolf crm", "wolf"],
+    "FacturaScripts": ["facturascripts", "fscript", "f script"],
+    "Ninguno": ["no", "-", " ", "ninguno"]
+  },
+  "sector": {
+    "Industrial": [
+      "fabric",
+      "manufactur",
+      "taller",
+      "construc",
+      "obra",
+      "instalad",
+      "metal"
+    ],
+    "Comercio": [
+      "venta",
+      "shop",
+      "tienda",
+      "retail",
+      "comerc",
+      "distribuc",
+      "almacen",
+      "mayorista",
+      "distribuidor",
+      "suministros",
+      "com. may."
+    ],
+    "Servicios": [
+      "consult",
+      "asesor",
+      "gestor",
+      "abogad",
+      "software",
+      "marketing",
+      "educacion",
+      "clinic",
+      "servicios",
+      "alquiler"
+    ],
+    "Tecnología": ["desarrollo", "programacion", "sistemas", "tic", "ciber"],
+    "Otro": ["varios", "diversos"]
+  },
+  "channel": {
+    "WhatsApp": ["wha", "was", "wats", "zap"],
+    "Email": [
+      "mail",
+      "correo",
+      "outlook",
+      "gmail",
+      "hotmail",
+      "electrónico",
+      "corre"
+    ],
+    "Teléfono": ["tlf", "cel", "movil", "call", "phone", "fijo", "telefono"],
+    "Videollamada": ["teams", "zoom", "meet", "skype"],
+    "Otro": ["otro", "varios", "diversos"]
+  },
+  "antivirus": {
+    "Microsoft Defender": [
+      "defender",
+      "windows",
+      "microsoft",
+      "no usan",
+      "ninguno",
+      "nvidia"
+    ],
+    "Kaspersky": ["kasp"],
+    "McAfee": ["mcafee", "trellix"],
+    "Norton/Symantec": ["norton", "symantec"],
+    "Bitdefender": ["bitdefender"],
+    "Sophos": ["sophos"],
+    "Eset Nod32": ["eset", "nod32", "Nod32", "Eset Security", "Eset", "ESET"],
+    "Panda Security": ["panda", "Panda"],
+    "Otro": ["otro", "varios", "diversos"]
+  },
+  "cnae_map": {
+    "01": "Industrial",
+    "02": "Industrial",
+    "03": "Industrial",
+    "10": "Industrial",
+    "17": "Industrial",
+    "22": "Industrial",
+    "28": "Industrial",
+    "32": "Industrial",
+    "33": "Industrial",
+    "35": "Industrial",
+    "41": "Industrial",
+    "42": "Industrial",
+    "43": "Industrial",
+    "45": "Comercio",
+    "46": "Comercio",
+    "47": "Comercio",
+    "60": "Servicios",
+    "62": "Tecnología",
+    "63": "Tecnología",
+    "69": "Servicios",
+    "70": "Servicios",
+    "71": "Servicios",
+    "85": "Servicios",
+    "86": "Servicios",
+    "88": "Servicios",
+    "90": "Servicios",
+    "91": "Servicios",
+    "92": "Servicios",
+    "93": "Servicios",
+    "94": "Servicios",
+    "95": "Servicios"
+  },
+  "survey_schema": {
+    "company_profile_cnae": [
+      "Industrial",
+      "Servicios",
+      "Comercio",
+      "Tecnología",
+      "Otro"
+    ],
+    "number_of_employees": ["NUMERIC"],
+    "average_employee_age": ["<30", "30-40", "41-50", ">50"],
+    "number_of_clients": ["NUMERIC"],
+    "number_of_suppliers": ["NUMERIC"],
+    "annual_revenue": ["<1M", "1-5M", "5-20M", ">20M"],
+    "it_outsourcing_level": ["Bajo", "Medio", "Alto"],
+    "remote_work_acceptable_use_policy": ["Sí", "No", "En desarrollo"],
+    "secure_remote_access": ["Sí", "No", "Parcial"],
+    "two_factor_authentication": ["Sí", "No", "Parcial"],
+    "it_infrastructure_type": ["On-premise", "Híbrida", "Cloud"],
+    "key_processes_digitized_pct": ["0-25%", "26-50%", "51-75%", "76-100%"],
+    "erp_in_use": ["SAP", "Oracle", "Odoo", "Otro", "Ninguno"],
+    "crm_in_use": ["Salesforce", "HubSpot", "Zoho", "Otro", "Ninguno"],
+    "ai_for_automation_usage": [
+      "No",
+      "Explorando",
+      "En piloto",
+      "En producción"
+    ],
+    "database_type": ["Cloud", "OnPremise"],
+    "powerbi_usage": ["Power BI", "Tableau", "Excel", "Otro", "Ninguno"],
+    "advanced_digital_skills_pct": ["0-25%", "26-50%", "51-75%", "76-100%"],
+    "microsoft_365_usage": ["Sí", "No"],
+    "collaboration_tools_usage": ["Sí", "No", "Parcial"],
+    "continuous_digital_training": ["Sí", "No", "Ocasional"],
+    "cybersecurity_training": ["Sí", "No", "<1 vez al año"],
+    "ftfe_training": ["Sí", "No"],
+    "phishing_simulations": ["Sí", "No", "Puntual"],
+    "active_internet_presence": ["Sí", "No", "Parcial"],
+    "active_social_media_management": ["Sí", "No", "Ocasional"],
+    "digital_marketing_use": ["Sí", "No", "En evaluación"],
+    "visitor_follower_analysis": ["Sí", "No", "Parcial"],
+    "accessible_digital_sales_channels": ["Sí", "No", "En desarrollo"],
+    "digital_revenue": ["<10%", "10-30%", "30-60%", ">60%"],
+    "usual_customer_communication_channel": ["TEXT"],
+    "preferred_customer_communication_channel": ["TEXT"],
+    "antivirus_used": ["TEXT"],
+    "employees_using_antivirus_pct": ["NUMERIC"],
+    "regular_patching_and_updates": ["Sí", "No", "Parcial"],
+    "network_controls_implemented": ["Sí", "No", "Parcial"],
+    "documented_account_lifecycle_process": ["Sí", "No", "Parcial"],
+    "clear_roles_and_privileges": ["Sí", "No", "Parcial"],
+    "incident_response_plan": ["Sí", "No", "En elaboración"],
+    "continuity_and_recovery_plans": ["Sí", "No", "En desarrollo"],
+    "data_protection_compliance": ["Sí", "No", "Parcial"],
+    "legal_and_compliance_training": ["Sí", "No", "Parcial"],
+    "priority_assessment_area": [
+      "Infraestructuras y conectividad",
+      "Procesos y automatización",
+      "Datos y analítica",
+      "Personas y cultura digital",
+      "Presencia en Internet y redes sociales",
+      "Canales de venta online y experiencia del usuario",
+      "Ciberseguridad",
+      "Gestión de identidades y control de accesos",
+      "Gestión de incidencias y continuidad de negocio",
+      "Protección de datos y propiedad intelectual"
+    ]
+  },
+  "section_mapping": {
+    "company_profile_cnae": "0",
+    "number_of_employees": "0",
+    "average_employee_age": "0",
+    "number_of_clients": "0",
+    "number_of_suppliers": "0",
+    "annual_revenue": "0",
+    "it_outsourcing_level": "0",
+    "remote_work_acceptable_use_policy": "1",
+    "secure_remote_access": "1",
+    "two_factor_authentication": "1",
+    "it_infrastructure_type": "1",
+    "key_processes_digitized_pct": "2",
+    "erp_in_use": "2",
+    "crm_in_use": "2",
+    "ai_for_automation_usage": "2",
+    "database_type": "3",
+    "powerbi_usage": "3",
+    "advanced_digital_skills_pct": "4",
+    "microsoft_365_usage": "4",
+    "collaboration_tools_usage": "4",
+    "continuous_digital_training": "4",
+    "cybersecurity_training": "4",
+    "ftfe_training": "4",
+    "phishing_simulations": "4",
+    "active_internet_presence": "5",
+    "active_social_media_management": "5",
+    "digital_marketing_use": "5",
+    "visitor_follower_analysis": "5",
+    "accessible_digital_sales_channels": "6",
+    "digital_revenue": "6",
+    "usual_customer_communication_channel": "6",
+    "preferred_customer_communication_channel": "6",
+    "antivirus_used": "7",
+    "employees_using_antivirus_pct": "7",
+    "regular_patching_and_updates": "7",
+    "network_controls_implemented": "7",
+    "documented_account_lifecycle_process": "8",
+    "clear_roles_and_privileges": "8",
+    "incident_response_plan": "9",
+    "continuity_and_recovery_plans": "9",
+    "data_protection_compliance": "10",
+    "legal_and_compliance_training": "10",
+    "priority_assessment_area": "10"
+  },
+  "quest_mapping": {
+    "perfil_empresa_cnae": "company_profile_cnae",
+    "codigo_postal_de_la_empresa": "company_postcode",
+    "numero_de_trabajadores": "number_of_employees",
+    "edad_media_de_los_trabajadores": "average_employee_age",
+    "numero_de_clientes": "number_of_clients",
+    "numero_de_proveedores": "number_of_suppliers",
+    "facturacion_anual": "annual_revenue",
+    "nivel_de_externalizacion_ti": "it_outsourcing_level",
+    "existe_politica_de_uso_aceptable_para_el_teletraba": "remote_work_acceptable_use_policy",
+    "acceso_remoto_seguro": "secure_remote_access",
+    "verificacion_de_doble_factor": "two_factor_authentication",
+    "tipo_de_infraestructura_ti": "it_infrastructure_type",
+    "_de_procesos_clave_digitalizados": "key_processes_digitized_pct",
+    "que_erp_utilizas": "erp_in_use",
+    "que_crm_utilizas": "crm_in_use",
+    "uso_de_ia_para_automatizacion": "ai_for_automation_usage",
+    "tipo_de_base_de_datos_utilizada": "database_type",
+    "usas_powerbi_para_la_analitica_empresarias_de_tu_n": "powerbi_usage",
+    "_empleados_con_competencias_digitales_avanzadas": "advanced_digital_skills_pct",
+    "uso_de_la_suite_microsoft_": "microsoft_365_usage",
+    "uso_de_herramientas_colaborativas": "collaboration_tools_usage",
+    "formacion_continua_digital": "continuous_digital_training",
+    "formacion_en_ciberseguridad": "cybersecurity_training",
+    "formacion_ftfe_bonificada": "ftfe_training",
+    "simulacros_o_tests_de_phishing": "phishing_simulations",
+    "presencia_activa_en_internet": "active_internet_presence",
+    "gestion_activa_de_redes_sociales": "active_social_media_management",
+    "uso_de_marketing_digital": "digital_marketing_use",
+    "analisis_de_visitantes_y_seguidores": "visitor_follower_analysis",
+    "canales_de_venta_digitales_accesibles": "accessible_digital_sales_channels",
+    "ingresos_digitales": "digital_revenue",
+    "canal_habitual_comunicacion_cliente": "usual_customer_communication_channel",
+    "canal_preferente_comunicacion_cliente": "preferred_customer_communication_channel",
+    "que_antivirus_usan_los_empleados": "antivirus_used",
+    "que_porcentaje_de_tus_empleados_usan_antivirus": "employees_using_antivirus_pct",
+    "aplicacion_regular_de_parches_y_actualizaciones": "regular_patching_and_updates",
+    "controles_de_red_implementados": "network_controls_implemented",
+    "proceso_documentado_de_alta_modificacion_y_baja_de": "documented_account_lifecycle_process",
+    "asignacion_clara_de_roles_y_privilegios": "clear_roles_and_privileges",
+    "plan_de_respuesta_a_incidentes_aprobado": "incident_response_plan",
+    "planes_de_continuidad_y_recuperacion": "continuity_and_recovery_plans",
+    "cumplimiento_con_normativa_de_proteccion_de_datos": "data_protection_compliance",
+    "formacion_en_cumplimiento_legal_y_normativo_digita": "legal_and_compliance_training",
+    "de_los_ambitos_evaluados_cual_considera_que_es_pri": "priority_assessment_area"
+  },
+  "score_binary": {
+    "Sí": 100,
+    "Parcial": 50,
+    "En desarrollo": 50,
+    "Ocasional": 50,
+    "En evaluación": 50,
+    "En elaboración": 50,
+    "No": 0,
+    "Ninguno": 0
+  },
+  "score_percentage": {
+    "0-25%": 25,
+    "26-50%": 50,
+    "51-75%": 75,
+    "76-100%": 100
+  },
+  "score_infrastructure": {
+    "Cloud": 100,
+    "Híbrida": 70,
+    "On-premise": 30
+  },
+  "score_ai": {
+    "En producción": 100,
+    "En piloto": 75,
+    "Explorando": 40,
+    "No": 0
+  },
+  "score_revenue": {
+    ">60%": 100,
+    "30-60%": 75,
+    "10-30%": 50,
+    "<10%": 25
+  },
+  "kpi_operation": {
+    "key_processes_digitized_pct": 0.4,
+    "it_infrastructure_type": 0.3,
+    "collaboration_tools_usage": 0.15,
+    "powerbi_usage": 0.15
+  },
+  "kpi_business": {
+    "digital_revenue": 0.4,
+    "ai_for_automation_usage": 0.2,
+    "active_internet_presence": 0.2,
+    "digital_marketing_use": 0.2
+  },
+  "kpi_security": {
+    "two_factor_authentication": 0.25,
+    "continuity_and_recovery_plans": 0.25,
+    "phishing_simulations": 0.25,
+    "data_protection_compliance": 0.25
+  },
+  "kpi_culture": {
+    "advanced_digital_skills_pct": 0.25,
+    "cybersecurity_training": 0.25,
+    "remote_work_acceptable_use_policy": 0.25,
+    "employees_using_antivirus_pct": 0.25
+  },
+  "global_score": {
+    "KPI_OPERATIONS": 0.3,
+    "KPI_SECURITY": 0.3,
+    "KPI_BUSINESS": 0.2,
+    "KPI_CULTURE": 0.2
+  },
+  "postal_code": {
+    "01": "Álava",
+    "02": "Albacete",
+    "03": "Alicante",
+    "04": "Almería",
+    "05": "Ávila",
+    "06": "Badajoz",
+    "08": "Barcelona",
+    "09": "Burgos",
+    "10": "Cáceres",
+    "11": "Cádiz",
+    "12": "Castellón",
+    "13": "Ciudad Real",
+    "14": "Córdoba",
+    "15": "A Coruña",
+    "16": "Cuenca",
+    "17": "Girona",
+    "18": "Granada",
+    "19": "Guadalajara",
+    "20": "Gipuzkoa",
+    "21": "Huelva",
+    "22": "Huesca",
+    "23": "Jaén",
+    "24": "León",
+    "25": "Lleida",
+    "26": "La Rioja",
+    "27": "Lugo",
+    "28": "Madrid",
+    "29": "Málaga",
+    "30": "Murcia",
+    "31": "Navarra",
+    "32": "Ourense",
+    "33": "Asturias",
+    "34": "Palencia",
+    "35": "Palmas (Las)",
+    "36": "Pontevedra",
+    "37": "Salamanca",
+    "38": "Santa Cruz de Tenerife",
+    "39": "Santander",
+    "40": "Segovia",
+    "41": "Sevilla",
+    "42": "Soria",
+    "43": "Tarragona",
+    "44": "Teruel",
+    "45": "Toledo",
+    "46": "Valencia",
+    "47": "Valladolid",
+    "48": "Vizcaya",
+    "49": "Zamora",
+    "50": "Zaragoza",
+    "51": "Ceuta",
+    "52": "Melilla"
+  },
+  "region_coordinates": {
+    "Almería": { "lat": 36.834, "lon": -2.4637 },
+    "Cádiz": { "lat": 36.5271, "lon": -6.2886 },
+    "Córdoba": { "lat": 37.8882, "lon": -4.7663 },
+    "Granada": { "lat": 37.1773, "lon": -3.5898 },
+    "Huelva": { "lat": 37.2614, "lon": -6.9447 },
+    "Jaén": { "lat": 37.7796, "lon": -3.7849 },
+    "Málaga": { "lat": 36.7196, "lon": -4.4203 },
+    "Sevilla": { "lat": 37.3891, "lon": -5.9845 },
+    "Huesca": { "lat": 42.1361, "lon": -0.4087 },
+    "Teruel": { "lat": 40.3456, "lon": -1.1065 },
+    "Zaragoza": { "lat": 41.6488, "lon": -0.8891 },
+    "Asturias": { "lat": 43.3619, "lon": -5.8494 },
+    "Palma de Mallorca": { "lat": 39.5696, "lon": 2.6502 },
+    "Illes Balears": { "lat": 39.6953, "lon": 3.0176 },
+    "Las Palmas": { "lat": 28.1235, "lon": -15.4363 },
+    "Santa Cruz de Tenerife": { "lat": 28.4674, "lon": -16.2538 },
+    "Cantabria": { "lat": 43.4623, "lon": -3.805 },
+    "Albacete": { "lat": 38.9943, "lon": -1.8585 },
+    "Ciudad Real": { "lat": 38.9848, "lon": -3.9274 },
+    "Cuenca": { "lat": 40.0704, "lon": -2.1374 },
+    "Guadalajara": { "lat": 40.6328, "lon": -3.1602 },
+    "Toledo": { "lat": 39.8564, "lon": -4.0199 },
+    "Ávila": { "lat": 40.6565, "lon": -4.7019 },
+    "Burgos": { "lat": 42.3439, "lon": -3.6969 },
+    "León": { "lat": 42.5987, "lon": -5.5671 },
+    "Palencia": { "lat": 42.0095, "lon": -4.5286 },
+    "Salamanca": { "lat": 40.9701, "lon": -5.6635 },
+    "Segovia": { "lat": 40.9429, "lon": -4.1088 },
+    "Soria": { "lat": 41.7666, "lon": -2.479 },
+    "Valladolid": { "lat": 41.6523, "lon": -4.7245 },
+    "Zamora": { "lat": 41.5063, "lon": -5.7446 },
+    "Barcelona": { "lat": 41.3851, "lon": 2.1734 },
+    "Girona": { "lat": 41.9794, "lon": 2.8214 },
+    "Lleida": { "lat": 41.6176, "lon": 0.62 },
+    "Tarragona": { "lat": 41.1189, "lon": 1.2445 },
+    "Alicante": { "lat": 38.3452, "lon": -0.481 },
+    "Castellón": { "lat": 39.9864, "lon": -0.0513 },
+    "Valencia": { "lat": 39.4699, "lon": -0.3763 },
+    "Badajoz": { "lat": 38.8797, "lon": -6.9706 },
+    "Cáceres": { "lat": 39.4753, "lon": -6.3723 },
+    "A Coruña": { "lat": 43.3724, "lon": -8.3898 },
+    "Lugo": { "lat": 43.0121, "lon": -7.5558 },
+    "Ourense": { "lat": 42.3358, "lon": -7.8639 },
+    "Pontevedra": { "lat": 42.4299, "lon": -8.6446 },
+    "Madrid": { "lat": 40.4168, "lon": -3.7038 },
+    "Murcia": { "lat": 37.9922, "lon": -1.1307 },
+    "Navarra": { "lat": 42.8125, "lon": -1.6458 },
+    "Bilbao": { "lat": 43.263, "lon": -2.935 },
+    "Bizkaia": { "lat": 43.263, "lon": -2.935 },
+    "Gipuzkoa": { "lat": 43.3183, "lon": -1.9812 },
+    "Álava": { "lat": 42.8467, "lon": -2.6716 },
+    "Araba": { "lat": 42.8467, "lon": -2.6716 },
+    "La Rioja": { "lat": 42.4627, "lon": -2.445 },
+    "Ceuta": { "lat": 35.8894, "lon": -5.3213 },
+    "Melilla": { "lat": 35.2923, "lon": -2.9381 },
+    "Unknown": { "lat": 40.0, "lon": -4.0 }
+  },
+  "question_registry": {
+    "numero_de_trabajadores": {
+      "column": "number_of_employees",
+      "dimension": 0,
+      "question": "Número de trabajadores",
+      "source": "averages"
+    },
+    "edad_media_de_los_trabajadores": {
+      "column": "average_employee_age",
+      "dimension": 0,
+      "question": "Edad media de los trabajadores",
+      "source": "market_position"
+    },
+    "numero_de_clientes": {
+      "column": "number_of_clients",
+      "dimension": 0,
+      "question": "Número de clientes",
+      "source": "averages"
+    },
+    "numero_de_proveedores": {
+      "column": "number_of_suppliers",
+      "dimension": 0,
+      "question": "Número de proveedores",
+      "source": "averages"
+    },
+    "facturacion_anual": {
+      "column": "annual_revenue",
+      "dimension": 0,
+      "question": "Facturación anual",
+      "source": "market_position"
+    },
+    "nivel_de_externalizacion_ti": {
+      "column": "it_outsourcing_level",
+      "dimension": 0,
+      "question": "Nivel de externalización TI",
+      "source": "ordinal_comparison"
+    },
+    "existe_politica_de_uso_aceptable_para_el_teletraba": {
+      "column": "remote_work_acceptable_use_policy",
+      "dimension": 1,
+      "question": "Política de uso aceptable para teletrabajo",
+      "source": "adoption"
+    },
+    "acceso_remoto_seguro": {
+      "column": "secure_remote_access",
+      "dimension": 1,
+      "question": "Acceso remoto seguro",
+      "source": "adoption"
+    },
+    "verificacion_de_doble_factor": {
+      "column": "two_factor_authentication",
+      "dimension": 1,
+      "question": "Autenticación de doble factor (2FA)",
+      "source": "adoption"
+    },
+    "tipo_de_infraestructura_ti": {
+      "column": "it_infrastructure_type",
+      "dimension": 1,
+      "question": "Tipo de infraestructura TI",
+      "source": "market_position"
+    },
+    "_de_procesos_clave_digitalizados": {
+      "column": "key_processes_digitized_pct",
+      "dimension": 2,
+      "question": "Porcentaje de procesos clave digitalizados",
+      "source": "market_position"
+    },
+    "que_erp_utilizas": {
+      "column": "erp_in_use",
+      "dimension": 2,
+      "question": "ERP utilizado",
+      "source": "market_position"
+    },
+    "que_crm_utilizas": {
+      "column": "crm_in_use",
+      "dimension": 2,
+      "question": "CRM utilizado",
+      "source": "market_position"
+    },
+    "uso_de_ia_para_automatizacion": {
+      "column": "ai_for_automation_usage",
+      "dimension": 2,
+      "question": "Uso de IA para automatización",
+      "source": "adoption"
+    },
+    "tipo_de_base_de_datos_utilizada": {
+      "column": "database_type",
+      "dimension": 3,
+      "question": "Tipo de base de datos utilizada",
+      "source": "market_position"
+    },
+    "usas_powerbi_para_la_analitica_empresarias_de_tu_n": {
+      "column": "powerbi_usage",
+      "dimension": 3,
+      "question": "Herramientas de analítica empresarial",
+      "source": "market_position"
+    },
+    "_empleados_con_competencias_digitales_avanzadas": {
+      "column": "advanced_digital_skills_pct",
+      "dimension": 4,
+      "question": "Empleados con competencias digitales avanzadas",
+      "source": "market_position"
+    },
+    "uso_de_la_suite_microsoft_": {
+      "column": "microsoft_365_usage",
+      "dimension": 4,
+      "question": "Uso de Microsoft 365",
+      "source": "adoption"
+    },
+    "formacion_continua_digital": {
+      "column": "continuous_digital_training",
+      "dimension": 4,
+      "question": "Formación digital continua",
+      "source": "adoption"
+    },
+    "uso_de_herramientas_colaborativas": {
+      "column": "collaboration_tools_usage",
+      "dimension": 4,
+      "question": "Uso de herramientas colaborativas",
+      "source": "adoption"
+    },
+    "formacion_en_ciberseguridad": {
+      "column": "cybersecurity_training",
+      "dimension": 4,
+      "question": "Formación en ciberseguridad",
+      "source": "adoption"
+    },
+    "formacion_ftfe_bonificada": {
+      "column": "ftfe_training",
+      "dimension": 4,
+      "question": "Formación FTFE bonificada",
+      "source": "adoption"
+    },
+    "simulacros_o_tests_de_phishing": {
+      "column": "phishing_simulations",
+      "dimension": 4,
+      "question": "Simulacros o tests de phishing",
+      "source": "adoption"
+    },
+    "presencia_activa_en_internet": {
+      "column": "active_internet_presence",
+      "dimension": 5,
+      "question": "Presencia activa en Internet",
+      "source": "adoption"
+    },
+    "gestion_activa_de_redes_sociales": {
+      "column": "active_social_media_management",
+      "dimension": 5,
+      "question": "Gestión activa de redes sociales",
+      "source": "adoption"
+    },
+    "uso_de_marketing_digital": {
+      "column": "digital_marketing_use",
+      "dimension": 5,
+      "question": "Uso de marketing digital",
+      "source": "adoption"
+    },
+    "analisis_de_visitantes_y_seguidores": {
+      "column": "visitor_follower_analysis",
+      "dimension": 5,
+      "question": "Análisis de visitantes y seguidores",
+      "source": "adoption"
+    },
+    "canales_de_venta_digitales_accesibles": {
+      "column": "accessible_digital_sales_channels",
+      "dimension": 6,
+      "question": "Canales de venta digitales accesibles",
+      "source": "adoption"
+    },
+    "ingresos_digitales": {
+      "column": "digital_revenue",
+      "dimension": 6,
+      "question": "Ingresos digitales",
+      "source": "market_position"
+    },
+    "canal_habitual_comunicacion_cliente": {
+      "column": "usual_customer_communication_channel",
+      "dimension": 6,
+      "question": "Canal habitual comunicación cliente",
+      "source": "market_position"
+    },
+    "preferred_customer_communication_channel": {
+      "column": "usual_customer_communication_channel",
+      "dimension": 6,
+      "question": "Canal preferente comunicación cliente",
+      "source": "market_position"
+    },
+    "que_antivirus_usan_los_empleados": {
+      "column": "antivirus_used",
+      "dimension": 7,
+      "question": "Antivirus utilizado",
+      "source": "market_position"
+    },
+    "que_porcentaje_de_tus_empleados_usan_antivirus": {
+      "column": "employees_using_antivirus_pct",
+      "dimension": 7,
+      "question": "Porcentaje de empleados con antivirus",
+      "source": "market_position"
+    },
+    "aplicacion_regular_de_parches_y_actualizaciones": {
+      "column": "regular_patching_and_updates",
+      "dimension": 7,
+      "question": "Aplicación regular de parches y actualizaciones",
+      "source": "adoption"
+    },
+    "controles_de_red_implementados": {
+      "column": "network_controls_implemented",
+      "dimension": 7,
+      "question": "Controles de red implementados",
+      "source": "adoption"
+    },
+    "proceso_documentado_de_alta_modificacion_y_baja_de": {
+      "column": "documented_account_lifecycle_process",
+      "dimension": 8,
+      "question": "Proceso documentado de gestión de cuentas",
+      "source": "adoption"
+    },
+    "asignacion_clara_de_roles_y_privilegios": {
+      "column": "clear_roles_and_privileges",
+      "dimension": 8,
+      "question": "Asignación clara de roles y privilegios",
+      "source": "adoption"
+    },
+    "plan_de_respuesta_a_incidentes_aprobado": {
+      "column": "incident_response_plan",
+      "dimension": 9,
+      "question": "Plan de respuesta a incidentes",
+      "source": "adoption"
+    },
+    "planes_de_continuidad_y_recuperacion": {
+      "column": "continuity_and_recovery_plans",
+      "dimension": 9,
+      "question": "Planes de continuidad y recuperación",
+      "source": "adoption"
+    },
+    "cumplimiento_con_normativa_de_proteccion_de_datos": {
+      "column": "data_protection_compliance",
+      "dimension": 10,
+      "question": "Cumplimiento de protección de datos",
+      "source": "adoption"
+    },
+    "formacion_en_cumplimiento_legal_y_normativo_digita": {
+      "column": "legal_and_compliance_training",
+      "dimension": 10,
+      "question": "Formación en cumplimiento legal y normativo",
+      "source": "adoption"
+    }
+  },
+  "dimension_labels": [
+    "Perfil y dimensión empresarial",
+    "Infraestructura y acceso",
+    "Sistemas y automatización",
+    "Analítica y datos",
+    "Personas y cultura digital",
+    "Presencia digital y marketing",
+    "Canales de venta",
+    "Ciberseguridad técnica",
+    "Gestión de identidades",
+    "Continuidad y resiliencia",
+    "Cumplimiento y gobernanza"
+  ]
+}
