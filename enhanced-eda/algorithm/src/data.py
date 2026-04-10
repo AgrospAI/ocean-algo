@@ -1,6 +1,6 @@
-from typing import Self
+from typing import Any, Self
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 class InputParameters(BaseModel):
@@ -8,6 +8,13 @@ class InputParameters(BaseModel):
     sensitive: bool = Field(False)
     auto_detect_timeseries_column: bool = Field(False)
     timeseries_columns_name: list[str] = Field(default_factory=list)
+
+    @field_validator("timeseries_columns_name", mode="before")
+    @classmethod
+    def parse_stringified_list(cls, v: Any) -> list[str]:
+        if isinstance(v, str):
+            return [item.strip() for item in v.split(",") if item.strip()]
+        return v
 
     @model_validator(mode="after")
     def validate_timeseries(self) -> Self:
