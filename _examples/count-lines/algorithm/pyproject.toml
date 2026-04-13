@@ -6,9 +6,7 @@ authors = [{ name = "AgrospAI", email = "<your-name>@udl.cat" }]
 requires-python = ">=3.12"
 readme = "README.md"
 license = { file = "LICENSE" }
-dependencies = [
-    "ocean-runner>=0.3.11",
-]
+dependencies = ["ocean-runner>=0.3.15"]
 
 [tool.uv]
 package = false
@@ -17,6 +15,4 @@ package = false
 pythonpath = ["src"]
 
 [dependency-groups]
-dev = [
-    "pytest>=9.0.2",
-]
+dev = ["pytest>=9.0.2"]

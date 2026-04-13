@@ -10,7 +10,7 @@ dependencies = [
     "pandas>=2.3.3",
     "ydata-profiling>=4.17.0",
     "setuptools>=80.9.0",
-    "ocean-runner>=0.3.11",
+    "ocean-runner>=0.3.15",
 ]
 
 [tool.uv]
@@ -20,4 +20,4 @@ package = false
 pythonpath = ["src"]
 
 [dependency-groups]
-dev = ["mypy<1.18.0", "pandas-stubs>=3.0.0.260204", "pytest>=8.4.2"]
+dev = ["pandas-stubs>=3.0.0.260204", "pytest>=8.4.2"]

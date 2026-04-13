@@ -6,10 +6,10 @@ authors = [{ name = "AgrospAI", email = "agrospai@udl.cat" }]
 requires-python = ">=3.12"
 readme = "README.md"
 license = { file = "LICENSE" }
-dependencies = ["pandas>=2.2.3,<3", "ocean-runner>=0.3.11"]
+dependencies = ["pandas>=2.2.3,<3", "ocean-runner>=0.3.15"]
 
 [tool.uv]
 package = false
 
 [dependency-groups]
-dev = ["mypy>=1.17.1", "pandas-stubs>=3.0.0.260204", "pytest>=8.4.2"]
+dev = ["pandas-stubs>=3.0.0.260204", "pytest>=8.4.2"]
