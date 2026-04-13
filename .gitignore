@@ -2,3 +2,8 @@
 
 outputs/
 .DS_store
+
+/soil-mapping/.*
+/soil-mapping/instructions.md
+/soil-mapping/data/
+/soil-mapping/output/
