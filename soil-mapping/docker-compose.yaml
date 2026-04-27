@@ -1,0 +1,10 @@
+services:
+  algorithm:
+    build: .
+    privileged: true
+    volumes:
+      - ./_data/inputs:/data/inputs:ro
+      - ./_data/ddos:/data/ddos:ro
+      - ./_data/outputs:/data/outputs:rw
+      - ./algorithm/src:/algorithm/src/
+    entrypoint: ["python3", "/algorithm/src/algorithm.py"]
