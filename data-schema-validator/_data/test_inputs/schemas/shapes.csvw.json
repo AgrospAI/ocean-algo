@@ -1,0 +1,103 @@
+{
+  "@context": [
+    "http://www.w3.org/ns/csvw",
+    {
+      "schema": "http://schema.org/"
+    }
+  ],
+  "url": "data.csv",
+  "tableSchema": {
+    "aboutUrl": "{id}",
+    "columns": [
+      {
+        "name": "id",
+        "titles": "id",
+        "suppressOutput": true
+      },
+      {
+        "name": "name",
+        "titles": "name",
+        "propertyUrl": "schema:name",
+        "datatype": "string",
+        "required": true
+      },
+      {
+        "name": "alternateName",
+        "titles": "alternateName",
+        "propertyUrl": "schema:alternateName",
+        "datatype": "string"
+      },
+      {
+        "name": "nationality",
+        "titles": "nationality",
+        "propertyUrl": "schema:nationality",
+        "datatype": "string"
+      },
+      {
+        "name": "gender",
+        "titles": "gender",
+        "propertyUrl": "schema:gender",
+        "datatype": "string"
+      },
+      {
+        "name": "jobTitle",
+        "titles": "jobTitle",
+        "propertyUrl": "schema:jobTitle",
+        "datatype": "string"
+      },
+      {
+        "name": "worksFor_name",
+        "titles": "worksFor_name",
+        "propertyUrl": "schema:worksFor",
+        "datatype": "string"
+      },
+      {
+        "name": "worksFor_url",
+        "titles": "worksFor_url",
+        "propertyUrl": "schema:url",
+        "datatype": "anyURI",
+        "separator": "|"
+      },
+      {
+        "name": "addressLocality",
+        "titles": "addressLocality",
+        "propertyUrl": "schema:addressLocality",
+        "datatype": "string",
+        "required": true
+      },
+      {
+        "name": "addressRegion",
+        "titles": "addressRegion",
+        "propertyUrl": "schema:addressRegion",
+        "datatype": "string"
+      },
+      {
+        "name": "addressCountry",
+        "titles": "addressCountry",
+        "propertyUrl": "schema:addressCountry",
+        "datatype": "string",
+        "required": true
+      },
+      {
+        "name": "sameAs",
+        "titles": "sameAs",
+        "propertyUrl": "schema:sameAs",
+        "datatype": "anyURI",
+        "separator": "|"
+      },
+      {
+        "name": "book_name",
+        "titles": "book_name",
+        "propertyUrl": "schema:name",
+        "datatype": "string"
+      },
+      {
+        "name": "book_isbn",
+        "titles": "book_isbn",
+        "propertyUrl": "schema:isbn",
+        "datatype": "string",
+        "separator": "|"
+      }
+    ]
+  }
+}

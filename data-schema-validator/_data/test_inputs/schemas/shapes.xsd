@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+
+    <!-- Reusable Address Type -->
+    <xs:complexType name="PostalAddressType">
+        <xs:sequence>
+            <xs:element name="addressLocality" type="xs:string"/>
+            <xs:element name="addressRegion" type="xs:string" minOccurs="0"/>
+            <xs:element name="addressCountry" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Root Element -->
+    <xs:element name="Person">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="id" type="xs:anyURI"/>
+                <xs:element name="name" type="xs:string"/>
+                <xs:element name="alternateName" type="xs:string" minOccurs="0"/>
+                <xs:element name="nationality" type="xs:string" minOccurs="0"/>
+                
+                <xs:element name="birthPlace" minOccurs="0">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="address" type="PostalAddressType"/>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+
+                <xs:element name="alumniOf" minOccurs="0">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="name" type="xs:string"/>
+                            <xs:element name="sameAs" type="xs:anyURI" minOccurs="0" maxOccurs="unbounded"/>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+
+                <xs:element name="gender" type="xs:string" minOccurs="0"/>
+                <xs:element name="description" type="xs:string" minOccurs="0"/>
+                <xs:element name="disambiguatingDescription" type="xs:string" minOccurs="0"/>
+                <xs:element name="jobTitle" type="xs:string" minOccurs="0"/>
+
+                <xs:element name="worksFor" minOccurs="0">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="name" type="xs:string"/>
+                            <xs:element name="sameAs" type="xs:anyURI" minOccurs="0" maxOccurs="unbounded"/>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+
+                <xs:element name="url" type="xs:anyURI" minOccurs="0"/>
+                <xs:element name="image" type="xs:anyURI" minOccurs="0"/>
+                
+                <xs:element name="address" type="PostalAddressType" minOccurs="0"/>
+                
+                <!-- Repeated sameAs at the root -->
+                <xs:element name="sameAs" type="xs:anyURI" minOccurs="0" maxOccurs="unbounded"/>
+
+                <!-- Nested Author Book Object -->
+                <xs:element name="author" minOccurs="0">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="name" type="xs:string"/>
+                            <xs:element name="url" type="xs:anyURI" minOccurs="0"/>
+                            <xs:element name="datePublished" type="xs:date" minOccurs="0"/>
+                            <xs:element name="numberOfPages" type="xs:integer" minOccurs="0"/>
+                            <xs:element name="inLanguage" type="xs:string" minOccurs="0"/>
+                            
+                            <xs:element name="bookFormat" type="xs:anyURI" minOccurs="0" maxOccurs="unbounded"/>
+                            <xs:element name="isbn" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+                            <xs:element name="sameAs" type="xs:anyURI" minOccurs="0" maxOccurs="unbounded"/>
+                            
+                            <xs:element name="author" minOccurs="0">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="id" type="xs:anyURI"/>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                            
+                            <xs:element name="aggregateRating" minOccurs="0">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="ratingValue" type="xs:decimal"/>
+                                        <xs:element name="reviewCount" type="xs:integer"/>
+                                        <xs:element name="bestRating" type="xs:decimal" minOccurs="0"/>
+                                        <xs:element name="worstRating" type="xs:decimal" minOccurs="0"/>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>

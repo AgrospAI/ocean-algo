@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "id": { "type": "string", "format": "uri" },
+    "name": { "type": "string" },
+    "alternateName": { "type": "string" },
+    "nationality": { "type": "string" },
+    "birthPlace": {
+      "type": "object",
+      "properties": {
+        "address": { "$ref": "#/definitions/PostalAddress" }
+      }
+    },
+    "alumniOf": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "sameAs": { "type": "string", "format": "uri" }
+      }
+    },
+    "gender": { "type": "string" },
+    "jobTitle": { "type": "string" },
+    "worksFor": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "sameAs": {
+          "type": "array",
+          "items": { "type": "string", "format": "uri" }
+        }
+      }
+    },
+    "address": { "$ref": "#/definitions/PostalAddress" }
+  },
+  "required": ["name", "address"],
+  "definitions": {
+    "PostalAddress": {
+      "type": "object",
+      "properties": {
+        "addressLocality": { "type": "string" },
+        "addressRegion": { "type": "string" },
+        "addressCountry": { "type": "string" }
+      },
+      "required": ["addressLocality", "addressCountry"]
+    }
+  }
+}

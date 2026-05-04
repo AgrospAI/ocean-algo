@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rdf:RDF
+  xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+  xmlns:sh="http://www.w3.org/ns/shacl#"
+  xmlns:schema="http://schema.org/"
+>
+  <!-- Person Shape -->
+  <sh:NodeShape rdf:about="http://schema.org/PersonShape">
+    <sh:targetClass rdf:resource="http://schema.org/Person"/>
+    
+    <sh:property>
+      <rdf:Description>
+        <sh:path rdf:resource="http://schema.org/name"/>
+        <sh:datatype rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <sh:minCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</sh:minCount>
+        <sh:maxCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</sh:maxCount>
+      </rdf:Description>
+    </sh:property>
+
+    <sh:property>
+      <rdf:Description>
+        <sh:path rdf:resource="http://schema.org/worksFor"/>
+        <sh:node rdf:resource="http://schema.org/OrganizationShape"/>
+        <sh:minCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</sh:minCount>
+      </rdf:Description>
+    </sh:property>
+
+    <sh:property>
+      <rdf:Description>
+        <sh:path rdf:resource="http://schema.org/address"/>
+        <sh:node rdf:resource="http://schema.org/PostalAddressShape"/>
+        <sh:minCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</sh:minCount>
+      </rdf:Description>
+    </sh:property>
+  </sh:NodeShape>
+
+  <!-- Organization Shape -->
+  <sh:NodeShape rdf:about="http://schema.org/OrganizationShape">
+    <sh:property>
+      <rdf:Description>
+        <sh:path rdf:resource="http://schema.org/name"/>
+        <sh:datatype rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <sh:minCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</sh:minCount>
+      </rdf:Description>
+    </sh:property>
+  </sh:NodeShape>
+
+  <!-- Postal Address Shape -->
+  <sh:NodeShape rdf:about="http://schema.org/PostalAddressShape">
+    <sh:targetClass rdf:resource="http://schema.org/PostalAddress"/>
+    <sh:property>
+      <rdf:Description>
+        <sh:path rdf:resource="http://schema.org/addressLocality"/>
+        <sh:datatype rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+      </rdf:Description>
+    </sh:property>
+    <sh:property>
+      <rdf:Description>
+        <sh:path rdf:resource="http://schema.org/addressCountry"/>
+        <sh:datatype rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <sh:minCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</sh:minCount>
+      </rdf:Description>
+    </sh:property>
+  </sh:NodeShape>
+
+</rdf:RDF>
