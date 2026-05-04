@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rdf:RDF
+  xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+  xmlns:schema="http://schema.org/"
+>
+  <schema:Person rdf:about="https://patrickcoombe.com/about-patrick">
+    <schema:name>Patrick Coombe</schema:name>
+    <schema:alternateName>Patrick Coombe</schema:alternateName>
+    <schema:nationality>United States</schema:nationality>
+    <schema:gender>Male</schema:gender>
+    <schema:description>Technologist</schema:description>
+    <schema:disambiguatingDescription>Co-founder of Elite Strategies</schema:disambiguatingDescription>
+    <schema:jobTitle>Technical Director</schema:jobTitle>
+    <schema:url rdf:resource="https://patrickcoombe.com"/>
+    <schema:image rdf:resource="https://patrickcoombe.com/img/patrickCoombeProfile.jpg"/>
+
+    <schema:birthPlace>
+      <schema:Place>
+        <schema:address>
+          <schema:PostalAddress>
+            <schema:addressLocality>Boca Raton</schema:addressLocality>
+            <schema:addressRegion>FL</schema:addressRegion>
+            <schema:addressCountry>USA</schema:addressCountry>
+          </schema:PostalAddress>
+        </schema:address>
+      </schema:Place>
+    </schema:birthPlace>
+
+    <schema:alumniOf>
+      <schema:CollegeOrUniversity>
+        <schema:name>McCann School of Business</schema:name>
+        <schema:sameAs rdf:resource="https://en.wikipedia.org/wiki/McCann_School_of_Business_%26_Technology"/>
+      </schema:CollegeOrUniversity>
+    </schema:alumniOf>
+
+    <schema:worksFor>
+      <schema:Organization>
+        <schema:name>Elite Strategies</schema:name>
+        <schema:sameAs rdf:resource="https://elite-strategies.com/"/>
+        <schema:sameAs rdf:resource="https://x.com/elitestweets"/>
+      </schema:Organization>
+    </schema:worksFor>
+
+    <schema:address>
+      <schema:PostalAddress>
+        <schema:addressLocality>Boca Raton</schema:addressLocality>
+        <schema:addressRegion>FL</schema:addressRegion>
+        <schema:addressCountry>USA</schema:addressCountry>
+      </schema:PostalAddress>
+    </schema:address>
+
+    <!-- Social Media Links (sameAs) -->
+    <schema:sameAs rdf:resource="https://github.com/patrickcoombe"/>
+    <schema:sameAs rdf:resource="https://x.com/pmkoom"/>
+    <schema:sameAs rdf:resource="https://www.facebook.com/patrickcoombe"/>
+    <schema:sameAs rdf:resource="https://bsky.app/profile/patrickcoombe.com"/>
+    <schema:sameAs rdf:resource="https://www.instagram.com/patrickcoombe/"/>
+    <schema:sameAs rdf:resource="https://www.producthunt.com/@patrickcoombe"/>
+    <schema:sameAs rdf:resource="https://wordpress.org/support/users/patrickfl/"/>
+    <schema:sameAs rdf:resource="https://www.youtube.com/@PatrickCoombe"/>
+    <schema:sameAs rdf:resource="https://www.amazon.com/stores/Patrick-Coombe/author/B014HX9RD6"/>
+
+    <!-- Authored Book -->
+    <schema:author>
+      <schema:Book>
+        <schema:name>Learn SEO: An On-Page SEO Tutorial</schema:name>
+        <schema:url rdf:resource="https://www.amazon.com/Learn-SEO-Page-Tutorial-ebook/dp/B014HGMBYK"/>
+        <schema:datePublished>2015-08-25</schema:datePublished>
+        <schema:numberOfPages rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">142</schema:numberOfPages>
+        <schema:inLanguage>English</schema:inLanguage>
+        <schema:bookFormat rdf:resource="http://schema.org/EBook"/>
+        <schema:bookFormat rdf:resource="http://schema.org/Paperback"/>
+        <schema:isbn>0692599142</schema:isbn>
+        <schema:isbn>978-0692599143</schema:isbn>
+        <schema:sameAs rdf:resource="https://www.amazon.com/Learn-SEO-Page-Tutorial-ebook/dp/B014HGMBYK"/>
+        <schema:sameAs rdf:resource="https://www.amazon.com/Page-SEO-Tutorial-Patrick-Coombe/dp/0692599142"/>
+        <schema:sameAs rdf:resource="https://www.goodreads.com/book/show/26202717-learn-seo"/>
+        <schema:author rdf:resource="https://patrickcoombe.com/about-patrick"/>
+        <schema:aggregateRating>
+          <schema:AggregateRating>
+            <schema:ratingValue>4.75</schema:ratingValue>
+            <schema:reviewCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">12</schema:reviewCount>
+            <schema:bestRating>5</schema:bestRating>
+            <schema:worstRating>1</schema:worstRating>
+          </schema:AggregateRating>
+        </schema:aggregateRating>
+      </schema:Book>
+    </schema:author>
+  </schema:Person>
+</rdf:RDF>

@@ -1,0 +1,75 @@
+{
+  "id": "https://patrickcoombe.com/about-patrick",
+  "name": "Patrick Coombe",
+  "alternateName": "Patrick Coombe",
+  "nationality": "United States",
+  "birthPlace": {
+    "address": {
+      "addressLocality": "Boca Raton",
+      "addressRegion": "FL",
+      "addressCountry": "USA"
+    }
+  },
+  "alumniOf": {
+    "name": "McCann School of Business",
+    "sameAs": "https://en.wikipedia.org/wiki/McCann_School_of_Business_%26_Technology"
+  },
+  "gender": "Male",
+  "description": "Technologist",
+  "disambiguatingDescription": "Co-founder of Elite Strategies",
+  "jobTitle": "Technical Director",
+  "worksFor": {
+    "name": "Elite Strategies",
+    "sameAs": [
+      "https://elite-strategies.com/",
+      "https://x.com/elitestweets"
+    ]
+  },
+  "url": "https://patrickcoombe.com",
+  "image": "https://patrickcoombe.com/img/patrickCoombeProfile.jpg",
+  "address": {
+    "addressLocality": "Boca Raton",
+    "addressRegion": "FL",
+    "addressCountry": "USA"
+  },
+  "sameAs": [
+    "https://github.com/patrickcoombe",
+    "https://x.com/pmkoom",
+    "https://www.facebook.com/patrickcoombe",
+    "https://bsky.app/profile/patrickcoombe.com",
+    "https://www.instagram.com/patrickcoombe/",
+    "https://www.producthunt.com/@patrickcoombe",
+    "https://wordpress.org/support/users/patrickfl/",
+    "https://www.youtube.com/@PatrickCoombe",
+    "https://www.amazon.com/stores/Patrick-Coombe/author/B014HX9RD6"
+  ],
+  "author": {
+    "name": "Learn SEO: An On-Page SEO Tutorial",
+    "url": "https://www.amazon.com/Learn-SEO-Page-Tutorial-ebook/dp/B014HGMBYK",
+    "datePublished": "2015-08-25",
+    "numberOfPages": 142,
+    "inLanguage": "English",
+    "bookFormat": [
+      "http://schema.org/EBook",
+      "http://schema.org/Paperback"
+    ],
+    "isbn": [
+      "0692599142",
+      "978-0692599143"
+    ],
+    "sameAs": [
+      "https://www.amazon.com/Learn-SEO-Page-Tutorial-ebook/dp/B014HGMBYK",
+      "https://www.amazon.com/Page-SEO-Tutorial-Patrick-Coombe/dp/0692599142",
+      "https://www.goodreads.com/book/show/26202717-learn-seo"
+    ],
+    "author": {
+      "id": "https://patrickcoombe.com/about-patrick"
+    },
+    "aggregateRating": {
+      "ratingValue": "4.75",
+      "reviewCount": 12,
+      "bestRating": "5",
+      "worstRating": "1"
+    }
+  }
+}

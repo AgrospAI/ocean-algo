@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Person>
+    <id>https://patrickcoombe.com/about-patrick</id>
+    <name>Patrick Coombe</name>
+    <alternateName>Patrick Coombe</alternateName>
+    <nationality>United States</nationality>
+    
+    <birthPlace>
+        <address>
+            <addressLocality>Boca Raton</addressLocality>
+            <addressRegion>FL</addressRegion>
+            <addressCountry>USA</addressCountry>
+        </address>
+    </birthPlace>
+    
+    <alumniOf>
+        <name>McCann School of Business</name>
+        <sameAs>https://en.wikipedia.org/wiki/McCann_School_of_Business_%26_Technology</sameAs>
+    </alumniOf>
+    
+    <gender>Male</gender>
+    <description>Technologist</description>
+    <disambiguatingDescription>Co-founder of Elite Strategies</disambiguatingDescription>
+    <jobTitle>Technical Director</jobTitle>
+    
+    <worksFor>
+        <name>Elite Strategies</name>
+        <sameAs>https://elite-strategies.com/</sameAs>
+        <sameAs>https://x.com/elitestweets</sameAs>
+    </worksFor>
+    
+    <url>https://patrickcoombe.com</url>
+    <image>https://patrickcoombe.com/img/patrickCoombeProfile.jpg</image>
+    
+    <address>
+        <addressLocality>Boca Raton</addressLocality>
+        <addressRegion>FL</addressRegion>
+        <addressCountry>USA</addressCountry>
+    </address>
+    
+    <!-- Arrays from JSON become repeated elements in XML -->
+    <sameAs>https://github.com/patrickcoombe</sameAs>
+    <sameAs>https://x.com/pmkoom</sameAs>
+    <sameAs>https://www.facebook.com/patrickcoombe</sameAs>
+    <sameAs>https://bsky.app/profile/patrickcoombe.com</sameAs>
+    <sameAs>https://www.instagram.com/patrickcoombe/</sameAs>
+    <sameAs>https://www.producthunt.com/@patrickcoombe</sameAs>
+    <sameAs>https://wordpress.org/support/users/patrickfl/</sameAs>
+    <sameAs>https://www.youtube.com/@PatrickCoombe</sameAs>
+    <sameAs>https://www.amazon.com/stores/Patrick-Coombe/author/B014HX9RD6</sameAs>
+    
+    <author>
+        <name>Learn SEO: An On-Page SEO Tutorial</name>
+        <url>https://www.amazon.com/Learn-SEO-Page-Tutorial-ebook/dp/B014HGMBYK</url>
+        <datePublished>2015-08-25</datePublished>
+        <numberOfPages>142</numberOfPages>
+        <inLanguage>English</inLanguage>
+        
+        <bookFormat>http://schema.org/EBook</bookFormat>
+        <bookFormat>http://schema.org/Paperback</bookFormat>
+        
+        <isbn>0692599142</isbn>
+        <isbn>978-0692599143</isbn>
+        
+        <sameAs>https://www.amazon.com/Learn-SEO-Page-Tutorial-ebook/dp/B014HGMBYK</sameAs>
+        <sameAs>https://www.amazon.com/Page-SEO-Tutorial-Patrick-Coombe/dp/0692599142</sameAs>
+        <sameAs>https://www.goodreads.com/book/show/26202717-learn-seo</sameAs>
+        
+        <author>
+            <id>https://patrickcoombe.com/about-patrick</id>
+        </author>
+        
+        <aggregateRating>
+            <ratingValue>4.75</ratingValue>
+            <reviewCount>12</reviewCount>
+            <bestRating>5</bestRating>
+            <worstRating>1</worstRating>
+        </aggregateRating>
+    </author>
+</Person>

@@ -1,0 +1,178 @@
+{
+  "id": "did:op:4d6f4ca585ad87372950da178689e2baf8b8e2668968765ca305bfb718af9cf3",
+  "@context": [
+    "https://w3id.org/did/v1"
+  ],
+  "nftAddress": "0x14b0742d11A782202DEaEE57D161d09dc7422e21",
+  "chainId": 32456,
+  "version": "4.1.0",
+  "metadata": {
+    "type": "dataset",
+    "name": "AmodalAppleSize_RGB-D dataset: apple tree pictures (20)",
+    "author": "Universitat de Lleida (UdL)",
+    "description": "This dataset contains a sample of 20 apple tree pictures and JSON annotations, which are part of the:\n\n**PFuji-Size dataset: photogrammetry-derived 3D point clouds of Fuji apples trees with annotations to evaluate fruit detection and size estimation methodologies**, [https://dataverse.csuc.cat/dataset.xhtml?persistentId=doi:10.34810/data916](https://dataverse.csuc.cat/dataset.xhtml?persistentId=doi:10.34810/data916).\n\nThe full dataset available at [https://dataverse.csuc.cat/dataset.xhtml?persistentId=doi:10.34810/data916](https://dataverse.csuc.cat/dataset.xhtml?persistentId=doi:10.34810/data916) comprises a collection of RGB-D apple tree images that can be used to train and test computer vision-based fruit detection and sizing methods. This dataset encompasses two distinct sets of data obtained from a Fuji and an Elstar apple orchards. The Fuji apple orchard sub-set consists of 3925 RGB-D images containing a total of 15335 apples annotated with both modal and amodal apple segmentation masks. Modal masks denote the visible portions of the apples, whereas amodal masks encompass both visible and occluded apple regions. Notably, this dataset is the first public resource to incorporate fruit amodal masks. This pioneering inclusion addresses a critical gap in existing datasets, enabling the development of robust automatic fruit sizing methods and accurate fruit visibility estimation, particularly in the presence of partial occlusions. Besides the fruit segmentation masks, the dataset also includes the fruit size (calliper) ground truth for each annotated apple. The second sub-set comprises 2731 RGB-D images capturing five Elstar apple trees at four distinct growth stages. This sub-set includes mean diameter information for each tree at every growth stage and serves as a valuable resource for evaluating fruit sizing methods trained with the first sub-set. The present data was employed in the research paper titled \"Looking behind occlusions: a study on amodal segmentation for robust on-tree apple fruit size estimation\". (2023-11-15)\n",
+    "tags": [
+      "agriculture",
+      "apple",
+      "fruit",
+      "fruit-detection",
+      "precision-agriculture",
+      "udl",
+      "image",
+      "agrospai"
+    ],
+    "license": "CC-BY-4.0",
+    "additionalInformation": {
+      "@context": {
+        "dcat": "http://www.w3.org/ns/dcat#",
+        "dct": "http://purl.org/dc/terms/",
+        "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+        "skos": "http://www.w3.org/2004/02/skos/core#",
+        "geo": "http://www.opengis.net/ont/geosparql#"
+      },
+      "dct:spatial": {
+        "@type": [
+          "dct:Location",
+          "skos:Concept"
+        ],
+        "dcat:bbox": {
+          "@type": "geo:wktLiteral",
+          "@value": "POLYGON((0.984288 41.716989,1.152648 41.716989,1.152648 41.859594,0.984288 41.859594,0.984288 41.716989))"
+        },
+        "skos:prefLabel": "Agramunt"
+      },
+      "dct:format": "text/csv",
+      "dct:conformsTo": "https://raw.githubusercontent.com/AgrospAI/ocean-algo/refs/heads/v2-ocean-runner/data-schema-validator/_data/test_inputs/schemas/shapes.csvw.json",
+      "dcat:theme": [
+        {
+          "@id": "http://aims.fao.org/aos/agrovoc/c_203",
+          "@type": "skos:Concept",
+          "skos:prefLabel": {
+            "@value": "agriculture",
+            "@language": "en"
+          }
+        },
+        {
+          "@id": "http://aims.fao.org/aos/agrovoc/c_541",
+          "@type": "skos:Concept",
+          "skos:prefLabel": {
+            "@value": "apples",
+            "@language": "en"
+          }
+        },
+        {
+          "@id": "http://aims.fao.org/aos/agrovoc/c_3131",
+          "@type": "skos:Concept",
+          "skos:prefLabel": {
+            "@value": "fruits",
+            "@language": "en"
+          }
+        },
+        {
+          "@id": "http://aims.fao.org/aos/agrovoc/c_92363",
+          "@type": "skos:Concept",
+          "skos:prefLabel": {
+            "@value": "precision agriculture",
+            "@language": "en"
+          }
+        }
+      ]
+    },
+    "created": "2026-01-09T17:06:45Z",
+    "updated": "2026-02-21T11:13:57Z"
+  },
+  "services": [
+    {
+      "id": "5dc14bfd188276b68e6c34d7a6fbbc12b42cb46f1b272002dce81c95b27f4fc5",
+      "datatokenAddress": "0xa936203E92fa6BF72531a617f9E0A16BD981ec27",
+      "type": "compute",
+      "serviceEndpoint": "https://provider.agrospai.udl.cat",
+      "timeout": 0,
+      "files": "0x043ec5eb7020ce9772761cf4fd0ed1a8cbf97e4b884062525f2ec6a2b8a2d3a2cb16c8d33b6e3bb91cf4f70e5cd9d6780059b5efeb44c850cff4038f8be5a19ab9946b21d5af051fa35a107e301c646a05328d781efdf56c30c2b2ef9bfa963341811fa2dcb114d93b301b6e418be2d562a4f341d392ab90a33135dba8c95f1a3691571aa82dec8b432a206933942409425face81e56623700db89cad4099cbbfe21b077b150c75d3dfc588c6db0bd8a61900a964df13a4cda6c87df168850a50443134484ed1e87146deace5729645daa9bd5d14b6ad80fad503462a7f36a4c6c4af2ebeb7c1a30981f0cb943f46ea2d4991b684f3a7b677de306edc07b70919113003c590a00f6292b742126bf9d6b4990a1f409875ff2cf1cdc3ea924370285d85c619e1819e6d700d92c4a62d7e9eed72eb19ffbfed7436c9eb793293d854b2921e1e0536e4033df47636c9751a886941297df49af4f247f5d126f7db309423646fd213c26e55b3f978c05bf2b",
+      "compute": {
+        "allowNetworkAccess": false,
+        "allowRawAlgorithm": false,
+        "publisherTrustedAlgorithmPublishers": [],
+        "publisherTrustedAlgorithms": [
+          {
+            "did": "did:op:b72576d9a3e0607d4a6a76ece83ea00a7ba40ef2b4403d0c7073a1ce4c5bd415",
+            "containerSectionChecksum": "b9e41fc0570ff33678fee3928790f669b1b266289b104c49aa8fd4156da04112",
+            "filesChecksum": "409cfbee0e4e010b73a8ad13afa8513405045677d64104983af73d791aa6fd53"
+          },
+          {
+            "did": "did:op:242b16ed9e978e9dcc5b75095b20d5fb720ab540cf1b336a5356a736cf9c73fb",
+            "containerSectionChecksum": "93e5350ee08bcc124e86c4283578abf67e05919416afe8e0fac8757c8fb95f02",
+            "filesChecksum": "8f98e5f0e285fef5e96b486dfb536c69776c75970e71e2296dddf9021ea343a3"
+          },
+          {
+            "did": "did:op:b7dae2c712a247a5b1747030a1ceb7edab9668cb2d9af3109fcc831303f5e3de",
+            "containerSectionChecksum": "357747b9f15da4256ce0134cd03cb43760eeacce18f1b8dae4ad4deb40c879ce",
+            "filesChecksum": "e53582e19cb54a8ce0613a1c3c33aeef9283bfa8c292a1ab39c73cd9b481bfdd"
+          }
+        ]
+      }
+    }
+  ],
+  "credentials": {
+    "allow": [],
+    "deny": []
+  },
+  "event": {
+    "tx": "0x60a309f8d27533741286e85dae93fc9f8e42e3344bcba02b7e1e56c57e3ca06a",
+    "block": 11346622,
+    "from": "0xD999bAaE98AC5246568FD726be8832c49626867D",
+    "contract": "0x14b0742d11A782202DEaEE57D161d09dc7422e21",
+    "datetime": "2026-02-26T10:42:28"
+  },
+  "accessDetails": {
+    "validProviderFees": null,
+    "isOwned": true,
+    "validOrderTx": "0x57ade7d43ddfde4874a073d58be6e427567bbb06bcfd11f71fe790daca3f0f0a",
+    "templateId": 2,
+    "publisherMarketOrderFee": "0",
+    "type": "fixed",
+    "addressOrId": "0xcefed865bc36bfcf7872367bff92c671d2fff527e0ee51fefe9908952d2a44ee",
+    "price": "100",
+    "isPurchasable": true,
+    "baseToken": {
+      "address": "0x852381bb887d3cf4aeb9e1e9de3eb033af82fbee",
+      "name": "AllUnity EURAU",
+      "symbol": "EURAU",
+      "decimals": 6
+    },
+    "datatoken": {
+      "address": "0xa936203e92fa6bf72531a617f9e0a16bd981ec27",
+      "name": "UdL-20-FUJI-APPLES",
+      "symbol": "UdL-FUJI20"
+    }
+  },
+  "nft": {
+    "address": "0x14b0742d11A782202DEaEE57D161d09dc7422e21",
+    "name": "UdL-20-FUJI-APPLES",
+    "symbol": "UdL-FUJI20",
+    "state": 0,
+    "tokenURI": "data:application/json;base64,eyJpbWFnZSI6Imh0dHBzOi8vdXBsb2FkLndpa2ltZWRpYS5vcmcvd2lraXBlZGlhL2VuL2MvYzAvVW5pdmVyc2l0eV9vZl9MbGVpZGEucG5nIiwiZGVzY3JpcHRpb24iOiJ1bmRlZmluZWQiLCJleHRlcm5hbF91cmwiOiJodHRwczovL3BvcnRhbC5wb250dXMteC5ldS9hc3NldC9kaWQ6b3A6NGQ2ZjRjYTU4NWFkODczNzI5NTBkYTE3ODY4OWUyYmFmOGI4ZTI2Njg5Njg3NjVjYTMwNWJmYjcxOGFmOWNmMy9hc3NldC9kaWQ6b3A6NGQ2ZjRjYTU4NWFkODczNzI5NTBkYTE3ODY4OWUyYmFmOGI4ZTI2Njg5Njg3NjVjYTMwNWJmYjcxOGFmOWNmMy9hc3NldC9kaWQ6b3A6NGQ2ZjRjYTU4NWFkODczNzI5NTBkYTE3ODY4OWUyYmFmOGI4ZTI2Njg5Njg3NjVjYTMwNWJmYjcxOGFmOWNmMy9hc3NldC9kaWQ6b3A6NGQ2ZjRjYTU4NWFkODczNzI5NTBkYTE3ODY4OWUyYmFmOGI4ZTI2Njg5Njg3NjVjYTMwNWJmYjcxOGFmOWNmMyJ9",
+    "owner": "0xD999bAaE98AC5246568FD726be8832c49626867D",
+    "created": "2026-01-09T17:06:49"
+  },
+  "datatokens": [
+    {
+      "address": "0xa936203E92fa6BF72531a617f9E0A16BD981ec27",
+      "name": "UdL-20-FUJI-APPLES",
+      "symbol": "UdL-FUJI20",
+      "serviceId": "5dc14bfd188276b68e6c34d7a6fbbc12b42cb46f1b272002dce81c95b27f4fc5"
+    }
+  ],
+  "stats": {
+    "allocated": 0,
+    "orders": 7,
+    "price": {
+      "value": 100,
+      "tokenAddress": "0x852381bB887d3Cf4AEB9e1E9De3eB033AF82fBeE",
+      "tokenSymbol": "EURAU"
+    }
+  },
+  "purgatory": {
+    "state": false
+  }
+}

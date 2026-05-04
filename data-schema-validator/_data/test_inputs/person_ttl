@@ -1,0 +1,65 @@
+<https://patrickcoombe.com/about-patrick>
+        a                               <http://schema.org/Person>;
+        <http://schema.org/address>     [ a       <http://schema.org/PostalAddress>;
+                                          <http://schema.org/addressCountry>
+                                                  "USA";
+                                          <http://schema.org/addressLocality>
+                                                  "Boca Raton";
+                                          <http://schema.org/addressRegion>
+                                                  "FL"
+                                        ];
+        <http://schema.org/alternateName>
+                "Patrick Coombe";
+        <http://schema.org/alumniOf>    [ a                           <http://schema.org/CollegeOrUniversity>;
+                                          <http://schema.org/name>    "McCann School of Business";
+                                          <http://schema.org/sameAs>  <https://en.wikipedia.org/wiki/McCann_School_of_Business_%26_Technology>
+                                        ];
+        <http://schema.org/author>      [ a                               <http://schema.org/Book>;
+                                          <http://schema.org/aggregateRating>
+                                                  [ a                               <http://schema.org/AggregateRating>;
+                                                    <http://schema.org/bestRating>  "5";
+                                                    <http://schema.org/ratingValue>
+                                                            "4.75";
+                                                    <http://schema.org/reviewCount>
+                                                            12;
+                                                    <http://schema.org/worstRating>
+                                                            "1"
+                                                  ];
+                                          <http://schema.org/author>      <https://patrickcoombe.com/about-patrick>;
+                                          <http://schema.org/bookFormat>  "http://schema.org/EBook" , "http://schema.org/Paperback";
+                                          <http://schema.org/datePublished>
+                                                  "2015-08-25"^^<http://schema.org/Date>;
+                                          <http://schema.org/inLanguage>  "English";
+                                          <http://schema.org/isbn>        "0692599142" , "978-0692599143";
+                                          <http://schema.org/name>        "Learn SEO: An On-Page SEO Tutorial";
+                                          <http://schema.org/numberOfPages>
+                                                  142;
+                                          <http://schema.org/sameAs>      <https://www.amazon.com/Learn-SEO-Page-Tutorial-ebook/dp/B014HGMBYK> , <https://www.amazon.com/Page-SEO-Tutorial-Patrick-Coombe/dp/0692599142> , <https://www.goodreads.com/book/show/26202717-learn-seo>;
+                                          <http://schema.org/url>         <https://www.amazon.com/Learn-SEO-Page-Tutorial-ebook/dp/B014HGMBYK>
+                                        ];
+        <http://schema.org/birthPlace>  [ a                            <http://schema.org/Place>;
+                                          <http://schema.org/address>  [ a       <http://schema.org/PostalAddress>;
+                                                                         <http://schema.org/addressCountry>
+                                                                                 "USA";
+                                                                         <http://schema.org/addressLocality>
+                                                                                 "Boca Raton";
+                                                                         <http://schema.org/addressRegion>
+                                                                                 "FL"
+                                                                       ]
+                                        ];
+        <http://schema.org/description>
+                "Technologist";
+        <http://schema.org/disambiguatingDescription>
+                "Co-founder of Elite Strategies";
+        <http://schema.org/gender>      "Male";
+        <http://schema.org/image>       <https://patrickcoombe.com/img/patrickCoombeProfile.jpg>;
+        <http://schema.org/jobTitle>    "Technical Director";
+        <http://schema.org/name>        "Patrick Coombe";
+        <http://schema.org/nationality>
+                "United States";
+        <http://schema.org/sameAs>      <https://www.facebook.com/patrickcoombe> , <https://x.com/pmkoom> , <https://github.com/patrickcoombe> , <https://www.amazon.com/stores/Patrick-Coombe/author/B014HX9RD6> , <https://www.youtube.com/@PatrickCoombe> , <https://wordpress.org/support/users/patrickfl/> , <https://www.producthunt.com/@patrickcoombe> , <https://www.instagram.com/patrickcoombe/> , <https://bsky.app/profile/patrickcoombe.com>;
+        <http://schema.org/url>         <https://patrickcoombe.com>;
+        <http://schema.org/worksFor>    [ a                           <http://schema.org/Organization>;
+                                          <http://schema.org/name>    "Elite Strategies";
+                                          <http://schema.org/sameAs>  <https://elite-strategies.com/> , <https://x.com/elitestweets>
+                                        ] .
