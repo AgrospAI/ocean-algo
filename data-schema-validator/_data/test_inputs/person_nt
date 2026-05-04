@@ -1,0 +1,61 @@
+<https://patrickcoombe.com/about-patrick> <http://schema.org/worksFor> _:B52679cdfa3cd8f93bf21d7a1c07b0071 .
+<https://patrickcoombe.com/about-patrick> <http://schema.org/url> <https://patrickcoombe.com> .
+<https://patrickcoombe.com/about-patrick> <http://schema.org/sameAs> <https://www.amazon.com/stores/Patrick-Coombe/author/B014HX9RD6> .
+<https://patrickcoombe.com/about-patrick> <http://schema.org/sameAs> <https://www.youtube.com/@PatrickCoombe> .
+<https://patrickcoombe.com/about-patrick> <http://schema.org/sameAs> <https://wordpress.org/support/users/patrickfl/> .
+<https://patrickcoombe.com/about-patrick> <http://schema.org/sameAs> <https://www.producthunt.com/@patrickcoombe> .
+<https://patrickcoombe.com/about-patrick> <http://schema.org/sameAs> <https://www.instagram.com/patrickcoombe/> .
+<https://patrickcoombe.com/about-patrick> <http://schema.org/sameAs> <https://bsky.app/profile/patrickcoombe.com> .
+<https://patrickcoombe.com/about-patrick> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/Person> .
+<https://patrickcoombe.com/about-patrick> <http://schema.org/address> _:B43eb5f20075abcc790db27376753d797 .
+<https://patrickcoombe.com/about-patrick> <http://schema.org/alternateName> "Patrick Coombe" .
+<https://patrickcoombe.com/about-patrick> <http://schema.org/alumniOf> _:B55aedbceb5f7a47bd075db4d58b8d581 .
+<https://patrickcoombe.com/about-patrick> <http://schema.org/author> _:Beca96a0b19e65fb789c13ae54c710792 .
+<https://patrickcoombe.com/about-patrick> <http://schema.org/birthPlace> _:B689c05b5fa45097d3bffe265268d87d6 .
+<https://patrickcoombe.com/about-patrick> <http://schema.org/description> "Technologist" .
+<https://patrickcoombe.com/about-patrick> <http://schema.org/disambiguatingDescription> "Co-founder of Elite Strategies" .
+<https://patrickcoombe.com/about-patrick> <http://schema.org/gender> "Male" .
+<https://patrickcoombe.com/about-patrick> <http://schema.org/image> <https://patrickcoombe.com/img/patrickCoombeProfile.jpg> .
+<https://patrickcoombe.com/about-patrick> <http://schema.org/jobTitle> "Technical Director" .
+<https://patrickcoombe.com/about-patrick> <http://schema.org/name> "Patrick Coombe" .
+<https://patrickcoombe.com/about-patrick> <http://schema.org/nationality> "United States" .
+<https://patrickcoombe.com/about-patrick> <http://schema.org/sameAs> <https://github.com/patrickcoombe> .
+<https://patrickcoombe.com/about-patrick> <http://schema.org/sameAs> <https://x.com/pmkoom> .
+<https://patrickcoombe.com/about-patrick> <http://schema.org/sameAs> <https://www.facebook.com/patrickcoombe> .
+_:B52679cdfa3cd8f93bf21d7a1c07b0071 <http://schema.org/sameAs> <https://x.com/elitestweets> .
+_:B52679cdfa3cd8f93bf21d7a1c07b0071 <http://schema.org/sameAs> <https://elite-strategies.com/> .
+_:B52679cdfa3cd8f93bf21d7a1c07b0071 <http://schema.org/name> "Elite Strategies" .
+_:B52679cdfa3cd8f93bf21d7a1c07b0071 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/Organization> .
+_:Bd569aa97186a440f947f485712c527ac <http://schema.org/addressRegion> "FL" .
+_:Bd569aa97186a440f947f485712c527ac <http://schema.org/addressLocality> "Boca Raton" .
+_:Bd569aa97186a440f947f485712c527ac <http://schema.org/addressCountry> "USA" .
+_:Bd569aa97186a440f947f485712c527ac <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/PostalAddress> .
+_:B689c05b5fa45097d3bffe265268d87d6 <http://schema.org/address> _:Bd569aa97186a440f947f485712c527ac .
+_:B689c05b5fa45097d3bffe265268d87d6 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/Place> .
+_:Bb63462a48822250039baf8d1ddbb9446 <http://schema.org/worstRating> "1" .
+_:Bb63462a48822250039baf8d1ddbb9446 <http://schema.org/reviewCount> "12"^^<http://www.w3.org/2001/XMLSchema#integer> .
+_:Bb63462a48822250039baf8d1ddbb9446 <http://schema.org/ratingValue> "4.75" .
+_:Bb63462a48822250039baf8d1ddbb9446 <http://schema.org/bestRating> "5" .
+_:Bb63462a48822250039baf8d1ddbb9446 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/AggregateRating> .
+_:Beca96a0b19e65fb789c13ae54c710792 <http://schema.org/url> <https://www.amazon.com/Learn-SEO-Page-Tutorial-ebook/dp/B014HGMBYK> .
+_:Beca96a0b19e65fb789c13ae54c710792 <http://schema.org/sameAs> <https://www.goodreads.com/book/show/26202717-learn-seo> .
+_:Beca96a0b19e65fb789c13ae54c710792 <http://schema.org/sameAs> <https://www.amazon.com/Page-SEO-Tutorial-Patrick-Coombe/dp/0692599142> .
+_:Beca96a0b19e65fb789c13ae54c710792 <http://schema.org/sameAs> <https://www.amazon.com/Learn-SEO-Page-Tutorial-ebook/dp/B014HGMBYK> .
+_:Beca96a0b19e65fb789c13ae54c710792 <http://schema.org/numberOfPages> "142"^^<http://www.w3.org/2001/XMLSchema#integer> .
+_:Beca96a0b19e65fb789c13ae54c710792 <http://schema.org/name> "Learn SEO: An On-Page SEO Tutorial" .
+_:Beca96a0b19e65fb789c13ae54c710792 <http://schema.org/isbn> "978-0692599143" .
+_:Beca96a0b19e65fb789c13ae54c710792 <http://schema.org/isbn> "0692599142" .
+_:Beca96a0b19e65fb789c13ae54c710792 <http://schema.org/inLanguage> "English" .
+_:Beca96a0b19e65fb789c13ae54c710792 <http://schema.org/datePublished> "2015-08-25"^^<http://schema.org/Date> .
+_:Beca96a0b19e65fb789c13ae54c710792 <http://schema.org/bookFormat> "http://schema.org/Paperback" .
+_:Beca96a0b19e65fb789c13ae54c710792 <http://schema.org/bookFormat> "http://schema.org/EBook" .
+_:Beca96a0b19e65fb789c13ae54c710792 <http://schema.org/author> <https://patrickcoombe.com/about-patrick> .
+_:Beca96a0b19e65fb789c13ae54c710792 <http://schema.org/aggregateRating> _:Bb63462a48822250039baf8d1ddbb9446 .
+_:Beca96a0b19e65fb789c13ae54c710792 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/Book> .
+_:B55aedbceb5f7a47bd075db4d58b8d581 <http://schema.org/sameAs> <https://en.wikipedia.org/wiki/McCann_School_of_Business_%26_Technology> .
+_:B55aedbceb5f7a47bd075db4d58b8d581 <http://schema.org/name> "McCann School of Business" .
+_:B55aedbceb5f7a47bd075db4d58b8d581 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/CollegeOrUniversity> .
+_:B43eb5f20075abcc790db27376753d797 <http://schema.org/addressRegion> "FL" .
+_:B43eb5f20075abcc790db27376753d797 <http://schema.org/addressLocality> "Boca Raton" .
+_:B43eb5f20075abcc790db27376753d797 <http://schema.org/addressCountry> "USA" .
+_:B43eb5f20075abcc790db27376753d797 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/PostalAddress> .
