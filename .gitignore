@@ -2,3 +2,5 @@
 
 outputs/
 .DS_store
+
+.claude/

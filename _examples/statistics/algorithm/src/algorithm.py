@@ -1,14 +1,12 @@
 from pathlib import Path
-from typing import Sequence, Tuple
 
 import pandas as pd
-from ocean_runner import Algorithm, EmptyAlgorithm
-from oceanprotocol_job_details.domain import DID
+from ocean_runner import Algorithm, EmptyInputParameters
 
-type ResultT = Tuple[DID, pd.DataFrame]
-type ResultsT = Sequence[ResultT]
+type ResultT = tuple[str, pd.DataFrame]
+type ResultsT = list[ResultT]
 
-algorithm: EmptyAlgorithm[ResultsT] = Algorithm[None, ResultsT].create(None)
+algorithm = Algorithm[EmptyInputParameters, ResultsT].create(None)
 
 
 @algorithm.run
@@ -24,5 +22,3 @@ def save(_, result: ResultsT, base: Path):
     for did, analysis in result:
         algorithm.logger.info(f"Descriptive statistics {did}: {analysis}")
         analysis.to_csv(base / did)
-
-

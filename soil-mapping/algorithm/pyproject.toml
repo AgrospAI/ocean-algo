@@ -1,0 +1,21 @@
+[project]
+name = "algorithm"
+version = "0.1.0"
+description = ""
+authors = [{ name = "AgrospAI", email = "aleix.segura@udl.cat" }]
+requires-python = ">=3.12"
+readme = "README.md"
+license = { file = "LICENSE" }
+dependencies = [
+    "GDAL==3.12.2",
+    "numpy==2.4.2",
+    "wheel==0.46.3",
+    "scipy",
+    "matplotlib",
+    "shapely",
+    "folium",
+    "Pillow",
+]
+
+[tool.uv]
+package = false
