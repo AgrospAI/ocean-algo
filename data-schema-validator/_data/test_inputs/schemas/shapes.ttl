@@ -1,0 +1,142 @@
+<http://schema.org/AggregateRatingShape>
+        a       <http://www.w3.org/ns/shacl#NodeShape>;
+        <http://www.w3.org/ns/shacl#property>
+                [ <http://www.w3.org/ns/shacl#datatype>
+                          <http://www.w3.org/2001/XMLSchema#integer>;
+                  <http://www.w3.org/ns/shacl#path>
+                          <http://schema.org/reviewCount>
+                ];
+        <http://www.w3.org/ns/shacl#property>
+                [ <http://www.w3.org/ns/shacl#datatype>
+                          <http://www.w3.org/2001/XMLSchema#string>;
+                  <http://www.w3.org/ns/shacl#minCount>
+                          1;
+                  <http://www.w3.org/ns/shacl#path>
+                          <http://schema.org/ratingValue>
+                ];
+        <http://www.w3.org/ns/shacl#targetClass>
+                <http://schema.org/AggregateRating> .
+
+<http://schema.org/BookShape>
+        a       <http://www.w3.org/ns/shacl#NodeShape>;
+        <http://www.w3.org/ns/shacl#property>
+                [ <http://www.w3.org/ns/shacl#class>
+                          <http://schema.org/AggregateRating>;
+                  <http://www.w3.org/ns/shacl#node>
+                          <http://schema.org/AggregateRatingShape>;
+                  <http://www.w3.org/ns/shacl#path>
+                          <http://schema.org/aggregateRating>
+                ];
+        <http://www.w3.org/ns/shacl#property>
+                [ <http://www.w3.org/ns/shacl#datatype>
+                          <http://www.w3.org/2001/XMLSchema#integer>;
+                  <http://www.w3.org/ns/shacl#path>
+                          <http://schema.org/numberOfPages>
+                ];
+        <http://www.w3.org/ns/shacl#property>
+                [ <http://www.w3.org/ns/shacl#datatype>
+                          <http://www.w3.org/2001/XMLSchema#string>;
+                  <http://www.w3.org/ns/shacl#minCount>
+                          1;
+                  <http://www.w3.org/ns/shacl#path>
+                          <http://schema.org/name>
+                ];
+        <http://www.w3.org/ns/shacl#targetClass>
+                <http://schema.org/Book> .
+
+<http://schema.org/OrganizationShape>
+        a       <http://www.w3.org/ns/shacl#NodeShape>;
+        <http://www.w3.org/ns/shacl#property>
+                [ <http://www.w3.org/ns/shacl#datatype>
+                          <http://www.w3.org/2001/XMLSchema#string>;
+                  <http://www.w3.org/ns/shacl#minCount>
+                          1;
+                  <http://www.w3.org/ns/shacl#path>
+                          <http://schema.org/name>
+                ];
+        <http://www.w3.org/ns/shacl#targetClass>
+                <http://schema.org/Organization> .
+
+<http://schema.org/PersonShape>
+        a       <http://www.w3.org/ns/shacl#NodeShape>;
+        <http://www.w3.org/ns/shacl#property>
+                [ <http://www.w3.org/ns/shacl#class>
+                          <http://schema.org/Book>;
+                  <http://www.w3.org/ns/shacl#node>
+                          <http://schema.org/BookShape>;
+                  <http://www.w3.org/ns/shacl#path>
+                          <http://schema.org/author>
+                ];
+        <http://www.w3.org/ns/shacl#property>
+                [ <http://www.w3.org/ns/shacl#class>
+                          <http://schema.org/Organization>;
+                  <http://www.w3.org/ns/shacl#node>
+                          <http://schema.org/OrganizationShape>;
+                  <http://www.w3.org/ns/shacl#path>
+                          <http://schema.org/worksFor>
+                ];
+        <http://www.w3.org/ns/shacl#property>
+                [ <http://www.w3.org/ns/shacl#class>
+                          <http://schema.org/PostalAddress>;
+                  <http://www.w3.org/ns/shacl#node>
+                          <http://schema.org/PostalAddressShape>;
+                  <http://www.w3.org/ns/shacl#path>
+                          <http://schema.org/address>
+                ];
+        <http://www.w3.org/ns/shacl#property>
+                [ <http://www.w3.org/ns/shacl#minCount>
+                          1;
+                  <http://www.w3.org/ns/shacl#nodeKind>
+                          <http://www.w3.org/ns/shacl#IRIOrLiteral>;
+                  <http://www.w3.org/ns/shacl#path>
+                          <http://schema.org/sameAs>
+                ];
+        <http://www.w3.org/ns/shacl#property>
+                [ <http://www.w3.org/ns/shacl#datatype>
+                          <http://www.w3.org/2001/XMLSchema#string>;
+                  <http://www.w3.org/ns/shacl#path>
+                          <http://schema.org/nationality>
+                ];
+        <http://www.w3.org/ns/shacl#property>
+                [ <http://www.w3.org/ns/shacl#datatype>
+                          <http://www.w3.org/2001/XMLSchema#string>;
+                  <http://www.w3.org/ns/shacl#path>
+                          <http://schema.org/jobTitle>
+                ];
+        <http://www.w3.org/ns/shacl#property>
+                [ <http://www.w3.org/ns/shacl#datatype>
+                          <http://www.w3.org/2001/XMLSchema#string>;
+                  <http://www.w3.org/ns/shacl#maxCount>
+                          1;
+                  <http://www.w3.org/ns/shacl#minCount>
+                          1;
+                  <http://www.w3.org/ns/shacl#path>
+                          <http://schema.org/name>
+                ];
+        <http://www.w3.org/ns/shacl#targetClass>
+                <http://schema.org/Person> .
+
+<http://schema.org/PostalAddressShape>
+        a       <http://www.w3.org/ns/shacl#NodeShape>;
+        <http://www.w3.org/ns/shacl#property>
+                [ <http://www.w3.org/ns/shacl#datatype>
+                          <http://www.w3.org/2001/XMLSchema#string>;
+                  <http://www.w3.org/ns/shacl#path>
+                          <http://schema.org/addressCountry>
+                ];
+        <http://www.w3.org/ns/shacl#property>
+                [ <http://www.w3.org/ns/shacl#datatype>
+                          <http://www.w3.org/2001/XMLSchema#string>;
+                  <http://www.w3.org/ns/shacl#path>
+                          <http://schema.org/addressRegion>
+                ];
+        <http://www.w3.org/ns/shacl#property>
+                [ <http://www.w3.org/ns/shacl#datatype>
+                          <http://www.w3.org/2001/XMLSchema#string>;
+                  <http://www.w3.org/ns/shacl#minCount>
+                          1;
+                  <http://www.w3.org/ns/shacl#path>
+                          <http://schema.org/addressLocality>
+                ];
+        <http://www.w3.org/ns/shacl#targetClass>
+                <http://schema.org/PostalAddress> .

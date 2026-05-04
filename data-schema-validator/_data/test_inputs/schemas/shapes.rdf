@@ -1,0 +1,109 @@
+<rdf:RDF
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:owl="http://www.w3.org/2002/07/owl#"
+    xmlns:schema="http://schema.org/"
+    xmlns:sh="http://www.w3.org/ns/shacl#"
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema#">
+  <sh:NodeShape rdf:about="http://schema.org/PersonShape">
+    <sh:targetClass rdf:resource="http://schema.org/Person"/>
+    <sh:property rdf:parseType="Resource">
+      <sh:path rdf:resource="http://schema.org/name"/>
+      <sh:datatype rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+      <sh:minCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+      >1</sh:minCount>
+      <sh:maxCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+      >1</sh:maxCount>
+    </sh:property>
+    <sh:property rdf:parseType="Resource">
+      <sh:path rdf:resource="http://schema.org/jobTitle"/>
+      <sh:datatype rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    </sh:property>
+    <sh:property rdf:parseType="Resource">
+      <sh:path rdf:resource="http://schema.org/nationality"/>
+      <sh:datatype rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    </sh:property>
+    <sh:property rdf:parseType="Resource">
+      <sh:path rdf:resource="http://schema.org/sameAs"/>
+      <sh:nodeKind rdf:resource="http://www.w3.org/ns/shacl#IRIOrLiteral"/>
+      <sh:minCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+      >1</sh:minCount>
+    </sh:property>
+    <sh:property rdf:parseType="Resource">
+      <sh:path rdf:resource="http://schema.org/address"/>
+      <sh:class rdf:resource="http://schema.org/PostalAddress"/>
+      <sh:node>
+        <sh:NodeShape rdf:about="http://schema.org/PostalAddressShape">
+          <sh:targetClass rdf:resource="http://schema.org/PostalAddress"/>
+          <sh:property rdf:parseType="Resource">
+            <sh:path rdf:resource="http://schema.org/addressLocality"/>
+            <sh:datatype rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+            <sh:minCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+            >1</sh:minCount>
+          </sh:property>
+          <sh:property rdf:parseType="Resource">
+            <sh:path rdf:resource="http://schema.org/addressRegion"/>
+            <sh:datatype rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+          </sh:property>
+          <sh:property rdf:parseType="Resource">
+            <sh:path rdf:resource="http://schema.org/addressCountry"/>
+            <sh:datatype rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+          </sh:property>
+        </sh:NodeShape>
+      </sh:node>
+    </sh:property>
+    <sh:property rdf:parseType="Resource">
+      <sh:path rdf:resource="http://schema.org/worksFor"/>
+      <sh:class rdf:resource="http://schema.org/Organization"/>
+      <sh:node>
+        <sh:NodeShape rdf:about="http://schema.org/OrganizationShape">
+          <sh:targetClass rdf:resource="http://schema.org/Organization"/>
+          <sh:property rdf:parseType="Resource">
+            <sh:path rdf:resource="http://schema.org/name"/>
+            <sh:datatype rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+            <sh:minCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+            >1</sh:minCount>
+          </sh:property>
+        </sh:NodeShape>
+      </sh:node>
+    </sh:property>
+    <sh:property rdf:parseType="Resource">
+      <sh:path rdf:resource="http://schema.org/author"/>
+      <sh:class rdf:resource="http://schema.org/Book"/>
+      <sh:node>
+        <sh:NodeShape rdf:about="http://schema.org/BookShape">
+          <sh:targetClass rdf:resource="http://schema.org/Book"/>
+          <sh:property rdf:parseType="Resource">
+            <sh:path rdf:resource="http://schema.org/name"/>
+            <sh:datatype rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+            <sh:minCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+            >1</sh:minCount>
+          </sh:property>
+          <sh:property rdf:parseType="Resource">
+            <sh:path rdf:resource="http://schema.org/numberOfPages"/>
+            <sh:datatype rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+          </sh:property>
+          <sh:property rdf:parseType="Resource">
+            <sh:path rdf:resource="http://schema.org/aggregateRating"/>
+            <sh:class rdf:resource="http://schema.org/AggregateRating"/>
+            <sh:node>
+              <sh:NodeShape rdf:about="http://schema.org/AggregateRatingShape">
+                <sh:targetClass rdf:resource="http://schema.org/AggregateRating"/>
+                <sh:property rdf:parseType="Resource">
+                  <sh:path rdf:resource="http://schema.org/ratingValue"/>
+                  <sh:datatype rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+                  <sh:minCount rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+                  >1</sh:minCount>
+                </sh:property>
+                <sh:property rdf:parseType="Resource">
+                  <sh:path rdf:resource="http://schema.org/reviewCount"/>
+                  <sh:datatype rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+                </sh:property>
+              </sh:NodeShape>
+            </sh:node>
+          </sh:property>
+        </sh:NodeShape>
+      </sh:node>
+    </sh:property>
+  </sh:NodeShape>
+</rdf:RDF>

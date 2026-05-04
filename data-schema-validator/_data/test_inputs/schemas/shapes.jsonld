@@ -1,0 +1,287 @@
+{
+    "@graph": [
+        {
+            "@id": "_:b0",
+            "sh:datatype": {
+                "@id": "xsd:integer"
+            },
+            "sh:path": {
+                "@id": "schema:reviewCount"
+            }
+        },
+        {
+            "@id": "_:b1",
+            "sh:minCount": {
+                "@value": "1",
+                "@type": "xsd:integer"
+            },
+            "sh:datatype": {
+                "@id": "xsd:string"
+            },
+            "sh:path": {
+                "@id": "schema:ratingValue"
+            }
+        },
+        {
+            "@id": "schema:AggregateRatingShape",
+            "sh:property": [
+                {
+                    "@id": "_:b0"
+                },
+                {
+                    "@id": "_:b1"
+                }
+            ],
+            "sh:targetClass": {
+                "@id": "schema:AggregateRating"
+            },
+            "@type": "sh:NodeShape"
+        },
+        {
+            "@id": "_:b2",
+            "sh:node": {
+                "@id": "schema:AggregateRatingShape"
+            },
+            "sh:class": {
+                "@id": "schema:AggregateRating"
+            },
+            "sh:path": {
+                "@id": "schema:aggregateRating"
+            }
+        },
+        {
+            "@id": "_:b3",
+            "sh:datatype": {
+                "@id": "xsd:integer"
+            },
+            "sh:path": {
+                "@id": "schema:numberOfPages"
+            }
+        },
+        {
+            "@id": "_:b4",
+            "sh:minCount": {
+                "@value": "1",
+                "@type": "xsd:integer"
+            },
+            "sh:datatype": {
+                "@id": "xsd:string"
+            },
+            "sh:path": {
+                "@id": "schema:name"
+            }
+        },
+        {
+            "@id": "schema:BookShape",
+            "sh:property": [
+                {
+                    "@id": "_:b2"
+                },
+                {
+                    "@id": "_:b3"
+                },
+                {
+                    "@id": "_:b4"
+                }
+            ],
+            "sh:targetClass": {
+                "@id": "schema:Book"
+            },
+            "@type": "sh:NodeShape"
+        },
+        {
+            "@id": "_:b5",
+            "sh:node": {
+                "@id": "schema:BookShape"
+            },
+            "sh:class": {
+                "@id": "schema:Book"
+            },
+            "sh:path": {
+                "@id": "schema:author"
+            }
+        },
+        {
+            "@id": "_:b6",
+            "sh:minCount": {
+                "@value": "1",
+                "@type": "xsd:integer"
+            },
+            "sh:datatype": {
+                "@id": "xsd:string"
+            },
+            "sh:path": {
+                "@id": "schema:name"
+            }
+        },
+        {
+            "@id": "schema:OrganizationShape",
+            "sh:property": {
+                "@id": "_:b6"
+            },
+            "sh:targetClass": {
+                "@id": "schema:Organization"
+            },
+            "@type": "sh:NodeShape"
+        },
+        {
+            "@id": "_:b7",
+            "sh:node": {
+                "@id": "schema:OrganizationShape"
+            },
+            "sh:class": {
+                "@id": "schema:Organization"
+            },
+            "sh:path": {
+                "@id": "schema:worksFor"
+            }
+        },
+        {
+            "@id": "_:b8",
+            "sh:datatype": {
+                "@id": "xsd:string"
+            },
+            "sh:path": {
+                "@id": "schema:addressCountry"
+            }
+        },
+        {
+            "@id": "_:b9",
+            "sh:datatype": {
+                "@id": "xsd:string"
+            },
+            "sh:path": {
+                "@id": "schema:addressRegion"
+            }
+        },
+        {
+            "@id": "_:b10",
+            "sh:minCount": {
+                "@value": "1",
+                "@type": "xsd:integer"
+            },
+            "sh:datatype": {
+                "@id": "xsd:string"
+            },
+            "sh:path": {
+                "@id": "schema:addressLocality"
+            }
+        },
+        {
+            "@id": "schema:PostalAddressShape",
+            "sh:property": [
+                {
+                    "@id": "_:b8"
+                },
+                {
+                    "@id": "_:b9"
+                },
+                {
+                    "@id": "_:b10"
+                }
+            ],
+            "sh:targetClass": {
+                "@id": "schema:PostalAddress"
+            },
+            "@type": "sh:NodeShape"
+        },
+        {
+            "@id": "_:b11",
+            "sh:node": {
+                "@id": "schema:PostalAddressShape"
+            },
+            "sh:class": {
+                "@id": "schema:PostalAddress"
+            },
+            "sh:path": {
+                "@id": "schema:address"
+            }
+        },
+        {
+            "@id": "_:b12",
+            "sh:minCount": {
+                "@value": "1",
+                "@type": "xsd:integer"
+            },
+            "sh:nodeKind": {
+                "@id": "sh:IRIOrLiteral"
+            },
+            "sh:path": {
+                "@id": "schema:sameAs"
+            }
+        },
+        {
+            "@id": "_:b13",
+            "sh:datatype": {
+                "@id": "xsd:string"
+            },
+            "sh:path": {
+                "@id": "schema:nationality"
+            }
+        },
+        {
+            "@id": "_:b14",
+            "sh:datatype": {
+                "@id": "xsd:string"
+            },
+            "sh:path": {
+                "@id": "schema:jobTitle"
+            }
+        },
+        {
+            "@id": "_:b15",
+            "sh:maxCount": {
+                "@value": "1",
+                "@type": "xsd:integer"
+            },
+            "sh:minCount": {
+                "@value": "1",
+                "@type": "xsd:integer"
+            },
+            "sh:datatype": {
+                "@id": "xsd:string"
+            },
+            "sh:path": {
+                "@id": "schema:name"
+            }
+        },
+        {
+            "@id": "schema:PersonShape",
+            "sh:property": [
+                {
+                    "@id": "_:b5"
+                },
+                {
+                    "@id": "_:b7"
+                },
+                {
+                    "@id": "_:b11"
+                },
+                {
+                    "@id": "_:b12"
+                },
+                {
+                    "@id": "_:b13"
+                },
+                {
+                    "@id": "_:b14"
+                },
+                {
+                    "@id": "_:b15"
+                }
+            ],
+            "sh:targetClass": {
+                "@id": "schema:Person"
+            },
+            "@type": "sh:NodeShape"
+        }
+    ],
+    "@context": {
+        "schema": "http://schema.org/",
+        "xsd": "http://www.w3.org/2001/XMLSchema#",
+        "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+        "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+        "owl": "http://www.w3.org/2002/07/owl#",
+        "sh": "http://www.w3.org/ns/shacl#"
+    }
+}
