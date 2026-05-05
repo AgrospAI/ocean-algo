@@ -44,7 +44,7 @@ async def validate(_) -> None:
 
 def extract_metadata_from_ddo(did: str) -> tuple[str | None, str | None]:
     try:
-        ddo_path = Path(f"/data/ddos/{did}")  # Careful in production!
+        ddo_path = Path(f"/data/ddos/{did}")
         raw_json_string = ddo_path.read_text(encoding="utf-8")
         raw_ddo_dict = json.loads(raw_json_string)
         algorithm.logger.info(f"Extracted DDO for {did}")
