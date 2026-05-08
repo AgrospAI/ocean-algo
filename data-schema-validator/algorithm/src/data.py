@@ -11,13 +11,13 @@ class OptionalEnumMixin:
 
 
 class Format(OptionalEnumMixin, StrEnum):
-    Json = "application/json"
-    Xml = "application/xml"
-    JsonLd = "application/ld+json"
-    NTriples = "application/n-triples"
-    RdfXml = "application/rdf+xml"
-    Turtle = "text/turtle"
-    Csvw = "text/csv"
+    json = "application/json"
+    xml = "application/xml"
+    jsonld = "application/ld+json"
+    n_triples = "application/n-triples"
+    rdf_xml = "application/rdf+xml"
+    turtle = "text/turtle"
+    csvw = "text/csv"
     NONE = "-"
 
 

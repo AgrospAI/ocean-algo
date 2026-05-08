@@ -109,7 +109,7 @@ async def run(_) -> ResultT:
                 "dataset": did,
                 "status": "FAILED",
                 "phase": "Format Validation",
-                "details": f"Format mismatch: Metadata claims {expected_format}, but detected {detected_format}.",
+                "details": f"Format mismatch: Input parameters claims {expected_format}, but detected {detected_format}.",
             }
             results_list.append(IOSuccess((did, report)))
             continue
