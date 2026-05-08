@@ -41,8 +41,6 @@
         },
         "skos:prefLabel": "Agramunt"
       },
-      "dct:format": "text/csv",
-      "dct:conformsTo": "https://raw.githubusercontent.com/AgrospAI/ocean-algo/refs/heads/v2-ocean-runner/data-schema-validator/_data/test_inputs/schemas/shapes.csvw.json",
       "dcat:theme": [
         {
           "@id": "http://aims.fao.org/aos/agrovoc/c_203",

@@ -72,6 +72,7 @@ def extract_metadata_from_ddo(did: str) -> tuple[str | None, str | None]:
 @algorithm.run
 async def run(_) -> ResultT:
     parameters = algorithm.job_details.input_parameters
+    algorithm.logger.info(f"Input parameters: {parameters}")
     results_list: list[IOResult[tuple[str, dict], Algorithm.Error]] = []
 
     for did, path in algorithm.job_details.inputs():
