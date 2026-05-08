@@ -819,9 +819,18 @@ def extract_cota220_soil_record(pdf_path: Path) -> dict:
 def extract_inputs() -> None:
     """Unzip every archive found under INPUT_DIR into RAW_DIR."""
     RAW_DIR.mkdir(parents=True, exist_ok=True)
-    for zip_path in INPUT_DIR.rglob("*.zip"):
-        with zipfile.ZipFile(zip_path) as zf:
-            zf.extractall(RAW_DIR)
+    
+    # Busca cualquier archivo en INPUT_DIR, sin depender de la extensión .zip
+    for file_path in INPUT_DIR.rglob("*"):
+        # Ignorar directorios
+        if not file_path.is_file():
+            continue
+            
+        # Comprobar si realmente es un archivo ZIP (lee la cabecera del archivo)
+        if zipfile.is_zipfile(file_path):
+            print(f"  [INFO] Extracting ZIP: {file_path.name}")
+            with zipfile.ZipFile(file_path) as zf:
+                zf.extractall(RAW_DIR)
 
 
 def extract_all_pdfs() -> list[dict]:
