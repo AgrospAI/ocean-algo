@@ -6,17 +6,23 @@ This repository contains the soil mapping algorithm (`algorithm.py`) that proces
 
 The algorithm runs in three sequential phases:
 
-1. **PDF extraction** — unzips the input archive, detects the laboratory report format (Eurofins XK, Eurofins BUTLLETÍ, or AGROLAB), and parses soil parameters plus cadastral identifiers (Polígon/Parcella/Terme Municipal) from each PDF using `pdftotext`.
-2. **Geocoding** — resolves each sample to GPS coordinates via the Spain Catastro `Consulta_CPMRC` API using the cadastral reference (province + municipality + polygon + parcel). Falls back to Nominatim (OpenStreetMap) for municipality-level coordinates when the exact parcel is not found.
-3. **Map generation** — computes IDW (Inverse Distance Weighting) interpolation rasters for each soil parameter and renders them as a Folium interactive HTML map with a WRB soil-type WMS overlay, a parameter selector, and a fleet statistics panel.
+1. **PDF extraction (LLM-based)** — unzips the input archive and, for each PDF, sends both rendered page images and a layout-aware markdown transcription (extracted with `docling`) to a vision-language model. The model:
+   - Classifies the document as `soil`, `water`, `foliar` or `other`. Only `soil` reports are kept; water and foliar analyses are skipped automatically.
+   - Extracts cadastral identifiers (Polígon / Parcella / Terme Municipal / INE code) and soil parameters from layout-agnostic content.
+   - Enforces strict unit/method rules: **Nitrogen** is kept only when reported as *Nítrico* in mg/kg; **Phosphorus** only when extracted by the **Olsen** method (or expressed in mg/kg); **Potassium** only in mg/kg. Values from acid-extract methods, foliar ppm, or % s.m.s. are discarded.
+2. **Geocoding** — resolves each sample to GPS coordinates via the Spain Catastro `Consulta_CPMRC` API using the cadastral reference (province + municipality + polygon + parcel). For records missing an explicit INE code, the municipality name is resolved against the Catastro municipality registry for the target province.
+3. **Map generation** — computes IDW (Inverse Distance Weighting) interpolation rasters per soil parameter, both for the full aggregate and for each individual year present in the dataset. Renders them as a Folium interactive HTML map with a WRB soil-type WMS overlay, parameter + year selectors, optimal-range indicators, and a fleet statistics panel including a per-year sample breakdown.
 
 ### Supported Laboratory Report Formats
 
-| Format | Detection criterion | Geocodable |
+The LLM reads layout directly from page images, so format support is driven by content rather than rigid template matching. The pipeline has been validated against the following formats:
+
+| Format | Description | Geocodable |
 |---|---|---|
-| Eurofins XK | Contains `"XK"` and soil sample keywords | Yes (when Polígon/Parcella present) |
-| Eurofins BUTLLETÍ | Contains `"BUTLLETÍ D'ANÀLISIS"` | Yes |
-| AGROLAB | Contains `"AGROLAB"` or `"Análisis de Tierras"` | No (no cadastral reference) |
+| Eurofins XK | Eurofins soil bulletins identified by the `AR-…-XK-…` reference scheme | Yes (when Polígon/Parcella present) |
+| Eurofins BUTLLETÍ | Catalan `BUTLLETÍ D'ANÀLISIS` soil bulletins | Yes |
+
+Other soil-analysis layouts may also be processed successfully as long as they contain the required cadastral fields and at least one of the supported soil parameters.
 
 ### Extracted Soil Parameters
 
@@ -52,8 +58,7 @@ The algorithm recursively searches `inputs/` for `.zip` files and extracts all P
 my-soil-reports-2024.zip
   ├── 2024/
   │   ├── field_report_001.pdf    ← Eurofins XK format
-  │   ├── field_report_002.pdf    ← Eurofins BUTLLETÍ format
-  │   └── lab_result_agrolab.pdf  ← AGROLAB format
+  │   └── field_report_002.pdf    ← Eurofins BUTLLETÍ format
   └── archived/
       └── field_report_2023.pdf
 ```
@@ -61,24 +66,30 @@ my-soil-reports-2024.zip
 PDFs that are not recognised as soil analysis reports (e.g. water or foliar analysis) are automatically skipped.
 
 > [!IMPORTANT]
-> The geocoding step queries the Spain Catastro API and requires an active internet connection. PDFs without a Polígon/Parcella cadastral reference (e.g. AGROLAB format) will still have their soil parameters extracted but **will not appear on the map**, as their geographic position cannot be determined.
+> Both the LLM extraction step (vision-language model hosted on OpenWebUI) and the geocoding step (Spain Catastro API) require an active internet connection. PDFs without a Polígon/Parcella cadastral reference will still have their soil parameters extracted into `records.json` but **will not appear on the map**, as their geographic position cannot be determined.
 
 ---
 
 ## 3. Output
 
-A single file is written to `/data/outputs/`:
+Two files are written to `/data/outputs/`:
 
 | File | Description |
 |---|---|
 | `soil-characteristics-map.html` | Self-contained interactive map (no server needed — open in any browser) |
+| `records.json` | Per-record extraction dump (all fields, geocoded coordinates, source PDF name) for offline auditing and cross-validation |
 
 ### Map Features
 
 - **Parameter selector** — switch between pH, Organic Matter, Electrical Conductivity, N-NO₃, and Phosphorus IDW rasters.
+- **Year selector** — view the full aggregate (default) or any single year present in the dataset. Per-year rasters share the aggregate's colour scale so cross-year comparisons remain visually honest.
+- **Low-sample warning** — when a selected year has fewer than ~15 samples, the legend shows an advisory note so users do not over-interpret sparse interpolations. Areas not sampled in the chosen year stay transparent (per-year coverage hull).
 - **WRB Soil Type overlay** — ISRIC SoilGrids WMS layer with adjustable opacity.
-- **Fleet statistics panel** — pH distribution breakdown and mean ± std for each parameter across all samples.
+- **Fleet statistics panel** — pH distribution breakdown, samples-per-year histogram, and mean ± std for each parameter across all samples.
 - **Optimal range indicators** — a highlighted zone on the legend gradient marks the agronomically optimal range for each parameter.
+
+> [!NOTE]
+> No individual sample markers are rendered on the map. The IDW interpolation is the only visualisation, which preserves the geographic privacy of contributing growers — exact parcel locations are never exposed.
 
 ---
 

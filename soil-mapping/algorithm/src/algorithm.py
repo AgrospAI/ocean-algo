@@ -1,12 +1,17 @@
 #!/usr/bin/env python3
 
+import base64
 import json
+import os
 import re
+import requests
 import subprocess
 import sys
+import tempfile
 import time
 import urllib.parse
 import urllib.request
+import uuid
 import xml.etree.ElementTree as ET
 import zipfile
 from pathlib import Path
@@ -17,6 +22,11 @@ OUTPUT_DIR = Path("/data/outputs")
 RAW_DIR = Path("/tmp/soil-pdfs")
 
 OUTPUT_MAP = OUTPUT_DIR / "soil-characteristics-map.html"
+
+OPENWEBUI_API_KEY = os.getenv("OPENWEBUI_API_KEY")
+OPENWEBUI_URL = "https://chat.agrospai.udl.cat"
+CHAT_COMPLETIONS_URL = f"{OPENWEBUI_URL}/api/chat/completions"
+LLM_MODEL = os.getenv("LLM_MODEL")
 
 # In-memory cache: province_int → {NORMALIZED_NAME: mun_3digit}
 _province_muni_cache: dict[int, dict[str, int]] = {}
@@ -51,43 +61,233 @@ def ph_label(ph: float | None) -> str:
 
 
 # ============================================================================
-# PDF FORMAT DETECTION
+# PHASE 1: PDF EXTRACTION VIA LLM
 # ============================================================================
 
-def detect_pdf_type(text: str) -> str:
-    """
-    Identify which laboratory report format a PDF contains.
-    Returns one of: "butlleti", "agrolab", "skip", "eurofins_xk", "unknown".
-    """
-    if "BUTLLETÍ D'ANÀLISIS" in text:
-        return "butlleti"
-    if "AGROLAB" in text or "Análisis de Tierras" in text:
-        return "agrolab"
-    # Eurofins XK format: only classify as soil if sample type is explicitly soil.
-    # This avoids false positives for water, foliar, and other analysis types
-    # that share the same Eurofins XK report structure.
-    if "XK" in text and ("AR-" in text or "Informe analít" in text):
-        if "Suelo" in text or "Sòls" in text or "Soil" in text:
-            return "eurofins_xk"
-        return "skip"
-    return "unknown"
+_EXTRACTION_PROMPT = """\
+You are an expert at reading agricultural laboratory reports written in Catalan and Spanish.
+Extract the following fields from the provided PDF page images and return a JSON object.
+
+Fields:
+- "document_type": string  (one of "soil", "water", "foliar", "other"). Classify by the report's
+  content (header, section titles, sample description, units used) — NEVER by the file name.
+  Use "soil" only for soil/land analyses ("Análisis de Suelo", "Anàlisi de Sòls", "Análisis de
+  Tierras"). Use "water" for water analyses ("Análisis de Agua", units in mg/l). Use "foliar"
+  for leaf/plant tissue analyses ("Análisis Foliar", "Foliars", values typically in ppm or %
+  s.m.s. of plant matter). Use "other" if it is none of the above.
+- "poligon": integer or null  (Polígon / Polígono / polygon number)
+- "parcella_raw": string or null  (raw Parcella / Parcela text, e.g. "143-R:1")
+- "parcela": integer or null  (numeric part of Parcella / Parcela)
+- "recinto": integer  (Recinto / Recinte enclosure number; use 1 if not found)
+- "muni_name": string  (Terme Municipal / Término Municipal / municipality name, uppercase)
+- "raw_ine": integer or null  (5-digit INE municipality code if present, e.g. 25094)
+- "cultiu": string  (Cultiu / Cultivo / crop type; empty string if absent)
+- "pH": float or null
+- "MO": float or null  (organic matter %; Matèria orgànica / Materia orgánica)
+- "CE": float or null  (electrical conductivity dS/m; Conductivitat / Conductividad)
+- "Caliza": float or null  (calcium carbonate %; Carbonat càlcic / Carbonato cálcico)
+- "N_Nitrico": float or null  (nitric nitrogen mg/kg; Nitrogen nítric / Nitrógeno nítrico / N-NO₃)
+- "Fosforo": float or null  (phosphorus mg/kg; Fòsfor / Fósforo)
+- "Potasio": float or null  (potassium mg/kg; Potassi / Potasio)
+- "Texture": string  (soil texture classification; empty string if absent)
+
+Rules:
+- Convert comma decimal separators to points for numeric values.
+- Return null for any field not present in the document.
+- Return ONLY a valid JSON object, no markdown fences, no extra explanation.
+
+Strict unit/method rules for N / P / K (CRITICAL — wrong units cause downstream errors):
+- N_Nitrico: ONLY return a value when the report explicitly labels it as nitric nitrogen
+  ("Nitrogen nítric", "Nitrógeno nítrico", "N-NO₃") AND it is expressed in mg/kg (or a unit
+  trivially convertible to mg/kg, e.g. mg/100g). Return null if the document only reports
+  "Nitrógeno Total" / "N total" / "Nitrógeno Kjeldahl", or if the unit is ppm-of-total-N, %,
+  or anything other than mg/kg of nitric nitrogen.
+- Fosforo: ONLY return a value when extracted by the Olsen method OR expressed in mg/kg of
+  soil. Return null if the extraction method is "extracto ácido" / "extract àcid" / Mehlich /
+  Bray, or if the unit is %, % s.m.s., or ppm of plant matter (foliar).
+- Potasio: ONLY return a value when expressed in mg/kg of soil (e.g. ammonium acetate
+  extraction). Return null if the unit is "% s.m.s." / "%" or if it comes from a foliar
+  "extracto ácido" extraction.
+- When in doubt about the method or units for N / P / K, prefer returning null over guessing.
+
+You may receive both rendered page images and a markdown transcription of the same PDF. Treat the images as ground truth; use the markdown only to resolve ambiguous digits.
+"""
 
 
-# ============================================================================
-# PHASE 1: PDF TEXT EXTRACTION
-# ============================================================================
-
-def pdf_to_text(pdf_path: Path) -> str:
-    """Extract plain text from a PDF using pdftotext (no layout mode for clean line-per-cell)."""
-    try:
-        result = subprocess.run(
-            ["pdftotext", str(pdf_path), "-"],
-            capture_output=True, timeout=30
+def pdf_to_images_base64(pdf_path: Path) -> list[str]:
+    """Convert each PDF page to a base64-encoded JPEG data URL using pdftoppm."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        subprocess.run(
+            ["pdftoppm", "-jpeg", "-r", "100", str(pdf_path),
+             str(Path(tmpdir) / "page")],
+            capture_output=True, timeout=60,
         )
-        return result.stdout.decode("utf-8", errors="replace")
+        images = []
+        for img_file in sorted(Path(tmpdir).glob("page-*.jpg")):
+            with open(img_file, "rb") as f:
+                data = base64.b64encode(f.read()).decode()
+            images.append(f"data:image/jpeg;base64,{data}")
+    return images
+
+
+_doc_converter = None
+
+
+def _docling_converter():
+    global _doc_converter
+    if _doc_converter is None:
+        from docling.document_converter import DocumentConverter
+        _doc_converter = DocumentConverter()
+    return _doc_converter
+
+
+def pdf_to_markdown(pdf_path: Path) -> str | None:
+    """Extract layout-aware markdown from a PDF via docling. None on failure."""
+    try:
+        result = _docling_converter().convert(str(pdf_path))
+        md = result.document.export_to_markdown()
+        return md.strip() or None
     except Exception as e:
-        print(f"  [WARN] pdftotext failed for {pdf_path.name}: {e}")
-        return ""
+        print(f"  [WARN] docling failed for {pdf_path.name}: {type(e).__name__}: {e}")
+        return None
+
+
+_warmed_up = False
+
+
+def _warmup_llm() -> None:
+    """Send a tiny ping so the first real PDF doesn't pay the full cold-start cost."""
+    global _warmed_up
+    if _warmed_up or not OPENWEBUI_API_KEY:
+        return
+    try:
+        requests.post(
+            CHAT_COMPLETIONS_URL,
+            headers={
+                "Authorization": f"Bearer {OPENWEBUI_API_KEY}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": LLM_MODEL,
+                "stream": False,
+                "messages": [{"role": "user", "content": "ping"}],
+                "temperature": 0.0,
+                "chat_id": str(uuid.uuid4()),
+                "id": str(uuid.uuid4()),
+            },
+            timeout=120,
+        )
+    except Exception as e:
+        print(f"  [WARN] LLM warmup failed: {type(e).__name__}: {e}")
+    finally:
+        _warmed_up = True
+
+
+def extract_with_llm(pdf_path: Path) -> dict | None:
+    """Extract a soil analysis record from a PDF using the local LLM."""
+    if not OPENWEBUI_API_KEY:
+        print("  [ERROR] OPENWEBUI_API_KEY not set — cannot extract via LLM")
+        return None
+
+    _warmup_llm()
+
+    images = pdf_to_images_base64(pdf_path)
+    markdown = pdf_to_markdown(pdf_path)
+
+    if not images or not markdown:
+        print(f"  [SKIP] {pdf_path.name}: missing images or markdown for vision+markdown")
+        return None
+
+    headers = {
+        "Authorization": f"Bearer {OPENWEBUI_API_KEY}",
+        "Content-Type": "application/json",
+    }
+
+    content: list[dict] = [{"type": "text", "text": _EXTRACTION_PROMPT}]
+    content.append({
+        "type": "text",
+        "text": (
+            "Below is the markdown extracted from the same PDF (may be incomplete "
+            "or have OCR errors — use the page images as ground truth, but the "
+            "markdown can disambiguate small numerics):\n\n" + markdown
+        ),
+    })
+    for img_url in images:
+        content.append({"type": "image_url", "image_url": {"url": img_url}})
+
+    payload = {
+        "model": LLM_MODEL,
+        "stream": False,
+        "messages": [{"role": "user", "content": content}],
+        "temperature": 0.0,
+        # OpenWebUI's /api/chat/completions requires chat_id/id since a
+        # recent update; without them the router 400s with a cryptic
+        # "'NoneType' object has no attribute 'startswith'".
+        "chat_id": str(uuid.uuid4()),
+        "id": str(uuid.uuid4()),
+    }
+    try:
+        response = requests.post(
+            CHAT_COMPLETIONS_URL, headers=headers, json=payload, timeout=300
+        )
+        if not response.ok:
+            body = response.text[:400] if response.text else "<empty>"
+            print(f"  [WARN] vision+markdown failed for {pdf_path.name}: "
+                  f"{response.status_code} {response.reason} — {body}")
+            return None
+        raw = response.json()["choices"][0]["message"]["content"]
+    except Exception as e:
+        print(f"  [WARN] vision+markdown failed for {pdf_path.name}: "
+              f"{type(e).__name__}: {e}")
+        return None
+
+    # Parse JSON — handle optional markdown code fences
+    extracted = None
+    try:
+        extracted = json.loads(raw)
+    except json.JSONDecodeError:
+        m = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", raw, re.DOTALL)
+        if m:
+            raw = m.group(1)
+        else:
+            m = re.search(r"\{.*\}", raw, re.DOTALL)
+            if m:
+                raw = m.group(0)
+        try:
+            extracted = json.loads(raw)
+        except json.JSONDecodeError:
+            pass
+
+    if extracted is None:
+        print(f"  [WARN] Could not parse LLM JSON for {pdf_path.name}")
+        return None
+
+    doc_type = (extracted.get("document_type") or "").strip().lower()
+    if doc_type != "soil":
+        print(f"  [SKIP] {pdf_path.name}: document_type={doc_type or 'unknown'}")
+        return None
+
+    return {
+        "pdf_name": pdf_path.name,
+        "year": _infer_year(pdf_path),
+        "poligon": extracted.get("poligon"),
+        "parcella_raw": extracted.get("parcella_raw") or "",
+        "parcela": extracted.get("parcela"),
+        "recinto": extracted.get("recinto") or 1,
+        "muni_name": (extracted.get("muni_name") or "UNKNOWN").upper(),
+        "raw_ine": extracted.get("raw_ine"),
+        "cultiu": extracted.get("cultiu") or "",
+        "pH": extracted.get("pH"),
+        "MO": extracted.get("MO"),
+        "CE": extracted.get("CE"),
+        "Caliza": extracted.get("Caliza"),
+        "N_Nitrico": extracted.get("N_Nitrico"),
+        "Fosforo": extracted.get("Fosforo"),
+        "Potasio": extracted.get("Potasio"),
+        "Texture": extracted.get("Texture") or "",
+        "lat": None,
+        "lng": None,
+    }
 
 
 def _infer_year(pdf_path: Path) -> int | None:
@@ -97,93 +297,6 @@ def _infer_year(pdf_path: Path) -> int | None:
             return int(part)
     m = re.search(r"20\d{2}", pdf_path.stem)
     return int(m.group(0)) if m else None
-
-
-def parse_parcella(raw: str) -> tuple[int | None, int]:
-    """
-    Parse Parcella field into (parcela_num, recinto_num).
-
-    Examples:
-      "143-R:1"        → (143, 1)
-      "80-R:"          → (80, 1)
-      "503-R2"         → (503, 2)
-      "235 R1"         → (235, 1)
-      "92r-1ha-0,66"   → (92, 1)   # digit after r is part of 'ha' field
-      "35r-4ha-1,67"   → (35, 1)   # same
-      "10075r-6ha-0,66"→ (10075, 1)
-      "121-R2-1.17HA"  → (121, 2)
-      "5-R1"           → (5, 1)
-      "4-R1"           → (4, 1)
-      "5r-1ha"         → (5, 1)
-    """
-    raw = raw.strip()
-    # Extract leading integer (parcela number)
-    m = re.match(r'^(\d+)', raw)
-    if not m:
-        return None, 1
-    parcela = int(m.group(1))
-
-    # Try to find recinto number after R or r
-    # Patterns: -R:3, R2, -R2, r1, -r:1
-    # But NOT when followed immediately by 'ha' (that's hectares, not recinto)
-    rec_match = re.search(r'[Rr]:?(\d+)(?!ha)', raw[m.end():], re.IGNORECASE)
-    if rec_match:
-        recinto = int(rec_match.group(1))
-    else:
-        recinto = 1
-
-    return parcela, recinto
-
-
-def _extract_sigpac(text: str) -> tuple[int, int, int, int, int] | None:
-    """
-    Find a SIGPAC parcel reference embedded in PDF text.
-    Format: province:municipality:aggregate:zone:polygon:parcella:enclosure
-    Example: 25:287:0:0:6:2:1
-    Returns (province, municipality_3digit, polygon, parcella, enclosure) or None.
-    """
-    m = re.search(r'\b(\d{1,2}):(\d{1,3}):(\d+):(\d+):(\d+):(\d+):(\d+)\b', text)
-    if not m:
-        return None
-    prov = int(m.group(1))
-    mun  = int(m.group(2))
-    pol  = int(m.group(5))
-    par  = int(m.group(6))
-    rec  = int(m.group(7))
-    if not (1 <= prov <= 52 and 1 <= mun <= 999 and pol > 0 and par > 0):
-        return None
-    return prov, mun, pol, par, rec
-
-
-def parse_terme_municipal(raw: str) -> tuple[str, int | None]:
-    """
-    Parse Terme Municipal field into (municipality_name, ine_code).
-
-    Examples:
-      "CORBINS-25094"     → ("CORBINS", 25094)
-      "LLEIDA-25900"      → ("LLEIDA", 25900)   # will be overridden later
-      "25094 - CORBINS"   → ("CORBINS", 25094)
-      "CORBINS"           → ("CORBINS", None)
-      "TORRES DE SEGRE-25289" → ("TORRES DE SEGRE", 25289)
-    """
-    raw = raw.strip()
-
-    # Format: "NAME-XXXXX" or "NAME - XXXXX"
-    m = re.match(r'^([A-ZÀ-Ú\s]+?)\s*[-–]\s*(\d{5})\s*$', raw, re.IGNORECASE)
-    if m:
-        name = m.group(1).strip().upper()
-        code = int(m.group(2))
-        return name, code
-
-    # Format: "XXXXX - NAME" (reversed)
-    m = re.match(r'^(\d{5})\s*[-–]\s*(.+)$', raw)
-    if m:
-        name = m.group(2).strip().upper()
-        code = int(m.group(1))
-        return name, code
-
-    # Just a name
-    return raw.upper().strip(), None
 
 
 def _normalize_muni_name(name: str) -> str:
@@ -288,533 +401,6 @@ def resolve_catastro_code(muni_name: str, raw_code: int | None) -> tuple[int, in
     return None
 
 
-def extract_value_after_label(lines: list[str], label: str) -> str | None:
-    """Find a label in lines and return the value on the next non-empty line."""
-    for i, line in enumerate(lines):
-        if label.lower() in line.lower():
-            # Look for next non-empty line
-            for j in range(i + 1, min(i + 4, len(lines))):
-                val = lines[j].strip()
-                if val:
-                    return val
-    return None
-
-
-def parse_soil_params(text: str) -> dict:
-    """
-    Extract soil parameters from the Eurofins PDF text.
-    Uses the cleaner summary page (page 3) when available,
-    falls back to the analytic page 1/2.
-    """
-    params = {
-        "pH": None, "MO": None, "CE": None,
-        "Caliza": None, "N_Nitrico": None,
-        "Fosforo": None, "Potasio": None,
-        "Cultiu": None, "Texture": None,
-    }
-
-    lines = text.split("\n")
-
-    def safe_float(s: str | None) -> float | None:
-        if s is None:
-            return None
-        # Take only first token, strip units
-        token = s.strip().split()[0] if s.strip() else ""
-        token = token.replace(",", ".")
-        token = re.sub(r"[^\d.\-]", "", token)
-        try:
-            return float(token)
-        except ValueError:
-            return None
-
-    # ----------------------------------------------------------------
-    # Try summary table first (Informe de valors de referència de Sòl)
-    # The summary block has lines like:
-    #   "pH\n8.2"  or  "pH                   8.2"
-    # ----------------------------------------------------------------
-    summary_start = -1
-    for i, line in enumerate(lines):
-        if ("Informe de valors de refer" in line
-                or "Propietats bàsiques" in line
-                or "Propiedades básicas" in line):
-            summary_start = i
-            break
-
-    if summary_start >= 0:
-        summary_lines = lines[summary_start:]
-
-        def find_val(label: str) -> str | None:
-            return extract_value_after_label(summary_lines, label)
-
-        params["pH"] = safe_float(find_val("pH"))
-        params["CE"] = safe_float(find_val("Conductivitat el"))
-        params["MO"] = safe_float(find_val("orgànica oxidable") or find_val("orgánica oxidable"))
-        params["Caliza"] = safe_float(find_val("Carbonat càlcic") or find_val("Carbonato cálcico"))
-        params["N_Nitrico"] = safe_float(find_val("Nitrogen nítric") or find_val("Nitrógeno nítrico"))
-        params["Fosforo"] = safe_float(find_val("Fòsfor") or find_val("Fósforo"))
-        params["Potasio"] = safe_float(find_val("Potassi") or find_val("Potasio"))
-        params["Texture"] = find_val("Texture") or find_val("Textura")
-
-    # ----------------------------------------------------------------
-    # Fallback: parse from analytic page using XK codes and result values
-    # Pattern: after "XK pH" line, the result appears a few lines below
-    # ----------------------------------------------------------------
-    if params["pH"] is None:
-        # Pattern on page 1: "XK007" followed eventually by "pH\n\n8.2"
-        m = re.search(r'pH\s+(\d+\.\d+)', text)
-        if m:
-            params["pH"] = safe_float(m.group(1))
-
-    if params["CE"] is None:
-        m = re.search(r'(?:Conductivitat|Conductividad)[^\n]*\n+(\d+[\.,]\d+)\s*dS', text)
-        if m:
-            params["CE"] = safe_float(m.group(1))
-
-    if params["MO"] is None:
-        m = re.search(r'orgànica oxidable[^\n]*\n+(\d+[\.,]\d+)\s*%', text)
-        if not m:
-            m = re.search(r'orgánica[^\n]*\n+(\d+[\.,]\d+)\s*%', text)
-        if m:
-            params["MO"] = safe_float(m.group(1))
-
-    if params["Caliza"] is None:
-        m = re.search(r'Carbonat càlcic[^\n]*\n+(\d+[\.,]\d*)\s*%', text)
-        if not m:
-            m = re.search(r'Carbonato c.lcico[^\n]*\n+(\d+[\.,]\d*)\s*%', text)
-        if m:
-            params["Caliza"] = safe_float(m.group(1))
-
-    if params["N_Nitrico"] is None:
-        m = re.search(r'Nitrogen nítric[^\n]*\n+(\d+[\.,]?\d*)\s*mg', text)
-        if not m:
-            m = re.search(r'Nitr.geno n.trico[^\n]*\n+(\d+[\.,]?\d*)\s*mg', text)
-        if m:
-            params["N_Nitrico"] = safe_float(m.group(1))
-
-    if params["Fosforo"] is None:
-        m = re.search(r'Fòsfor sms[^\n]*\n+(\d+[\.,]\d*)\s*mg', text)
-        if m:
-            params["Fosforo"] = safe_float(m.group(1))
-
-    if params["Potasio"] is None:
-        m = re.search(r'Potassi sms[^\n]*\n+(\d+[\.,]\d*)\s*mg', text)
-        if m:
-            params["Potasio"] = safe_float(m.group(1))
-
-    # Cultiu (crop type)
-    m = re.search(r'Cultiu\s+([A-ZÁÉÍÓÚÀÈÌÒÙÑ][^\n]+)', text, re.IGNORECASE)
-    if not m:
-        m = re.search(r'Cultivo\s+([A-ZÁÉÍÓÚÀÈÌÒÙÑ][^\n]+)', text, re.IGNORECASE)
-    if m:
-        params["Cultiu"] = m.group(1).strip()
-
-    return params
-
-
-def extract_eurofins_record(pdf_path: Path, year: int | None) -> dict | None:
-    """
-    Extract one record from a Eurofins Fruilar PDF.
-    Returns None if Polígon/Parcella are not found.
-    """
-    text = pdf_to_text(pdf_path)
-    if not text:
-        return None
-
-    lines = [l.strip() for l in text.split("\n")]
-
-    # --- Locate Polígon / Parcella / Terme Municipal ---
-    poligon = None
-    parcella_raw = None
-    terme_raw = None
-
-    for i, line in enumerate(lines):
-        if line == "Polígon" or line == "Polígono" or re.match(r'^Pol[ií]g[oó]n$', line, re.IGNORECASE):
-            # Value is on the next non-empty line
-            for j in range(i + 1, min(i + 5, len(lines))):
-                val = lines[j].strip()
-                if val and re.match(r'^\d+$', val):
-                    poligon = int(val)
-                    break
-
-        elif line == "Parcella" or line == "Parcela" or re.match(r'^Parcel+a$', line, re.IGNORECASE):
-            for j in range(i + 1, min(i + 5, len(lines))):
-                val = lines[j].strip()
-                if val and re.match(r'^\d+', val):
-                    parcella_raw = val
-                    break
-
-        elif "Terme Municipal" in line or "Término Municipal" in line:
-            for j in range(i + 1, min(i + 5, len(lines))):
-                val = lines[j].strip()
-                if val and not any(kw in val for kw in ["Denominació", "Cultiu", "Varietat"]):
-                    terme_raw = val
-                    break
-
-    # 2021 Catastro format: line "Catastro:" followed by "Polígono X Parcela Y"
-    if poligon is None:
-        for i, line in enumerate(lines):
-            if line.strip() in ("Catastro:", "Catastro"):
-                # Next non-empty line should be "Polígono X Parcela Y"
-                for j in range(i + 1, min(i + 4, len(lines))):
-                    val = lines[j].strip()
-                    if re.match(r'Pol[ií]gono?\s+\d+', val, re.IGNORECASE):
-                        m2 = re.match(r'Pol[ií]gono?\s+(\d+)\s+Parce[ll]?a?\s+(\S+)', val, re.IGNORECASE)
-                        if m2:
-                            poligon = int(m2.group(1))
-                            parcella_raw = m2.group(2)
-                        break
-            if line.strip() == "Localidad:" and terme_raw is None:
-                for j in range(i + 1, min(i + 3, len(lines))):
-                    val = lines[j].strip()
-                    if val:
-                        terme_raw = val
-                        break
-
-    # SIGPAC fallback: look for province:municipality:agg:zone:polygon:parcella:enclosure
-    sigpac_ine = None
-    sigpac_rec = None
-    if poligon is None or parcella_raw is None:
-        sigpac = _extract_sigpac(text)
-        if sigpac:
-            s_prov, s_mun, s_pol, s_par, s_rec = sigpac
-            if poligon is None:
-                poligon = s_pol
-            if parcella_raw is None:
-                parcella_raw = str(s_par)
-            sigpac_ine = s_prov * 1000 + s_mun
-            sigpac_rec = s_rec
-            print(f"    [SIGPAC] prov={s_prov} mun={s_mun} pol={s_pol} par={s_par} rec={s_rec}")
-
-    if poligon is None or parcella_raw is None:
-        print(f"  [SKIP] No Polígon/Parcella in: {pdf_path.name}")
-        return None
-
-    parcela, recinto = parse_parcella(parcella_raw)
-    if parcela is None:
-        print(f"  [SKIP] Could not parse parcella '{parcella_raw}' in: {pdf_path.name}")
-        return None
-    if sigpac_rec is not None:
-        recinto = sigpac_rec
-
-    muni_name, raw_ine = ("UNKNOWN", None)
-    if terme_raw:
-        muni_name, raw_ine = parse_terme_municipal(terme_raw)
-    if sigpac_ine is not None:
-        raw_ine = sigpac_ine
-
-    soil = parse_soil_params(text)
-
-    record = {
-        "pdf_name": pdf_path.name,
-        "year": year,
-        "poligon": poligon,
-        "parcella_raw": parcella_raw,
-        "parcela": parcela,
-        "recinto": recinto,
-        "muni_name": muni_name,
-        "raw_ine": raw_ine,
-        "cultiu": soil["Cultiu"] or "",
-        "pH": soil["pH"],
-        "MO": soil["MO"],
-        "CE": soil["CE"],
-        "Caliza": soil["Caliza"],
-        "N_Nitrico": soil["N_Nitrico"],
-        "Fosforo": soil["Fosforo"],
-        "Potasio": soil["Potasio"],
-        "Texture": soil["Texture"] or "",
-        "lat": None,
-        "lng": None,
-    }
-    return record
-
-
-def parse_butlleti_params(text: str) -> dict:
-    """
-    Extract soil parameters from the Eurofins BUTLLETÍ d'Anàlisis format
-    (used by Fruits de Ponent and similar clients).
-    Each result row looks like: LABEL  value  units  method  interpretation
-    """
-    params = {
-        "pH": None, "MO": None, "CE": None,
-        "Caliza": None, "N_Nitrico": None,
-        "Fosforo": None, "Potasio": None,
-        "Cultiu": None, "Texture": None,
-    }
-
-    def safe_float(s: str | None) -> float | None:
-        if s is None:
-            return None
-        token = s.strip().split()[0] if s.strip() else ""
-        token = token.replace(",", ".")
-        token = re.sub(r"[^\d.\-]", "", token)
-        try:
-            return float(token)
-        except ValueError:
-            return None
-
-    # Each parameter is on one line: NAME ... value units ...
-    patterns = [
-        ("CE",        r'COND\.ELEC\.[^\n]*([\d,]+)\s*dS'),
-        ("MO",        r'MAT\.ORGANICA[^\n]*([\d,]+)\s*%'),
-        ("Fosforo",   r'FOSFOR[^\n]*([\d,]+)\s*mg'),
-        ("Potasio",   r'POTASSI[^\n]*([\d,]+)\s*mg'),
-        ("N_Nitrico", r'NITROGEN-NITRIC[^\n]*([\d,]+)\s*mg'),
-        ("pH",        r'\bpH\b[^\n]*([\d,]+)'),
-        ("Caliza",    r'CARBONAT[^\n]*([\d,]+)\s*%'),
-    ]
-    for key, pattern in patterns:
-        m = re.search(pattern, text, re.IGNORECASE)
-        if m:
-            params[key] = safe_float(m.group(1))
-
-    # Cultiu
-    m = re.search(r'CULTIU[:\s]+([A-ZÁÉÍÓÚÀÈÌÒÙÑ][^\n]+)', text, re.IGNORECASE)
-    if m:
-        params["Cultiu"] = m.group(1).strip()
-
-    return params
-
-
-def extract_butlleti_record(pdf_path: Path) -> dict | None:
-    """
-    Extract one record from a Eurofins BUTLLETÍ d'Anàlisis format PDF.
-    These have POL.: and PARCEL·LA: fields with municipality in T.M.:
-    """
-    text = pdf_to_text(pdf_path)
-    if not text:
-        return None
-
-    lines = [l.strip() for l in text.split("\n")]
-
-    # --- Municipality from T.M.: ---
-    muni_name = "UNKNOWN"
-    for i, line in enumerate(lines):
-        if re.match(r'^T\.M\.:?$', line, re.IGNORECASE):
-            for j in range(i + 1, min(i + 4, len(lines))):
-                val = lines[j].strip()
-                if val and not re.match(r'^(LOCALITZ|LOCALIZ|POL|PARCEL)', val, re.IGNORECASE):
-                    muni_name = val.upper()
-                    break
-            break
-
-    # --- POL. / PARCEL·LA via column-reordering logic ---
-    # pdftotext outputs labels in one column, then values in another.
-    # After "POL.:" appear all label lines (PARCEL·LA:, CULTIU:, VARIETAT:),
-    # then blank lines, then the numeric values in order.
-    poligon = None
-    parcela = None
-    pol_idx = None
-    for i, line in enumerate(lines):
-        if re.match(r'^POL\.?:?$', line, re.IGNORECASE):
-            pol_idx = i
-            break
-
-    if pol_idx is not None:
-        integers_found = []
-        for j in range(pol_idx + 1, min(pol_idx + 20, len(lines))):
-            val = lines[j].strip()
-            if re.match(r'^\d+$', val):
-                integers_found.append(int(val))
-            if len(integers_found) == 2:
-                break
-        if integers_found:
-            poligon = integers_found[0]
-        if len(integers_found) >= 2:
-            parcela = integers_found[1]
-
-    sigpac_ine = None
-    if poligon is None or parcela is None:
-        sigpac = _extract_sigpac(text)
-        if sigpac:
-            s_prov, s_mun, s_pol, s_par, _rec = sigpac
-            if poligon is None:
-                poligon = s_pol
-            if parcela is None:
-                parcela = s_par
-            sigpac_ine = s_prov * 1000 + s_mun
-            print(f"    [SIGPAC] prov={s_prov} mun={s_mun} pol={s_pol} par={s_par}")
-
-    if poligon is None or parcela is None:
-        print(f"  [INFO] No POL/PARCEL·LA in {pdf_path.name} – will not be geocoded")
-
-    # --- Year from DATA INICI: ---
-    year = None
-    m = re.search(r'DATA INICI:\s*\d{2}/\d{2}/(\d{4})', text)
-    if m:
-        year = int(m.group(1))
-
-    # --- Resolve municipality code ---
-    muni_name_resolved, raw_ine = parse_terme_municipal(muni_name)
-    if sigpac_ine is not None:
-        raw_ine = sigpac_ine
-    soil = parse_butlleti_params(text)
-
-    return {
-        "pdf_name": pdf_path.name,
-        "year": year,
-        "poligon": poligon,
-        "parcella_raw": str(parcela) if parcela is not None else "N/A",
-        "parcela": parcela,
-        "recinto": 1,
-        "muni_name": muni_name_resolved,
-        "raw_ine": raw_ine,
-        "cultiu": soil["Cultiu"] or "",
-        "pH": soil["pH"],
-        "MO": soil["MO"],
-        "CE": soil["CE"],
-        "Caliza": soil["Caliza"],
-        "N_Nitrico": soil["N_Nitrico"],
-        "Fosforo": soil["Fosforo"],
-        "Potasio": soil["Potasio"],
-        "Texture": soil["Texture"] or "",
-        "lat": None,
-        "lng": None,
-    }
-
-
-def parse_agrolab_params(text: str) -> dict:
-    """Extract soil parameters from AGROLAB Analítica format PDFs."""
-    params = {
-        "pH": None, "MO": None, "CE": None,
-        "Caliza": None, "N_Nitrico": None,
-        "Fosforo": None, "Potasio": None,
-        "Cultiu": None, "Texture": None,
-    }
-
-    def safe_float(s: str | None) -> float | None:
-        if s is None:
-            return None
-        token = s.strip().split()[0] if s.strip() else ""
-        token = token.replace(",", ".")
-        token = re.sub(r"[^\d.\-]", "", token)
-        try:
-            return float(token)
-        except ValueError:
-            return None
-
-    patterns = [
-        ("pH",        r'pH agua[^\n]*\n[^\n]*\n\s*([\d.,]+)'),
-        ("MO",        r'Materia Org.nica\s+Oxidable\s+([\d.,]+)'),
-        ("CE",        r'Conductividad El.ctrica[^\n]*\n[^\n]*([\d.,]+)\s*dS'),
-        ("Caliza",    r'Carbonatos Totales[^\n]*\n[^\n]*([\d.,]+)\s*g/100'),
-        ("Fosforo",   r'F.sforo.*?Olsen\)[^\n]*\n[^\n]*([\d.,]+)\s*mg'),
-        ("Potasio",   r'Potasio.*?Acet[^\n]*\n[^\n]*([\d.,]+)\s*mg'),
-    ]
-    for key, pattern in patterns:
-        m = re.search(pattern, text, re.IGNORECASE | re.DOTALL)
-        if m:
-            params[key] = safe_float(m.group(1))
-
-    # Texture: appears after "Clasificación TEXTURAL"
-    m = re.search(r'Clasificaci.n TEXTURAL\s+([\w ]+)', text, re.IGNORECASE)
-    if m:
-        params["Texture"] = m.group(1).strip()
-
-    # Cultiu: from "Referencia:" line, e.g. "VIÑEDO (9 Ha)"
-    m = re.search(r'Referencia:\s*\n([^\n]+)', text, re.IGNORECASE)
-    if not m:
-        m = re.search(r'Referencia:\s+([^\n]+)', text, re.IGNORECASE)
-    if m:
-        cultiu_raw = m.group(1).strip()
-        # Strip parenthetical hectares/area info
-        params["Cultiu"] = re.sub(r'\s*\(.*?\)', '', cultiu_raw).strip()
-
-    return params
-
-
-def extract_agrolab_record(pdf_path: Path) -> dict:
-    """
-    Extract a record from an AGROLAB Analítica format PDF.
-    These have no Polígon/Parcella – geocoding is not possible.
-    """
-    text = pdf_to_text(pdf_path)
-
-    # Extract year from reception date
-    year = None
-    m = re.search(r'Fecha Recepci.n\s+(\d{2}/\d{2}/(\d{4}))', text, re.IGNORECASE)
-    if m:
-        year = int(m.group(2))
-
-    # Municipality hint from Observaciones
-    muni_name = "UNKNOWN"
-    m = re.search(r'Observaciones:\s*\n([^\n]+)', text, re.IGNORECASE)
-    if not m:
-        m = re.search(r'Observaciones:\s+([^\n]+)', text, re.IGNORECASE)
-    if m:
-        obs = m.group(1).strip().upper()
-        # "ZONA SOMONTANO (HUESCA)" → keep as location hint
-        muni_name = obs
-
-    print(f"  [INFO] No Polígon/Parcella in {pdf_path.name} – will not be geocoded")
-    soil = parse_agrolab_params(text)
-
-    return {
-        "pdf_name": pdf_path.name,
-        "year": year,
-        "poligon": None,
-        "parcella_raw": "N/A",
-        "parcela": None,
-        "recinto": None,
-        "muni_name": muni_name,
-        "raw_ine": None,
-        "cultiu": soil["Cultiu"] or "",
-        "pH": soil["pH"],
-        "MO": soil["MO"],
-        "CE": soil["CE"],
-        "Caliza": soil["Caliza"],
-        "N_Nitrico": soil["N_Nitrico"],
-        "Fosforo": soil["Fosforo"],
-        "Potasio": soil["Potasio"],
-        "Texture": soil["Texture"] or "",
-        "lat": None,
-        "lng": None,
-    }
-
-
-def extract_cota220_soil_record(pdf_path: Path) -> dict:
-    """
-    Extract a record from a Eurofins soil analysis PDF without Polígon/Parcella.
-    Geocoding is not possible for these records.
-    """
-    text = pdf_to_text(pdf_path)
-
-    # Extract year from reception date
-    year = None
-    m = re.search(r'Fecha de recepci.n\s*:\s*\n*\s*(\d{2}/\d{2}/(\d{4}))', text, re.IGNORECASE)
-    if m:
-        year = int(m.group(2))
-
-    # Description from client field
-    muni_name = "UNKNOWN"
-    m = re.search(r'Descripci.n por el cliente\s*\n([^\n]+)', text, re.IGNORECASE)
-    if m:
-        muni_name = m.group(1).strip().upper()
-
-    print(f"  [INFO] No Polígon/Parcella in {pdf_path.name} – will not be geocoded")
-    soil = parse_soil_params(text)
-
-    return {
-        "pdf_name": pdf_path.name,
-        "year": year,
-        "poligon": None,
-        "parcella_raw": "N/A",
-        "parcela": None,
-        "recinto": None,
-        "muni_name": muni_name,
-        "raw_ine": None,
-        "cultiu": soil["Cultiu"] or "",
-        "pH": soil["pH"],
-        "MO": soil["MO"],
-        "CE": soil["CE"],
-        "Caliza": soil["Caliza"],
-        "N_Nitrico": soil["N_Nitrico"],
-        "Fosforo": soil["Fosforo"],
-        "Potasio": soil["Potasio"],
-        "Texture": soil["Texture"] or "",
-        "lat": None,
-        "lng": None,
-    }
-
 
 def extract_inputs() -> None:
     """Unzip every archive found under INPUT_DIR into RAW_DIR."""
@@ -834,45 +420,23 @@ def extract_inputs() -> None:
 
 
 def extract_all_pdfs() -> list[dict]:
-    """Extract records from all PDFs found under RAW_DIR."""
+    """Extract records from all PDFs found under RAW_DIR using the local LLM."""
     records = []
     pdfs = sorted(
-        {*RAW_DIR.rglob("*.pdf"), *RAW_DIR.rglob("*.PDF")},
+        {p for p in (*RAW_DIR.rglob("*.pdf"), *RAW_DIR.rglob("*.PDF"))
+         if not p.name.startswith("._")},
         key=lambda p: p.name,
     )
 
     print(f"\nProcessing {len(pdfs)} PDFs from {RAW_DIR}...")
     for pdf in pdfs:
         print(f"  {pdf.name}")
-        text = pdf_to_text(pdf)
-        if not text:
-            continue
-        fmt = detect_pdf_type(text)
-
-        if fmt == "skip":
-            print(f"  [SKIP] Water/foliar: {pdf.name}")
-        elif fmt == "butlleti":
-            rec = extract_butlleti_record(pdf)
-            if rec:
+        rec = extract_with_llm(pdf)
+        if rec:
+            records.append(rec)
+            if rec["poligon"] is not None:
                 print(f"    → Polígon {rec['poligon']}, Parcella {rec['parcela']}, "
                       f"{rec['muni_name']}")
-                records.append(rec)
-        elif fmt == "agrolab":
-            rec = extract_agrolab_record(pdf)
-            records.append(rec)
-        elif fmt == "eurofins_xk":
-            year = _infer_year(pdf)
-            rec = extract_eurofins_record(pdf, year)
-            if rec is None:
-                # No Polígon/Parcella — capture soil params without geocoding
-                rec = extract_cota220_soil_record(pdf)
-            if rec:
-                if rec["poligon"] is not None:
-                    print(f"    → Polígon {rec['poligon']}, Parcella {rec['parcela']} "
-                          f"(recinto {rec['recinto']}), {rec['muni_name']}")
-                records.append(rec)
-        else:
-            print(f"  [SKIP] Unrecognised format ({fmt}): {pdf.name}")
 
     geocodable = sum(1 for r in records if r["poligon"] is not None)
     print(f"\nExtracted {len(records)} total records "
@@ -978,7 +542,7 @@ def geocode_record(rec: dict) -> tuple[float, float] | None:
     Geocode a record using the Spain Catastro parcel API.
     Only exact parcel coordinates are accepted — no municipality centroid fallback.
     """
-    if rec.get("poligon") is None:
+    if rec.get("poligon") is None or rec.get("parcela") is None:
         print(f"    [GEO] Skipping – no Polígon/Parcella for {rec['pdf_name']}")
         return None
 
@@ -1033,6 +597,7 @@ def records_to_map_rows(records: list[dict]) -> list[dict]:
             continue
         rows.append({
             "id": f"Fruilar-{rec['year']}-{i:03d}",
+            "year": rec["year"],
             "municipio": rec["muni_name"].title(),
             "cultivo": rec["cultiu"],
             "lat": rec["lat"],
@@ -1195,37 +760,73 @@ def generate_map(all_rows: list[dict]) -> None:
     grid_lat_vals = np.linspace(lat_max, lat_min, GRID_N)  # top→bottom for imshow
     grid_lng, grid_lat = np.meshgrid(grid_lng_vals, grid_lat_vals)
 
-    # --- Per-cluster hull mask ---
+    # --- Per-subset (aggregate + per-year) hull masks ---
     # Each geographic cluster gets its own buffered convex hull so the IDW
     # raster is never shown in the empty space between distant regions.
+    # For yearly subsets the hull is recomputed from just that year's points
+    # so areas not sampled in a given year stay transparent (honest coverage).
     from shapely.geometry import Point
     from shapely.prepared import prep
 
-    combined_hull = _cluster_hull(lngs, lats, buffer=0.05, eps=0.5)
-    prepared_hull = prep(combined_hull)
-    hull_mask = np.array([
-        prepared_hull.contains(Point(lon, lat))
-        for lon, lat in zip(grid_lng.ravel(), grid_lat.ravel())
-    ]).reshape(grid_lng.shape)
+    years_available = sorted({r["year"] for r in all_rows if r["year"] is not None})
+    subsets: dict[str, list[dict]] = {"all": all_rows}
+    for y in years_available:
+        subsets[str(y)] = [r for r in all_rows if r["year"] == y]
 
-    raster_b64 = {}
-    raster_ranges = {}
-    print("  Computing IDW rasters...")
+    samples_per_subset = {k: len(rows) for k, rows in subsets.items()}
+
+    def _build_hull_mask(rows_subset):
+        if not rows_subset:
+            return None
+        sub_lngs = [r["lng"] for r in rows_subset]
+        sub_lats = [r["lat"] for r in rows_subset]
+        hull = _cluster_hull(sub_lngs, sub_lats, buffer=0.05, eps=0.5)
+        if hull is None:
+            return None
+        ph = prep(hull)
+        return np.array([
+            ph.contains(Point(lon, lat))
+            for lon, lat in zip(grid_lng.ravel(), grid_lat.ravel())
+        ]).reshape(grid_lng.shape)
+
+    subset_hull_masks = {k: _build_hull_mask(rows) for k, rows in subsets.items()}
+
+    # raster_b64[param][subset_key] → data URI
+    # raster_ranges[param] → (vmin, vmax)  — same scale across subsets so
+    # cross-year comparison is visually honest.
+    raster_b64: dict[str, dict[str, str]] = {}
+    raster_ranges: dict[str, tuple[float, float]] = {}
+    print("  Computing IDW rasters (aggregate + per-year)...")
     for key, (label, extractor) in PARAMS.items():
-        pts = [(r["lat"], r["lng"], extractor(r)) for r in all_rows if extractor(r) is not None]
-        if len(pts) < 3:
-            print(f"    [SKIP] {label}: fewer than 3 valid samples")
+        all_pts = [(r["lat"], r["lng"], extractor(r))
+                   for r in all_rows if extractor(r) is not None]
+        if len(all_pts) < 3:
+            print(f"    [SKIP] {label}: fewer than 3 valid samples in aggregate")
             continue
-        plats, plngs, pvals = zip(*pts)
-        pvals_arr = np.array(pvals, dtype=float)
-        vmin = float(np.percentile(pvals_arr, 2))
-        vmax = float(np.percentile(pvals_arr, 98))
+        _, _, all_vals = zip(*all_pts)
+        all_vals_arr = np.array(all_vals, dtype=float)
+        vmin = float(np.percentile(all_vals_arr, 2))
+        vmax = float(np.percentile(all_vals_arr, 98))
         if vmin == vmax:
             vmax = vmin + 1  # prevent degenerate colormap
-        grid_vals = idw_grid(plats, plngs, pvals, grid_lat, grid_lng)
-        raster_b64[key] = raster_to_base64(grid_vals, CMAPS[key], vmin, vmax, hull_mask=hull_mask)
         raster_ranges[key] = (round(vmin, 2), round(vmax, 2))
-        print(f"    {label}: [{vmin:.2f}, {vmax:.2f}]  ({len(pts)} samples, 2–98th pct)")
+        raster_b64[key] = {}
+
+        for subset_key, rows_subset in subsets.items():
+            pts = [(r["lat"], r["lng"], extractor(r))
+                   for r in rows_subset if extractor(r) is not None]
+            if len(pts) < 3:
+                continue
+            plats, plngs, pvals = zip(*pts)
+            grid_vals = idw_grid(plats, plngs, pvals, grid_lat, grid_lng)
+            raster_b64[key][subset_key] = raster_to_base64(
+                grid_vals, CMAPS[key], vmin, vmax,
+                hull_mask=subset_hull_masks.get(subset_key),
+            )
+
+        print(f"    {label}: [{vmin:.2f}, {vmax:.2f}]  "
+              f"({len(raster_b64[key])}/{len(subsets)} subsets, "
+              f"{len(all_pts)} samples aggregate)")
 
     # --- Aggregated statistics (computed in Python, injected as static values) ---
     def safe_float(val):
@@ -1288,27 +889,34 @@ def generate_map(all_rows: list[dict]) -> None:
     wms_layer.add_to(m)
     wms_var = wms_layer.get_name()
 
-    # IDW raster overlays — only pH shown by default
-    overlay_vars = {}
+    # IDW raster overlays — one per (parameter, subset). JS toggles which one
+    # is visible based on the parameter + year dropdowns. All are hidden at
+    # build time; JS calls switchView("ph", "all") on init.
+    overlay_vars: dict[str, dict[str, str]] = {}
     for key in raster_b64:
-        overlay = folium.raster_layers.ImageOverlay(
-            image=raster_b64[key],
-            bounds=[[lat_min, lng_min], [lat_max, lng_max]],
-            name=f"IDW: {PARAMS[key][0]}",
-            opacity=1.0,
-            show=(key == "ph"),
-            interactive=False,
-            cross_origin=False,
-        )
-        overlay.add_to(m)
-        overlay_vars[key] = overlay.get_name()
+        overlay_vars[key] = {}
+        for subset_key, img in raster_b64[key].items():
+            overlay = folium.raster_layers.ImageOverlay(
+                image=img,
+                bounds=[[lat_min, lng_min], [lat_max, lng_max]],
+                name=f"IDW: {PARAMS[key][0]} ({subset_key})",
+                opacity=1.0,
+                show=False,
+                interactive=False,
+                cross_origin=False,
+            )
+            overlay.add_to(m)
+            overlay_vars[key][subset_key] = overlay.get_name()
 
     map_var = m.get_name()
 
-    # --- Parameter selector + WMS slider panel (top-left) ---
+    # --- Parameter + year selector + WMS slider panel (top-left) ---
     param_options_html = "\n".join(
         f'<option value="{k}">{PARAMS[k][0]}</option>'
         for k in raster_b64
+    )
+    year_options_html = '<option value="all" selected>All years</option>\n' + "\n".join(
+        f'<option value="{y}">{y}</option>' for y in years_available
     )
     selector_html = f"""
     <div id="param-selector-panel" style="position:fixed; top:12px; left:12px; z-index:1000;
@@ -1320,8 +928,14 @@ def generate_map(all_rows: list[dict]) -> None:
 
       <label style="font-size:11px; color:#57534e; display:block; margin-bottom:4px;">Parameter</label>
       <select id="param-select" style="width:100%; padding:5px 8px; border:1px solid #d6d3d1;
-              border-radius:6px; font-size:13px; background:#fff; cursor:pointer; margin-bottom:14px;">
+              border-radius:6px; font-size:13px; background:#fff; cursor:pointer; margin-bottom:10px;">
         {param_options_html}
+      </select>
+
+      <label style="font-size:11px; color:#57534e; display:block; margin-bottom:4px;">Year</label>
+      <select id="year-select" style="width:100%; padding:5px 8px; border:1px solid #d6d3d1;
+              border-radius:6px; font-size:13px; background:#fff; cursor:pointer; margin-bottom:14px;">
+        {year_options_html}
       </select>
 
       <label style="font-size:11px; color:#57534e; display:block; margin-bottom:4px;">
@@ -1343,7 +957,10 @@ def generate_map(all_rows: list[dict]) -> None:
         <span id="legend-max"></span>
       </div>
       <div id="legend-optimal" style="font-size:10px; color:#166534; background:#dcfce7;
-              border:1px solid #bbf7d0; border-radius:5px; padding:3px 7px; display:none;"></div>
+              border:1px solid #bbf7d0; border-radius:5px; padding:3px 7px; display:none;
+              margin-bottom:5px;"></div>
+      <div id="legend-warning" style="font-size:10px; color:#92400e; background:#fef3c7;
+              border:1px solid #fde68a; border-radius:5px; padding:3px 7px; display:none;"></div>
     </div>
     """
     m.get_root().html.add_child(folium.Element(selector_html))
@@ -1425,6 +1042,18 @@ def generate_map(all_rows: list[dict]) -> None:
         f'<td style="padding:2px 0; text-align:right">{pct_val}%</td></tr>'
         for label, pct_val in ph_cats.items()
     )
+    samples_year_rows = "\n".join(
+        f'<tr><td style="padding:2px 6px 2px 0">{y}</td>'
+        f'<td style="padding:2px 0; text-align:right">{samples_per_subset.get(str(y), 0)}</td></tr>'
+        for y in years_available
+    )
+    samples_year_section = f"""
+        <div style="font-size:11px; font-weight:600; color:#57534e; margin-bottom:6px;">Samples per year</div>
+        <table style="width:100%; border-collapse:collapse; font-size:11px; margin-bottom:10px;">
+          {samples_year_rows}
+        </table>
+    """ if years_available else ""
+
     stats_panel_html = f"""
     <div id="stats-panel" style="position:fixed; bottom:36px; right:12px; z-index:1000;
               background:rgba(255,255,255,0.94); border:1px solid #d6d3d1;
@@ -1443,6 +1072,7 @@ def generate_map(all_rows: list[dict]) -> None:
         <table style="width:100%; border-collapse:collapse; font-size:11px; margin-bottom:10px;">
           {ph_cats_rows}
         </table>
+        {samples_year_section}
         <div style="font-size:11px; font-weight:600; color:#57534e; margin-bottom:6px;">Parameter means &plusmn; std</div>
         <table style="width:100%; border-collapse:collapse; font-size:11px;">
           <tr style="color:#78716c; font-size:10px;"><th style="text-align:left">Parameter</th><th style="text-align:right">Value</th></tr>
@@ -1454,9 +1084,8 @@ def generate_map(all_rows: list[dict]) -> None:
     m.get_root().html.add_child(folium.Element(stats_panel_html))
 
     # --- Unified JavaScript ---
-    overlay_vars_js = "{" + ", ".join(
-        f'"{k}": "{v}"' for k, v in overlay_vars.items()
-    ) + "}"
+    overlay_vars_js = json.dumps(overlay_vars)            # {param: {subset: var_name}}
+    samples_per_subset_js = json.dumps(samples_per_subset)  # {subset: int}
     param_colors_js = "{" + ", ".join(
         f'"{k}": {CMAP_STOPS[k]}' for k in raster_b64
     ) + "}"
@@ -1485,23 +1114,26 @@ def generate_map(all_rows: list[dict]) -> None:
           // Zoom control at bottom-left
           L.control.zoom({{position: 'bottomleft'}}).addTo(map);
 
-          // Overlay layer variable name → actual Leaflet layer object
+          // Nested: param → subset → Leaflet layer
           var overlayVarNames = {overlay_vars_js};
           var overlayLayers = {{}};
-          Object.keys(overlayVarNames).forEach(function(k) {{
-            overlayLayers[k] = window[overlayVarNames[k]];
+          Object.keys(overlayVarNames).forEach(function(p) {{
+            overlayLayers[p] = {{}};
+            Object.keys(overlayVarNames[p]).forEach(function(s) {{
+              overlayLayers[p][s] = window[overlayVarNames[p][s]];
+            }});
           }});
 
+          var samplesPerSubset = {samples_per_subset_js};
           var wmsLayer = window["{wms_var}"];
 
           var paramColors = {param_colors_js};
           var paramRanges = {param_ranges_js};
           var paramLabels = {param_labels_js};
 
+          var LOW_SAMPLE_THRESHOLD = 15;
+
           // Optimal range metadata per parameter.
-          // optimalRange: [lo, hi] within the parameter's value range (null = no numeric range).
-          // direction: 'higher' | 'lower' | null (used when there's no numeric range).
-          // note: short descriptive text shown in the green badge.
           var paramOptimal = {{
             'ph':    {{ optimalRange: [6.0, 7.5], direction: null,      note: 'Optimal: 6.0 – 7.5' }},
             'mo':    {{ optimalRange: null,        direction: 'higher',  note: 'Higher → better (organic matter)' }},
@@ -1510,9 +1142,9 @@ def generate_map(all_rows: list[dict]) -> None:
             'p':     {{ optimalRange: [15, 50],    direction: null,      note: 'Optimal: 15 – 50 mg/kg' }},
           }};
 
-          function updateLegend(key) {{
-            var colors = paramColors[key];
-            var range  = paramRanges[key] || [0, 1];
+          function updateLegend(param, year, hasRaster) {{
+            var colors = paramColors[param];
+            var range  = paramRanges[param] || [0, 1];
             var vmin = range[0], vmax = range[1];
             var span = vmax - vmin || 1;
 
@@ -1520,12 +1152,17 @@ def generate_map(all_rows: list[dict]) -> None:
               'linear-gradient(to right, ' + colors.join(',') + ')';
             document.getElementById('legend-min').textContent = vmin;
             document.getElementById('legend-max').textContent = vmax;
-            document.getElementById('legend-title').textContent = paramLabels[key];
+
+            var yearLabel = (year === 'all') ? 'All years' : ('Year ' + year);
+            var n = samplesPerSubset[year] || 0;
+            document.getElementById('legend-title').textContent =
+              paramLabels[param] + ' — ' + yearLabel + ' (n=' + n + ')';
 
             // Optimal annotation
-            var opt = paramOptimal[key];
+            var opt = paramOptimal[param];
             var optEl  = document.getElementById('legend-optimal');
             var barEl  = document.getElementById('legend-optimal-bar');
+            var warnEl = document.getElementById('legend-warning');
 
             if (opt && opt.note) {{
               optEl.textContent = '✓ ' + opt.note;
@@ -1534,11 +1171,9 @@ def generate_map(all_rows: list[dict]) -> None:
               optEl.style.display = 'none';
             }}
 
-            // Position the translucent highlight bar over the optimal zone
             if (opt && opt.optimalRange) {{
               var lo = opt.optimalRange[0];
               var hi = opt.optimalRange[1];
-              // Clamp to visible range
               var leftPct  = Math.max(0, Math.min(100, (lo - vmin) / span * 100));
               var rightPct = Math.max(0, Math.min(100, (hi - vmin) / span * 100));
               if (rightPct > leftPct) {{
@@ -1549,27 +1184,50 @@ def generate_map(all_rows: list[dict]) -> None:
                 barEl.style.display = 'none';
               }}
             }} else if (opt && opt.direction === 'higher') {{
-              // Highlight rightmost 40% to suggest "higher is better"
               barEl.style.left  = '60%';
               barEl.style.width = '40%';
               barEl.style.display = 'block';
             }} else {{
               barEl.style.display = 'none';
             }}
+
+            // Warning for low-sample yearly subsets, or missing raster
+            if (!hasRaster) {{
+              warnEl.textContent = 'No data for ' + yearLabel + ' — fewer than 3 samples for this parameter';
+              warnEl.style.display = 'block';
+            }} else if (year !== 'all' && n > 0 && n < LOW_SAMPLE_THRESHOLD) {{
+              warnEl.textContent = 'n=' + n + ' samples — limited spatial coverage, interpret with care';
+              warnEl.style.display = 'block';
+            }} else {{
+              warnEl.style.display = 'none';
+            }}
           }}
 
-          function switchParam(key) {{
-            Object.keys(overlayLayers).forEach(function(k) {{
-              if (overlayLayers[k]) {{
-                if (k === key) map.addLayer(overlayLayers[k]);
-                else           map.removeLayer(overlayLayers[k]);
-              }}
+          function switchView(param, year) {{
+            // Hide every overlay first
+            Object.keys(overlayLayers).forEach(function(p) {{
+              Object.keys(overlayLayers[p]).forEach(function(s) {{
+                if (overlayLayers[p][s]) map.removeLayer(overlayLayers[p][s]);
+              }});
             }});
-            updateLegend(key);
+            // Show selected (param, year) if it exists
+            var layer = overlayLayers[param] && overlayLayers[param][year];
+            if (layer) {{
+              map.addLayer(layer);
+              updateLegend(param, year, true);
+            }} else {{
+              updateLegend(param, year, false);
+            }}
           }}
 
-          document.getElementById('param-select').addEventListener('change', function() {{
-            switchParam(this.value);
+          var paramSelect = document.getElementById('param-select');
+          var yearSelect  = document.getElementById('year-select');
+
+          paramSelect.addEventListener('change', function() {{
+            switchView(paramSelect.value, yearSelect.value);
+          }});
+          yearSelect.addEventListener('change', function() {{
+            switchView(paramSelect.value, yearSelect.value);
           }});
 
           document.getElementById('wms-opacity-slider').addEventListener('input', function() {{
@@ -1579,7 +1237,7 @@ def generate_map(all_rows: list[dict]) -> None:
           }});
 
           // Initialise
-          switchParam('ph');
+          switchView('ph', 'all');
         }}
       }}, 50);
     }})();
@@ -1615,6 +1273,13 @@ def main():
     # Phase 2: Geocode via Spain Catastro API
     print("\nGeocoding via Spain Catastro API...")
     records = geocode_records(records)
+
+    # Dump per-record extraction for offline auditing / cross-validation
+    dump_path = OUTPUT_DIR / "records.json"
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    with open(dump_path, "w", encoding="utf-8") as f:
+        json.dump(records, f, indent=2, ensure_ascii=False)
+    print(f"\nRecords dump: {dump_path} ({len(records)} records)")
 
     # Phase 3: Generate map directly from geocoded records (no CSV written)
     all_rows = records_to_map_rows(records)

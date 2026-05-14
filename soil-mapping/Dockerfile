@@ -31,4 +31,6 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV PATH="/algorithm/.venv/bin:$PATH"
 
+RUN python3 -c "from docling.document_converter import DocumentConverter; DocumentConverter()" || true
+
 ENTRYPOINT ["python3", "/algorithm/src/algorithm.py"]
