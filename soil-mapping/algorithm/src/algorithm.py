@@ -642,24 +642,21 @@ def raster_to_base64(grid_values, cmap, vmin, vmax, hull_mask=None):
     from scipy.ndimage import gaussian_filter
     from PIL import Image
 
-    smoothed = gaussian_filter(grid_values, sigma=3)
+    smoothed = gaussian_filter(grid_values, sigma=1.2)
     norm = mcolors.Normalize(vmin=vmin, vmax=vmax)
     rgba = cmap(norm(smoothed)).copy()  # shape (H, W, 4), values in [0, 1]
 
-    # Distance-based edge fade: each pixel fades to transparent over the outermost 15% of the grid
     H, W = smoothed.shape
     row_dist = np.minimum(np.arange(H), H - 1 - np.arange(H)).astype(np.float32)
     col_dist = np.minimum(np.arange(W), W - 1 - np.arange(W)).astype(np.float32)
     dist = np.minimum(row_dist[:, None], col_dist[None, :])
-    fade_pixels = int(0.15 * min(H, W))
+    fade_pixels = int(0.08 * min(H, W))
     alpha_fade = np.clip(dist / fade_pixels, 0, 1) if fade_pixels > 0 else np.ones((H, W), dtype=np.float32)
 
-    # Apply global alpha (0.72) modulated by edge fade
-    rgba[..., 3] = 0.72 * alpha_fade
+    rgba[..., 3] = 0.85 * alpha_fade
 
-    # Clip to convex hull with soft feathered edge (gaussian blur on the boolean mask)
     if hull_mask is not None:
-        soft_hull = gaussian_filter(hull_mask.astype(np.float32), sigma=5)
+        soft_hull = gaussian_filter(hull_mask.astype(np.float32), sigma=2)
         soft_hull = np.clip(soft_hull, 0, 1)
         rgba[..., 3] *= soft_hull
 
@@ -673,7 +670,7 @@ def raster_to_base64(grid_values, cmap, vmin, vmax, hull_mask=None):
     return f"data:image/png;base64,{b64}"
 
 
-def _cluster_hull(lngs_seq, lats_seq, buffer: float = 0.05, eps: float = 0.5):
+def _cluster_hull(lngs_seq, lats_seq, buffer: float = 0.025, eps: float = 0.5):
     """
     Return a shapely geometry that is the union of per-cluster buffered convex
     hulls.  Points within `eps` degrees of each other belong to the same
@@ -710,6 +707,44 @@ def _cluster_hull(lngs_seq, lats_seq, buffer: float = 0.05, eps: float = 0.5):
     return unary_union(hulls)
 
 
+# Hex codes sampled directly from the ISRIC WMS GetLegendGraphic response for
+# the MostProbable WRB layer (https://maps.isric.org/mapserv?map=/map/wrb.map).
+# Each (name, hex, short hint) row in the in-app legend uses these exact colours
+# so the swatches always match the rendered map tiles.
+WRB_LEGEND = [
+    ("Acrisols",     "#f7991d", "acidic, weathered"),
+    ("Albeluvisols", "#9b9d57", "bleached"),
+    ("Alisols",      "#faf7c0", "acidic, Al-rich"),
+    ("Andosols",     "#ed3a33", "volcanic"),
+    ("Arenosols",    "#f7d8ac", "sandy"),
+    ("Calcisols",    "#ffee00", "calcareous"),
+    ("Cambisols",    "#fecd67", "moderate"),
+    ("Chernozems",   "#e2c837", "fertile steppe"),
+    ("Cryosols",     "#756a92", "permafrost"),
+    ("Durisols",     "#efe6bf", "silica-cemented"),
+    ("Ferralsols",   "#f6872d", "tropical, weathered"),
+    ("Fluvisols",    "#01b0ef", "alluvial"),
+    ("Gleysols",     "#9291b9", "waterlogged"),
+    ("Gypsisols",    "#fbf6a5", "gypsum-rich"),
+    ("Histosols",    "#8b898a", "peat"),
+    ("Kastanozems",  "#c99580", "grassland"),
+    ("Leptosols",    "#d5d6d8", "shallow"),
+    ("Lixisols",     "#f9bdbf", "tropical clay"),
+    ("Luvisols",     "#f48385", "clay-rich"),
+    ("Nitisols",     "#f7a082", "tropical clay"),
+    ("Phaeozems",    "#ba6850", "dark, fertile"),
+    ("Planosols",    "#f59354", "perched"),
+    ("Plinthosols",  "#6f0e41", "iron-rich"),
+    ("Podzols",      "#0daf63", "acidic forest"),
+    ("Regosols",     "#ffe2ae", "weak"),
+    ("Solonchaks",   "#ed3994", "saline"),
+    ("Solonetz",     "#f4cde2", "alkaline, Na"),
+    ("Stagnosols",   "#40c1eb", "perched, wet"),
+    ("Umbrisols",    "#618f82", "dark, acidic"),
+    ("Vertisols",    "#9e567c", "shrink-swell"),
+]
+
+
 def generate_map(all_rows: list[dict]) -> None:
     import numpy as np
     import matplotlib.colors as mcolors
@@ -733,20 +768,19 @@ def generate_map(all_rows: list[dict]) -> None:
         "n_no3": ("N-NO₃ (mg/kg)", lambda r: float(r["N_Nitrico"]) if r.get("N_Nitrico") else None),
         "p":     ("P (mg/kg)",      lambda r: float(r["Fosforo"])   if r.get("Fosforo")   else None),
     }
-    CMAPS = {
-        "ph":    mcolors.LinearSegmentedColormap.from_list("ph",    ["#2166ac", "#74c476", "#238b45", "#fd8d3c", "#d73027"]),
-        "mo":    mcolors.LinearSegmentedColormap.from_list("mo",    ["#d73027", "#fee08b", "#1a9850"]),
-        "ce":    mcolors.LinearSegmentedColormap.from_list("ce",    ["#1a9850", "#fee08b", "#d73027"]),
-        "n_no3": mcolors.LinearSegmentedColormap.from_list("n_no3", ["#fee08b", "#1a9850", "#d73027"]),
-        "p":     mcolors.LinearSegmentedColormap.from_list("p",     ["#fee08b", "#1a9850", "#d73027"]),
-    }
-    # CSS gradient stops for JS legend rendering
+    # Sequential ramps so colour does not encode "good/bad" — the legend marks
+    # the optimal range explicitly. Each ramp is single- or two-hue so it does
+    # not visually compete with the desaturated WRB context layer below.
     CMAP_STOPS = {
-        "ph":    ["#2166ac", "#74c476", "#238b45", "#fd8d3c", "#d73027"],
-        "mo":    ["#d73027", "#fee08b", "#1a9850"],
-        "ce":    ["#1a9850", "#fee08b", "#d73027"],
-        "n_no3": ["#fee08b", "#1a9850", "#d73027"],
-        "p":     ["#fee08b", "#1a9850", "#d73027"],
+        "ph":    ["#440154", "#3b528b", "#21918c", "#5ec962", "#fde725"],  # viridis
+        "mo":    ["#ffffe5", "#78c679", "#004529"],                          # YlGn
+        "ce":    ["#f7fbff", "#6baed6", "#08306b"],                          # Blues
+        "n_no3": ["#fff5eb", "#fd8d3c", "#7f2704"],                          # Oranges
+        "p":     ["#fff5eb", "#fd8d3c", "#7f2704"],                          # Oranges
+    }
+    CMAPS = {
+        key: mcolors.LinearSegmentedColormap.from_list(key, stops)
+        for key, stops in CMAP_STOPS.items()
     }
 
     # --- Build IDW rasters ---
@@ -768,10 +802,18 @@ def generate_map(all_rows: list[dict]) -> None:
     from shapely.geometry import Point
     from shapely.prepared import prep
 
+    MIN_SAMPLES_FOR_YEAR = 3   # IDW requires ≥3 points to interpolate
     years_available = sorted({r["year"] for r in all_rows if r["year"] is not None})
     subsets: dict[str, list[dict]] = {"all": all_rows}
     for y in years_available:
         subsets[str(y)] = [r for r in all_rows if r["year"] == y]
+
+    # Drop years below the IDW minimum so they never reach the dropdown
+    years_available = [y for y in years_available
+                       if len(subsets[str(y)]) >= MIN_SAMPLES_FOR_YEAR]
+    for y_str in list(subsets):
+        if y_str != "all" and int(y_str) not in years_available:
+            del subsets[y_str]
 
     samples_per_subset = {k: len(rows) for k, rows in subsets.items()}
 
@@ -780,7 +822,7 @@ def generate_map(all_rows: list[dict]) -> None:
             return None
         sub_lngs = [r["lng"] for r in rows_subset]
         sub_lats = [r["lat"] for r in rows_subset]
-        hull = _cluster_hull(sub_lngs, sub_lats, buffer=0.05, eps=0.5)
+        hull = _cluster_hull(sub_lngs, sub_lats, buffer=0.025, eps=0.5)
         if hull is None:
             return None
         ph = prep(hull)
@@ -856,7 +898,14 @@ def generate_map(all_rows: list[dict]) -> None:
             return ""
         mean = sum(vals) / len(vals)
         std = (sum((v - mean) ** 2 for v in vals) / len(vals)) ** 0.5
-        return f'<tr><td>{label}</td><td style="text-align:right">{mean:.2f} &plusmn; {std:.2f}</td></tr>'
+        return (
+            f'<tr>'
+            f'<td style="padding-right:8px">{label}</td>'
+            f'<td style="text-align:right; white-space:nowrap; '
+            f'font-variant-numeric:tabular-nums">'
+            f'{mean:.2f} &plusmn; {std:.2f}</td>'
+            f'</tr>'
+        )
 
     stats_rows_html = "\n".join([
         param_stats_html("pH", "ph", lambda r: r.get("pH")),
@@ -875,6 +924,19 @@ def generate_map(all_rows: list[dict]) -> None:
     )
     folium.TileLayer("CartoDB Positron", control=False).add_to(m)
 
+    # Esri World Hillshade — transparent shaded relief layer between basemap
+    # and WRB, giving subtle terrain context without competing for colour.
+    folium.TileLayer(
+        tiles=(
+            "https://server.arcgisonline.com/ArcGIS/rest/services/"
+            "Elevation/World_Hillshade/MapServer/tile/{z}/{y}/{x}"
+        ),
+        name="Hillshade",
+        attr='Tiles &copy; <a href="https://www.esri.com">Esri</a>',
+        opacity=0.4,
+        control=False,
+    ).add_to(m)
+
     # WMS soil type layer (always visible, opacity controllable via slider)
     wms_layer = folium.WmsTileLayer(
         url="https://maps.isric.org/mapserv?map=/map/wrb.map",
@@ -882,7 +944,7 @@ def generate_map(all_rows: list[dict]) -> None:
         name="Soil Types (WRB)",
         fmt="image/png",
         transparent=True,
-        opacity=0.6,
+        opacity=0.35,
         attr='<a href="https://www.isric.org/explore/soilgrids">ISRIC SoilGrids WRB</a>',
         show=True,
     )
@@ -924,7 +986,7 @@ def generate_map(all_rows: list[dict]) -> None:
               padding:14px 16px; font-size:13px; line-height:1.55;
               border-radius:10px; box-shadow:0 12px 24px rgba(0,0,0,0.10);
               min-width:230px;">
-      <div style="font-size:15px; font-weight:700; margin-bottom:10px;">Soil Characteristics</div>
+      <div style="font-size:15px; font-weight:700; margin-bottom:10px;">Soil Conditions Dashboard</div>
 
       <label style="font-size:11px; color:#57534e; display:block; margin-bottom:4px;">Parameter</label>
       <select id="param-select" style="width:100%; padding:5px 8px; border:1px solid #d6d3d1;
@@ -938,10 +1000,12 @@ def generate_map(all_rows: list[dict]) -> None:
         {year_options_html}
       </select>
 
-      <label style="font-size:11px; color:#57534e; display:block; margin-bottom:4px;">
-        WRB Soil Type opacity: <span id="wms-opacity-label">60%</span>
-      </label>
-      <input id="wms-opacity-slider" type="range" min="0" max="100" value="60"
+      <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px;">
+        <label for="wms-opacity-slider" style="font-size:11px; color:#57534e;">WRB opacity</label>
+        <span id="wms-opacity-label" style="font-size:11px; color:#57534e;
+                font-variant-numeric:tabular-nums;">35%</span>
+      </div>
+      <input id="wms-opacity-slider" type="range" min="0" max="100" value="35"
              style="width:100%; accent-color:#2a9d8f; cursor:pointer; margin-bottom:14px;">
 
       <div id="legend-title" style="font-size:13px; font-weight:600; margin-bottom:6px;">pH</div>
@@ -966,71 +1030,55 @@ def generate_map(all_rows: list[dict]) -> None:
     m.get_root().html.add_child(folium.Element(selector_html))
 
     # --- WRB soil type legend (top-right, collapsed by default) ---
-    wrb_legend_html = """
+    # Built from WRB_LEGEND (hex codes sampled from the ISRIC GetLegendGraphic
+    # response), so the swatches match the rendered tiles by construction.
+    wrb_rows_html = "\n".join(
+        f'<div title="{name} — {hint}" '
+        f'style="display:flex;align-items:center;margin-bottom:3px;'
+        f'break-inside:avoid;page-break-inside:avoid;">'
+        f'<span class="wrb-swatch" style="display:inline-block;width:11px;'
+        f'height:11px;border-radius:2px;background:{hex_};'
+        f'border:1px solid rgba(0,0,0,0.15);margin-right:6px;'
+        f'flex-shrink:0;"></span>'
+        f'<span style="white-space:nowrap;font-size:11px;"><b>{name}</b></span>'
+        f'</div>'
+        for (name, hex_, hint) in WRB_LEGEND
+    )
+    wrb_body_html = f"""
+        <div style="color:#57534e; margin-bottom:9px; font-size:11px;">
+          ISRIC SoilGrids &mdash; most probable class
+        </div>
+        <div style="column-count:2; column-gap:14px;">
+          {wrb_rows_html}
+        </div>
+        """
+
+    wrb_legend_html = f"""
+    <style>
+      .wrb-swatch {{
+        filter: saturate(0.35) brightness(1.05);
+        opacity: var(--wrb-swatch-opacity, 0.35);
+      }}
+    </style>
     <div id="wrb-legend" style="position:fixed; top:12px; right:12px; z-index:1000;
                 background:rgba(255,255,255,0.94); border:1px solid #d6d3d1;
                 border-radius:10px; box-shadow:0 12px 24px rgba(0,0,0,0.10);
                 font-size:12px; overflow:hidden;">
-      <div id="wrb-toggle" onclick="(function(){
+      <div id="wrb-toggle" onclick="(function(){{
               var c=document.getElementById('wrb-content');
               var t=document.getElementById('wrb-toggle');
               var open=c.style.display!=='none';
               c.style.display=open?'none':'block';
               t.querySelector('span.arrow').textContent=open?'▼':'▲';
-            })()"
+            }})()"
            style="padding:10px 14px; font-size:13px; font-weight:700; cursor:pointer;
                   display:flex; justify-content:space-between; align-items:center;
                   user-select:none;">
         <span>Soil Types (WRB)</span>
         <span class="arrow" style="font-size:10px; color:#78716c; margin-left:8px;">&#9660;</span>
       </div>
-      <div id="wrb-content" style="display:none; padding:0 14px 12px 14px; max-width:230px;">
-        <div style="color:#57534e; margin-bottom:9px; font-size:11px;">
-          ISRIC SoilGrids &mdash; most probable class
-        </div>
-        <div style="display:flex;align-items:center;margin-bottom:5px;">
-          <span style="display:inline-block;width:13px;height:13px;border-radius:2px;background:#FFFACD;border:1px solid #bbb;margin-right:7px;flex-shrink:0;"></span>
-          <span><b>Calcisols</b> &mdash; calcareous, alkaline</span>
-        </div>
-        <div style="display:flex;align-items:center;margin-bottom:5px;">
-          <span style="display:inline-block;width:13px;height:13px;border-radius:2px;background:#708090;border:1px solid #bbb;margin-right:7px;flex-shrink:0;"></span>
-          <span><b>Vertisols</b> &mdash; clayey, shrink-swell</span>
-        </div>
-        <div style="display:flex;align-items:center;margin-bottom:5px;">
-          <span style="display:inline-block;width:13px;height:13px;border-radius:2px;background:#DEB887;border:1px solid #bbb;margin-right:7px;flex-shrink:0;"></span>
-          <span><b>Cambisols</b> &mdash; moderately developed</span>
-        </div>
-        <div style="display:flex;align-items:center;margin-bottom:5px;">
-          <span style="display:inline-block;width:13px;height:13px;border-radius:2px;background:#ADFF2F;border:1px solid #bbb;margin-right:7px;flex-shrink:0;"></span>
-          <span><b>Fluvisols</b> &mdash; alluvial, river valleys</span>
-        </div>
-        <div style="display:flex;align-items:center;margin-bottom:5px;">
-          <span style="display:inline-block;width:13px;height:13px;border-radius:2px;background:#A0522D;border:1px solid #bbb;margin-right:7px;flex-shrink:0;"></span>
-          <span><b>Leptosols</b> &mdash; shallow, stony</span>
-        </div>
-        <div style="display:flex;align-items:center;margin-bottom:5px;">
-          <span style="display:inline-block;width:13px;height:13px;border-radius:2px;background:#F4A460;border:1px solid #bbb;margin-right:7px;flex-shrink:0;"></span>
-          <span><b>Regosols</b> &mdash; weakly developed</span>
-        </div>
-        <div style="display:flex;align-items:center;margin-bottom:5px;">
-          <span style="display:inline-block;width:13px;height:13px;border-radius:2px;background:#D2691E;border:1px solid #bbb;margin-right:7px;flex-shrink:0;"></span>
-          <span><b>Kastanozems</b> &mdash; semi-arid grassland</span>
-        </div>
-        <div style="display:flex;align-items:center;margin-bottom:5px;">
-          <span style="display:inline-block;width:13px;height:13px;border-radius:2px;background:#FA8072;border:1px solid #bbb;margin-right:7px;flex-shrink:0;"></span>
-          <span><b>Luvisols</b> &mdash; clay-enriched subsoil</span>
-        </div>
-        <div style="display:flex;align-items:center;margin-bottom:5px;">
-          <span style="display:inline-block;width:13px;height:13px;border-radius:2px;background:#FFB6C1;border:1px solid #bbb;margin-right:7px;flex-shrink:0;"></span>
-          <span><b>Gypsisols</b> &mdash; gypsum-rich, arid areas</span>
-        </div>
-        <div style="display:flex;align-items:center;">
-          <span style="display:inline-block;width:13px;height:13px;border-radius:2px;background:#FFDEAD;border:1px solid #bbb;margin-right:7px;flex-shrink:0;"></span>
-          <span><b>Arenosols</b> &mdash; sandy soils</span>
-        </div>
-        <div style="margin-top:8px;font-size:10px;color:#78716c;">
-          Colour swatches are approximate &mdash; see map tiles for exact classification
-        </div>
+      <div id="wrb-content" style="display:none; padding:0 14px 12px 14px; width:240px;">
+        {wrb_body_html}
       </div>
     </div>
     """
@@ -1042,37 +1090,24 @@ def generate_map(all_rows: list[dict]) -> None:
         f'<td style="padding:2px 0; text-align:right">{pct_val}%</td></tr>'
         for label, pct_val in ph_cats.items()
     )
-    samples_year_rows = "\n".join(
-        f'<tr><td style="padding:2px 6px 2px 0">{y}</td>'
-        f'<td style="padding:2px 0; text-align:right">{samples_per_subset.get(str(y), 0)}</td></tr>'
-        for y in years_available
-    )
-    samples_year_section = f"""
-        <div style="font-size:11px; font-weight:600; color:#57534e; margin-bottom:6px;">Samples per year</div>
-        <table style="width:100%; border-collapse:collapse; font-size:11px; margin-bottom:10px;">
-          {samples_year_rows}
-        </table>
-    """ if years_available else ""
-
     stats_panel_html = f"""
     <div id="stats-panel" style="position:fixed; bottom:36px; right:12px; z-index:1000;
               background:rgba(255,255,255,0.94); border:1px solid #d6d3d1;
               border-radius:10px; box-shadow:0 8px 18px rgba(0,0,0,0.09);
-              font-size:12px; overflow:hidden; min-width:220px;">
+              font-size:12px; overflow:hidden; width:290px;">
       <div id="stats-header" onclick="document.getElementById('stats-body').style.display=
             document.getElementById('stats-body').style.display==='none'?'block':'none'"
            style="padding:10px 14px; font-weight:700; font-size:13px; cursor:pointer;
-                  display:flex; justify-content:space-between; align-items:center;
+                  display:flex; align-items:center; gap:8px;
                   border-bottom:1px solid #e5e7eb;">
-        <span>Fleet Statistics</span>
-        <span style="font-size:10px; color:#78716c;">{total_n} samples &#9660;</span>
+        <span style="white-space:nowrap;">Soil Summary &amp; Statistics</span>
+        <span style="font-size:10px; color:#78716c; white-space:nowrap;">{total_n} samples &#9660;</span>
       </div>
-      <div id="stats-body" style="padding:10px 14px;">
+      <div id="stats-body" style="padding:10px 14px; display:none;">
         <div style="font-size:11px; font-weight:600; color:#57534e; margin-bottom:6px;">pH distribution</div>
         <table style="width:100%; border-collapse:collapse; font-size:11px; margin-bottom:10px;">
           {ph_cats_rows}
         </table>
-        {samples_year_section}
         <div style="font-size:11px; font-weight:600; color:#57534e; margin-bottom:6px;">Parameter means &plusmn; std</div>
         <table style="width:100%; border-collapse:collapse; font-size:11px;">
           <tr style="color:#78716c; font-size:10px;"><th style="text-align:left">Parameter</th><th style="text-align:right">Value</th></tr>
@@ -1096,13 +1131,6 @@ def generate_map(all_rows: list[dict]) -> None:
         f'"{k}": "{PARAMS[k][0]}"' for k in raster_b64
     ) + "}"
 
-    spacing_css = """
-    <style>
-      .leaflet-bottom.leaflet-left { bottom: 12px !important; left: 12px !important; }
-    </style>
-    """
-    m.get_root().html.add_child(folium.Element(spacing_css))
-
     js_html = f"""
     <script>
     (function() {{
@@ -1111,8 +1139,7 @@ def generate_map(all_rows: list[dict]) -> None:
           clearInterval(_check);
           var map = window.{map_var};
 
-          // Zoom control at bottom-left
-          L.control.zoom({{position: 'bottomleft'}}).addTo(map);
+          L.control.zoom({{position: 'topright'}}).addTo(map);
 
           // Nested: param → subset → Leaflet layer
           var overlayVarNames = {overlay_vars_js};
@@ -1127,11 +1154,49 @@ def generate_map(all_rows: list[dict]) -> None:
           var samplesPerSubset = {samples_per_subset_js};
           var wmsLayer = window["{wms_var}"];
 
+          // WRB is context, not protagonist: put it on its own pane so we can
+          // desaturate it via CSS without affecting the basemap or IDW overlay.
+          if (!map.getPane('wrbPane')) {{
+            map.createPane('wrbPane');
+            var wp = map.getPane('wrbPane');
+            wp.style.filter = 'saturate(0.35) brightness(1.05)';
+            wp.style.zIndex = 250;
+          }}
+          if (wmsLayer && wmsLayer.options.pane !== 'wrbPane') {{
+            map.removeLayer(wmsLayer);
+            wmsLayer.options.pane = 'wrbPane';
+            wmsLayer.addTo(map);
+          }}
+
+          // Stack the three control panels into a single left column so the
+          // eye doesn't have to travel diagonally across the map.
+          if (!document.getElementById('left-stack')) {{
+            var stack = document.createElement('div');
+            stack.id = 'left-stack';
+            stack.style.cssText =
+              'position:fixed; top:12px; left:12px; z-index:1000;' +
+              'display:flex; flex-direction:column; gap:10px;' +
+              'max-height:calc(100vh - 24px); overflow-y:auto; width:260px;';
+            document.body.appendChild(stack);
+            ['param-selector-panel', 'wrb-legend'].forEach(function(id) {{
+              var el = document.getElementById(id);
+              if (el) {{
+                el.style.position = 'static';
+                el.style.top = 'auto';
+                el.style.bottom = 'auto';
+                el.style.left = 'auto';
+                el.style.right = 'auto';
+                el.style.width = 'auto';
+                stack.appendChild(el);
+              }}
+            }});
+          }}
+
           var paramColors = {param_colors_js};
           var paramRanges = {param_ranges_js};
           var paramLabels = {param_labels_js};
 
-          var LOW_SAMPLE_THRESHOLD = 15;
+          var LOW_SAMPLE_THRESHOLD = 50;
 
           // Optimal range metadata per parameter.
           var paramOptimal = {{
@@ -1153,10 +1218,10 @@ def generate_map(all_rows: list[dict]) -> None:
             document.getElementById('legend-min').textContent = vmin;
             document.getElementById('legend-max').textContent = vmax;
 
-            var yearLabel = (year === 'all') ? 'All years' : ('Year ' + year);
+            var yearLabel = (year === 'all') ? 'all years' : year;
             var n = samplesPerSubset[year] || 0;
             document.getElementById('legend-title').textContent =
-              paramLabels[param] + ' — ' + yearLabel + ' (n=' + n + ')';
+              paramLabels[param] + ' · ' + yearLabel + ' · samples=' + n;
 
             // Optimal annotation
             var opt = paramOptimal[param];
@@ -1196,7 +1261,7 @@ def generate_map(all_rows: list[dict]) -> None:
               warnEl.textContent = 'No data for ' + yearLabel + ' — fewer than 3 samples for this parameter';
               warnEl.style.display = 'block';
             }} else if (year !== 'all' && n > 0 && n < LOW_SAMPLE_THRESHOLD) {{
-              warnEl.textContent = 'n=' + n + ' samples — limited spatial coverage, interpret with care';
+              warnEl.textContent = 'samples=' + n + ' — limited spatial coverage, interpret with care';
               warnEl.style.display = 'block';
             }} else {{
               warnEl.style.display = 'none';
@@ -1234,6 +1299,7 @@ def generate_map(all_rows: list[dict]) -> None:
             var val = this.value / 100;
             document.getElementById('wms-opacity-label').textContent = this.value + '%';
             if (wmsLayer) wmsLayer.setOpacity(val);
+            document.documentElement.style.setProperty('--wrb-swatch-opacity', val);
           }});
 
           // Initialise
@@ -1274,14 +1340,7 @@ def main():
     print("\nGeocoding via Spain Catastro API...")
     records = geocode_records(records)
 
-    # Dump per-record extraction for offline auditing / cross-validation
-    dump_path = OUTPUT_DIR / "records.json"
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    with open(dump_path, "w", encoding="utf-8") as f:
-        json.dump(records, f, indent=2, ensure_ascii=False)
-    print(f"\nRecords dump: {dump_path} ({len(records)} records)")
-
-    # Phase 3: Generate map directly from geocoded records (no CSV written)
+    # Phase 3: Generate map directly from geocoded records (no JSON/CSV written)
     all_rows = records_to_map_rows(records)
     generate_map(all_rows)
 
