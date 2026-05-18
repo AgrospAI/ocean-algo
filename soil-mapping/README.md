@@ -72,12 +72,11 @@ PDFs that are not recognised as soil analysis reports (e.g. water or foliar anal
 
 ## 3. Output
 
-Two files are written to `/data/outputs/`:
+One file is written to `/data/outputs/`:
 
 | File | Description |
 |---|---|
 | `soil-characteristics-map.html` | Self-contained interactive map (no server needed — open in any browser) |
-| `records.json` | Per-record extraction dump (all fields, geocoded coordinates, source PDF name) for offline auditing and cross-validation |
 
 ### Map Features
 
