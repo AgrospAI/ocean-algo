@@ -15,8 +15,10 @@ dependencies = [
     "shapely",
     "folium",
     "Pillow",
-    "requests",
     "docling",
+    "ocean-runner>=0.3.15",
+    "httpx",
+    "aiofiles",
 ]
 
 [tool.uv]

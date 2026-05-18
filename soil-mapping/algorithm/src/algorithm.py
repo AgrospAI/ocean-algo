@@ -1,20 +1,21 @@
 #!/usr/bin/env python3
 
+import asyncio
 import base64
 import json
 import os
 import re
-import requests
 import subprocess
-import sys
 import tempfile
-import time
+import threading
 import urllib.parse
-import urllib.request
 import uuid
 import xml.etree.ElementTree as ET
 import zipfile
 from pathlib import Path
+
+import httpx
+from ocean_runner import Algorithm, Config
 
 # --- Paths ------------------------------------------------------------------
 INPUT_DIR = Path("/data/inputs")
@@ -28,8 +29,14 @@ OPENWEBUI_URL = "https://chat.agrospai.udl.cat"
 CHAT_COMPLETIONS_URL = f"{OPENWEBUI_URL}/api/chat/completions"
 LLM_MODEL = os.getenv("LLM_MODEL")
 
+LLM_CONCURRENCY = 4
+GEO_CONCURRENCY = 4
+
+algorithm = Algorithm(Config())
+
 # In-memory cache: province_int → {NORMALIZED_NAME: mun_3digit}
 _province_muni_cache: dict[int, dict[str, int]] = {}
+_province_muni_lock = asyncio.Lock()
 
 # --- Colour scale for pH ----------------------------------------------------
 def ph_color(ph: float | None) -> str:
@@ -90,6 +97,9 @@ Fields:
 - "Fosforo": float or null  (phosphorus mg/kg; Fòsfor / Fósforo)
 - "Potasio": float or null  (potassium mg/kg; Potassi / Potasio)
 - "Texture": string  (soil texture classification; empty string if absent)
+- "report_date": string or null  (analysis or sampling date as ISO YYYY-MM-DD; extract from
+  headers like "Data anàlisi", "Fecha de análisis", "Fecha de muestreo", "Data de mostratge",
+  or the report header date. Return null if no date is visible.)
 
 Rules:
 - Convert comma decimal separators to points for numeric values.
@@ -131,13 +141,32 @@ def pdf_to_images_base64(pdf_path: Path) -> list[str]:
 
 
 _doc_converter = None
+# Threading lock (not asyncio): converter is built lazily inside asyncio.to_thread,
+# so concurrent worker threads can race on init without this.
+_doc_converter_init_lock = threading.Lock()
 
 
 def _docling_converter():
+    # Lab-report PDFs are born-digital: trust the native text layer and skip
+    # OCR (the dominant cost — ~15 s/PDF) and table-structure extraction
+    # (~40 s/PDF). The markdown is only used as a digit-disambiguation hint
+    # for the vision LLM; we don't need structured tables.
     global _doc_converter
     if _doc_converter is None:
-        from docling.document_converter import DocumentConverter
-        _doc_converter = DocumentConverter()
+        with _doc_converter_init_lock:
+            if _doc_converter is None:
+                from docling.datamodel.base_models import InputFormat
+                from docling.datamodel.pipeline_options import PdfPipelineOptions
+                from docling.document_converter import DocumentConverter, PdfFormatOption
+                pipeline_options = PdfPipelineOptions(
+                    do_ocr=False,
+                    do_table_structure=False,
+                )
+                _doc_converter = DocumentConverter(
+                    format_options={
+                        InputFormat.PDF: PdfFormatOption(pipeline_options=pipeline_options)
+                    }
+                )
     return _doc_converter
 
 
@@ -148,20 +177,18 @@ def pdf_to_markdown(pdf_path: Path) -> str | None:
         md = result.document.export_to_markdown()
         return md.strip() or None
     except Exception as e:
-        print(f"  [WARN] docling failed for {pdf_path.name}: {type(e).__name__}: {e}")
+        algorithm.logger.warning(
+            f"docling failed for {pdf_path.name}: {type(e).__name__}: {e}"
+        )
         return None
 
 
-_warmed_up = False
-
-
-def _warmup_llm() -> None:
+async def _warmup_llm(client: httpx.AsyncClient) -> None:
     """Send a tiny ping so the first real PDF doesn't pay the full cold-start cost."""
-    global _warmed_up
-    if _warmed_up or not OPENWEBUI_API_KEY:
+    if not OPENWEBUI_API_KEY:
         return
     try:
-        requests.post(
+        await client.post(
             CHAT_COMPLETIONS_URL,
             headers={
                 "Authorization": f"Bearer {OPENWEBUI_API_KEY}",
@@ -174,28 +201,33 @@ def _warmup_llm() -> None:
                 "temperature": 0.0,
                 "chat_id": str(uuid.uuid4()),
                 "id": str(uuid.uuid4()),
+                "reasoning_effort": "low",
+                "chat_template_kwargs": {"enable_thinking": False},
+                "thinking": {"type": "disabled"},
             },
             timeout=120,
         )
     except Exception as e:
-        print(f"  [WARN] LLM warmup failed: {type(e).__name__}: {e}")
-    finally:
-        _warmed_up = True
+        algorithm.logger.warning(f"LLM warmup failed: {type(e).__name__}: {e}")
 
 
-def extract_with_llm(pdf_path: Path) -> dict | None:
+async def extract_with_llm(client: httpx.AsyncClient, pdf_path: Path) -> dict | None:
     """Extract a soil analysis record from a PDF using the local LLM."""
     if not OPENWEBUI_API_KEY:
-        print("  [ERROR] OPENWEBUI_API_KEY not set — cannot extract via LLM")
+        algorithm.logger.error("OPENWEBUI_API_KEY not set — cannot extract via LLM")
         return None
 
-    _warmup_llm()
-
-    images = pdf_to_images_base64(pdf_path)
-    markdown = pdf_to_markdown(pdf_path)
+    # PDF rasterisation and docling markdown are CPU/subprocess-bound — run in
+    # threads so the event loop can keep dispatching other LLM tasks meanwhile.
+    images, markdown = await asyncio.gather(
+        asyncio.to_thread(pdf_to_images_base64, pdf_path),
+        asyncio.to_thread(pdf_to_markdown, pdf_path),
+    )
 
     if not images or not markdown:
-        print(f"  [SKIP] {pdf_path.name}: missing images or markdown for vision+markdown")
+        algorithm.logger.info(
+            f"[SKIP] {pdf_path.name}: missing images or markdown for vision+markdown"
+        )
         return None
 
     headers = {
@@ -220,25 +252,50 @@ def extract_with_llm(pdf_path: Path) -> dict | None:
         "stream": False,
         "messages": [{"role": "user", "content": content}],
         "temperature": 0.0,
-        # OpenWebUI's /api/chat/completions requires chat_id/id since a
-        # recent update; without them the router 400s with a cryptic
-        # "'NoneType' object has no attribute 'startswith'".
         "chat_id": str(uuid.uuid4()),
         "id": str(uuid.uuid4()),
+        "reasoning_effort": "low",
+        "chat_template_kwargs": {"enable_thinking": False},
+        "thinking": {"type": "disabled"},
     }
+
+    raw = None
     try:
-        response = requests.post(
-            CHAT_COMPLETIONS_URL, headers=headers, json=payload, timeout=300
+        response = await client.post(
+            CHAT_COMPLETIONS_URL, headers=headers, json=payload,
         )
-        if not response.ok:
+        if response.status_code >= 400:
             body = response.text[:400] if response.text else "<empty>"
-            print(f"  [WARN] vision+markdown failed for {pdf_path.name}: "
-                  f"{response.status_code} {response.reason} — {body}")
+            algorithm.logger.warning(
+                f"vision+markdown failed for {pdf_path.name}: "
+                f"{response.status_code} {response.reason_phrase} — {body}"
+            )
             return None
-        raw = response.json()["choices"][0]["message"]["content"]
+        try:
+            data = response.json()
+        except Exception:
+            data = None
+        if not isinstance(data, dict):
+            algorithm.logger.warning(
+                f"vision+markdown failed for {pdf_path.name}: "
+                f"non-JSON or null body — status={response.status_code} "
+                f"body={response.text[:600] if response.text else '<empty>'}"
+            )
+            return None
+        choices = data.get("choices") or []
+        first = choices[0] if choices else None
+        message = first.get("message") if isinstance(first, dict) else None
+        raw = message.get("content") if isinstance(message, dict) else None
+        if not raw:
+            algorithm.logger.warning(
+                f"vision+markdown failed for {pdf_path.name}: "
+                f"unexpected/empty response — {str(data)[:600]}"
+            )
+            return None
     except Exception as e:
-        print(f"  [WARN] vision+markdown failed for {pdf_path.name}: "
-              f"{type(e).__name__}: {e}")
+        algorithm.logger.warning(
+            f"vision+markdown failed for {pdf_path.name}: {type(e).__name__}: {e}"
+        )
         return None
 
     # Parse JSON — handle optional markdown code fences
@@ -259,17 +316,20 @@ def extract_with_llm(pdf_path: Path) -> dict | None:
             pass
 
     if extracted is None:
-        print(f"  [WARN] Could not parse LLM JSON for {pdf_path.name}")
+        algorithm.logger.warning(f"Could not parse LLM JSON for {pdf_path.name}")
         return None
 
     doc_type = (extracted.get("document_type") or "").strip().lower()
     if doc_type != "soil":
-        print(f"  [SKIP] {pdf_path.name}: document_type={doc_type or 'unknown'}")
+        algorithm.logger.info(
+            f"[SKIP] {pdf_path.name}: document_type={doc_type or 'unknown'}"
+        )
         return None
 
     return {
         "pdf_name": pdf_path.name,
-        "year": _infer_year(pdf_path),
+        "year": _infer_year(pdf_path, extracted),
+        "report_date": extracted.get("report_date"),
         "poligon": extracted.get("poligon"),
         "parcella_raw": extracted.get("parcella_raw") or "",
         "parcela": extracted.get("parcela"),
@@ -290,13 +350,30 @@ def extract_with_llm(pdf_path: Path) -> dict | None:
     }
 
 
-def _infer_year(pdf_path: Path) -> int | None:
-    """Try to infer the sample year from a year-shaped directory part or filename."""
+def _infer_year(pdf_path: Path, extracted: dict | None = None) -> int | None:
+    """Infer the sample year from the LLM-extracted date, the path, or a compact filename date."""
+    if extracted:
+        rd = (extracted.get("report_date") or "").strip()
+        m = re.match(r"^(20\d{2})", rd)
+        if m:
+            return int(m.group(1))
+
     for part in pdf_path.parts:
         if re.match(r"^20\d{2}$", part):
             return int(part)
+
     m = re.search(r"20\d{2}", pdf_path.stem)
-    return int(m.group(0)) if m else None
+    if m:
+        return int(m.group(0))
+
+    m = re.search(
+        r"(?<!\d)(\d{2})(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])(?!\d)",
+        pdf_path.stem,
+    )
+    if m:
+        return 2000 + int(m.group(1))
+
+    return None
 
 
 def _normalize_muni_name(name: str) -> str:
@@ -306,7 +383,9 @@ def _normalize_muni_name(name: str) -> str:
     return "".join(c for c in nfkd if not unicodedata.combining(c))
 
 
-def _fetch_province_munis(prov: int) -> dict[str, int]:
+async def _fetch_province_munis(
+    client: httpx.AsyncClient, prov: int
+) -> dict[str, int]:
     """
     Query Catastro ConsultaMunicipioCodigos for all municipalities in a province.
     Returns {NORMALIZED_NAME: mun_3digit}. Result is cached in _province_muni_cache.
@@ -314,64 +393,74 @@ def _fetch_province_munis(prov: int) -> dict[str, int]:
     if prov in _province_muni_cache:
         return _province_muni_cache[prov]
 
-    url = (
-        "https://ovc.catastro.meh.es/ovcservweb/OVCSWLocalizacionRC/"
-        "OVCCallejeroCodigos.asmx/ConsultaMunicipioCodigos"
-    )
-    params = urllib.parse.urlencode({
-        "CodigoProvincia": f"{prov:02d}",
-        "CodigoMunicipio": "",
-        "CodigoMunicipioIne": "",
-    })
-    req = urllib.request.Request(
-        f"{url}?{params}",
-        headers={"User-Agent": "SoilMappingResearch/1.0"},
-    )
-    mapping: dict[str, int] = {}
-    try:
-        with urllib.request.urlopen(req, timeout=15) as resp:
-            raw = resp.read()
-        tree = ET.fromstring(raw)
-        # Response: <consulta_municipio><municipiero><muni><nm>CORBINS</nm><locat><cmc>094</cmc>...
-        ns = {"c": "http://www.catastro.meh.es/"}
-        munis = list(tree.iter("muni")) or list(tree.iter("{http://www.catastro.meh.es/}muni"))
-        for muni in munis:
-            nm_el  = muni.find("nm")  or muni.find("{http://www.catastro.meh.es/}nm")
-            cmc_el = muni.find(".//cmc") or muni.find(".//{http://www.catastro.meh.es/}cmc")
-            if nm_el is not None and cmc_el is not None and nm_el.text and cmc_el.text:
-                key = _normalize_muni_name(nm_el.text.strip())
-                try:
-                    mapping[key] = int(cmc_el.text.strip())
-                except ValueError:
-                    pass
-        if mapping:
-            print(f"    [CAT] Loaded {len(mapping)} municipalities for province {prov}")
-            _province_muni_cache[prov] = mapping
-        else:
-            print(f"    [CAT] No municipalities parsed for province {prov} — raw response head: {raw[:200]}")
-    except Exception as e:
-        print(f"    [CAT] Could not fetch municipalities for province {prov}: {type(e).__name__}: {e}")
-        # Do NOT cache on failure so the next call retries
+    async with _province_muni_lock:
+        if prov in _province_muni_cache:
+            return _province_muni_cache[prov]
 
-    return mapping
+        url = (
+            "https://ovc.catastro.meh.es/ovcservweb/OVCSWLocalizacionRC/"
+            "OVCCallejeroCodigos.asmx/ConsultaMunicipioCodigos"
+        )
+        params = {
+            "CodigoProvincia": f"{prov:02d}",
+            "CodigoMunicipio": "",
+            "CodigoMunicipioIne": "",
+        }
+        mapping: dict[str, int] = {}
+        try:
+            resp = await client.get(
+                url, params=params,
+                headers={"User-Agent": "SoilMappingResearch/1.0"},
+            )
+            raw = resp.content
+            tree = ET.fromstring(raw)
+            munis = list(tree.iter("muni")) or list(
+                tree.iter("{http://www.catastro.meh.es/}muni")
+            )
+            for muni in munis:
+                nm_el  = muni.find("nm")  or muni.find("{http://www.catastro.meh.es/}nm")
+                cmc_el = muni.find(".//cmc") or muni.find(".//{http://www.catastro.meh.es/}cmc")
+                if nm_el is not None and cmc_el is not None and nm_el.text and cmc_el.text:
+                    key = _normalize_muni_name(nm_el.text.strip())
+                    try:
+                        mapping[key] = int(cmc_el.text.strip())
+                    except ValueError:
+                        pass
+            if mapping:
+                algorithm.logger.info(
+                    f"[CAT] Loaded {len(mapping)} municipalities for province {prov}"
+                )
+                _province_muni_cache[prov] = mapping
+            else:
+                algorithm.logger.warning(
+                    f"[CAT] No municipalities parsed for province {prov} — "
+                    f"raw response head: {raw[:200]}"
+                )
+        except Exception as e:
+            algorithm.logger.warning(
+                f"[CAT] Could not fetch municipalities for province {prov}: "
+                f"{type(e).__name__}: {e}"
+            )
+
+        return mapping
 
 
-def _lookup_muni_code_by_name(muni_name: str, prov: int = 25) -> tuple[int, int] | None:
+async def _lookup_muni_code_by_name(
+    client: httpx.AsyncClient, muni_name: str, prov: int = 25
+) -> tuple[int, int] | None:
     """
     Resolve a municipality name to (province, mun_3digit) via Catastro API.
     Tries exact normalized match, then partial match.
     """
-    mapping = _fetch_province_munis(prov)
+    mapping = await _fetch_province_munis(client, prov)
     if not mapping:
         return None
 
     normalized = _normalize_muni_name(muni_name)
 
-    # Exact match
     if normalized in mapping:
         return prov, mapping[normalized]
 
-    # Partial match: name contains key or key contains name
     for key, code in mapping.items():
         if normalized in key or key in normalized:
             return prov, code
@@ -379,12 +468,13 @@ def _lookup_muni_code_by_name(muni_name: str, prov: int = 25) -> tuple[int, int]
     return None
 
 
-def resolve_catastro_code(muni_name: str, raw_code: int | None) -> tuple[int, int] | None:
+async def resolve_catastro_code(
+    client: httpx.AsyncClient, muni_name: str, raw_code: int | None
+) -> tuple[int, int] | None:
     """
     Return (province, municipality_3digit) for Catastro API lookup.
     Trusts the raw code extracted from the PDF (Catastro DGC code or SIGPAC-derived).
     Falls back to Catastro API name lookup for province 25 when code is absent.
-    Returns None if the municipality cannot be resolved.
     """
     if raw_code is not None:
         prov = raw_code // 1000
@@ -392,56 +482,67 @@ def resolve_catastro_code(muni_name: str, raw_code: int | None) -> tuple[int, in
         if 1 <= prov <= 52:
             return prov, mun
 
-    # Fallback: Catastro API name lookup (province 25 — Lleida region default)
-    result = _lookup_muni_code_by_name(muni_name, prov=25)
+    result = await _lookup_muni_code_by_name(client, muni_name, prov=25)
     if result:
         return result
 
-    print(f"  [WARN] Unknown municipality: '{muni_name}' (raw_code={raw_code})")
+    algorithm.logger.warning(
+        f"Unknown municipality: '{muni_name}' (raw_code={raw_code})"
+    )
     return None
-
 
 
 def extract_inputs() -> None:
     """Unzip every archive found under INPUT_DIR into RAW_DIR."""
     RAW_DIR.mkdir(parents=True, exist_ok=True)
-    
-    # Busca cualquier archivo en INPUT_DIR, sin depender de la extensión .zip
+
     for file_path in INPUT_DIR.rglob("*"):
-        # Ignorar directorios
         if not file_path.is_file():
             continue
-            
-        # Comprobar si realmente es un archivo ZIP (lee la cabecera del archivo)
+
         if zipfile.is_zipfile(file_path):
-            print(f"  [INFO] Extracting ZIP: {file_path.name}")
+            algorithm.logger.info(f"[INFO] Extracting ZIP: {file_path.name}")
             with zipfile.ZipFile(file_path) as zf:
                 zf.extractall(RAW_DIR)
 
 
-def extract_all_pdfs() -> list[dict]:
+async def extract_all_pdfs(client: httpx.AsyncClient) -> list[dict]:
     """Extract records from all PDFs found under RAW_DIR using the local LLM."""
-    records = []
     pdfs = sorted(
         {p for p in (*RAW_DIR.rglob("*.pdf"), *RAW_DIR.rglob("*.PDF"))
          if not p.name.startswith("._")},
         key=lambda p: p.name,
     )
 
-    print(f"\nProcessing {len(pdfs)} PDFs from {RAW_DIR}...")
-    for pdf in pdfs:
-        print(f"  {pdf.name}")
-        rec = extract_with_llm(pdf)
-        if rec:
-            records.append(rec)
-            if rec["poligon"] is not None:
-                print(f"    → Polígon {rec['poligon']}, Parcella {rec['parcela']}, "
-                      f"{rec['muni_name']}")
+    algorithm.logger.info(
+        f"Processing {len(pdfs)} PDFs from {RAW_DIR} "
+        f"(concurrency={LLM_CONCURRENCY})..."
+    )
+
+    sem = asyncio.Semaphore(LLM_CONCURRENCY)
+
+    async def _bounded(pdf: Path) -> dict | None:
+        async with sem:
+            algorithm.logger.info(f"  → start {pdf.name}")
+            rec = await extract_with_llm(client, pdf)
+            if rec and rec["poligon"] is not None:
+                algorithm.logger.info(
+                    f"    ← {pdf.name}: Polígon {rec['poligon']}, "
+                    f"Parcella {rec['parcela']}, {rec['muni_name']}"
+                )
+            return rec
+
+    results = await asyncio.gather(*[_bounded(p) for p in pdfs])
+    records = [r for r in results if r]
+    # Preserve deterministic order for downstream debug dumps.
+    records.sort(key=lambda r: r["pdf_name"])
 
     geocodable = sum(1 for r in records if r["poligon"] is not None)
-    print(f"\nExtracted {len(records)} total records "
-          f"({geocodable} with Polígon/Parcella, "
-          f"{len(records) - geocodable} without)")
+    algorithm.logger.info(
+        f"Extracted {len(records)} total records "
+        f"({geocodable} with Polígon/Parcella, "
+        f"{len(records) - geocodable} without)"
+    )
     return records
 
 
@@ -449,106 +550,102 @@ def extract_all_pdfs() -> list[dict]:
 # PHASE 2: GEOCODING VIA SPAIN CATASTRO API
 # ============================================================================
 
-# In-memory cache: (prov, mun, pol, par) → (lat, lng)
 _coord_cache: dict = {}
-# Municipality fallback cache: muni_name → (lat, lng)
+_coord_cache_lock = asyncio.Lock()
 _muni_cache: dict = {}
 
 
 # Fruilar data region: Lleida lowlands (Segrià/Pla d'Urgell comarcas).
-# Reject Catastro/Nominatim results outside this box to catch wrong municipality
-# codes. Wide enough to cover Lleida, Huesca (lat 42.14), and Castellón (lat 39.97).
 _LLEIDA_BBOX = (39.0, 43.5, -1.5, 1.5)   # (lat_min, lat_max, lng_min, lng_max)
 
 
-def catastro_geocode(prov: int, mun: int, pol: int, par: int) -> tuple[float, float] | None:
-    """
-    Query the Spain Catastro (Land Registry) Consulta_CPMRC endpoint to get
-    parcel centroid coordinates.
-
-    RC (Referencia Catastral) format for rural/agricultural parcels:
-      {prov2:02d}{mun3:03d}A{pol:03d}{par:05d}  (14 chars)
-    Example: CORBINS (25094), Pol 6, Par 143 → "25094A006000143"
-
-    Returns (lat, lng) or None if the parcel is not found or is outside the
-    expected Lleida region (which would indicate a wrong municipality code).
-    """
+async def catastro_geocode(
+    client: httpx.AsyncClient, prov: int, mun: int, pol: int, par: int
+) -> tuple[float, float] | None:
+    """Query the Spain Catastro Consulta_CPMRC endpoint for parcel centroid."""
     rc = f"{prov:02d}{mun:03d}A{pol:03d}{par:05d}"
     url = (
         "https://ovc.catastro.meh.es/ovcservweb/ovcswlocalizacionrc/"
         "ovccoordenadas.asmx/Consulta_CPMRC"
     )
-    params = urllib.parse.urlencode({
+    params = {
         "SRS": "EPSG:4326",
         "Provincia": "",
         "Municipio": "",
         "RC": rc,
-    })
-    req = urllib.request.Request(
-        f"{url}?{params}",
-        headers={"User-Agent": "SoilMappingResearch/1.0"},
-    )
+    }
     try:
-        with urllib.request.urlopen(req, timeout=15) as resp:
-            raw = resp.read()
+        resp = await client.get(
+            url, params=params,
+            headers={"User-Agent": "SoilMappingResearch/1.0"},
+        )
+        raw = resp.content
         tree = ET.fromstring(raw)
         ns = {"c": "http://www.catastro.meh.es/"}
-        xcen = tree.find(".//c:xcen", ns)   # longitude
-        ycen = tree.find(".//c:ycen", ns)   # latitude
+        xcen = tree.find(".//c:xcen", ns)
+        ycen = tree.find(".//c:ycen", ns)
         if xcen is not None and ycen is not None:
             lat = float(ycen.text)
             lng = float(xcen.text)
             lat_min, lat_max, lng_min, lng_max = _LLEIDA_BBOX
             if lat_min < lat < lat_max and lng_min < lng < lng_max:
                 return lat, lng
-            print(f"    [CAT] RC={rc} returned coords outside Lleida region "
-                  f"(lat={lat:.4f}, lng={lng:.4f}) — likely wrong mun code")
+            algorithm.logger.warning(
+                f"[CAT] RC={rc} returned coords outside Lleida region "
+                f"(lat={lat:.4f}, lng={lng:.4f}) — likely wrong mun code"
+            )
     except Exception as e:
-        print(f"    [CAT] Error querying RC={rc}: {type(e).__name__}: {e}")
+        algorithm.logger.warning(
+            f"[CAT] Error querying RC={rc}: {type(e).__name__}: {e}"
+        )
     return None
 
 
-def nominatim_geocode(muni_name: str) -> tuple[float, float] | None:
-    """
-    Fallback: geocode municipality name via Nominatim (OSM) using stdlib urllib.
-    Returns (lat, lng) for the municipality centroid.
-    """
-    query = urllib.parse.urlencode({
+async def nominatim_geocode(
+    client: httpx.AsyncClient, muni_name: str
+) -> tuple[float, float] | None:
+    """Fallback: geocode municipality name via Nominatim (OSM)."""
+    params = {
         "q": f"{muni_name}, Lleida, Spain",
         "format": "json",
         "limit": "1",
-    })
-    url = f"https://nominatim.openstreetmap.org/search?{query}"
-    req = urllib.request.Request(
-        url,
-        headers={"User-Agent": "SoilMappingResearch/1.0 (educational)"},
-    )
+    }
+    url = "https://nominatim.openstreetmap.org/search"
     try:
-        with urllib.request.urlopen(req, timeout=15) as resp:
-            raw = resp.read()
-        data = json.loads(raw.decode("utf-8"))
+        resp = await client.get(
+            url, params=params,
+            headers={"User-Agent": "SoilMappingResearch/1.0 (educational)"},
+        )
+        data = resp.json()
         if data:
             lat = float(data[0]["lat"])
             lng = float(data[0]["lon"])
-            print(f"    [NOM] {muni_name} → lat={lat:.5f}, lng={lng:.5f}")
+            algorithm.logger.info(
+                f"[NOM] {muni_name} → lat={lat:.5f}, lng={lng:.5f}"
+            )
             return lat, lng
     except Exception as e:
-        print(f"    [NOM] Error for '{muni_name}': {type(e).__name__}: {e}")
+        algorithm.logger.warning(
+            f"[NOM] Error for '{muni_name}': {type(e).__name__}: {e}"
+        )
     return None
 
 
-def geocode_record(rec: dict) -> tuple[float, float] | None:
-    """
-    Geocode a record using the Spain Catastro parcel API.
-    Only exact parcel coordinates are accepted — no municipality centroid fallback.
-    """
+async def geocode_record(
+    client: httpx.AsyncClient, rec: dict
+) -> tuple[float, float] | None:
+    """Geocode a record using the Spain Catastro parcel API."""
     if rec.get("poligon") is None or rec.get("parcela") is None:
-        print(f"    [GEO] Skipping – no Polígon/Parcella for {rec['pdf_name']}")
+        algorithm.logger.info(
+            f"[GEO] Skipping – no Polígon/Parcella for {rec['pdf_name']}"
+        )
         return None
 
-    prov_mun = resolve_catastro_code(rec["muni_name"], rec["raw_ine"])
+    prov_mun = await resolve_catastro_code(client, rec["muni_name"], rec["raw_ine"])
     if prov_mun is None:
-        print(f"    [GEO] Cannot resolve municipality '{rec['muni_name']}'")
+        algorithm.logger.warning(
+            f"[GEO] Cannot resolve municipality '{rec['muni_name']}'"
+        )
         return None
 
     prov, mun = prov_mun
@@ -559,29 +656,42 @@ def geocode_record(rec: dict) -> tuple[float, float] | None:
     if cache_key in _coord_cache:
         return _coord_cache[cache_key]
 
-    print(f"    [GEO] Catastro prov={prov} mun={mun:03d} pol={pol} par={par}")
-    result = catastro_geocode(prov, mun, pol, par)
-    time.sleep(0.5)
+    algorithm.logger.info(
+        f"[GEO] Catastro prov={prov} mun={mun:03d} pol={pol} par={par}"
+    )
+    result = await catastro_geocode(client, prov, mun, pol, par)
 
     if result:
         lat, lng = result
         lat_min, lat_max, lng_min, lng_max = _LLEIDA_BBOX
         if lat_min < lat < lat_max and lng_min < lng < lng_max:
-            _coord_cache[cache_key] = result
-            print(f"    [GEO] → lat={lat:.5f}, lng={lng:.5f}")
+            async with _coord_cache_lock:
+                _coord_cache[cache_key] = result
+            algorithm.logger.info(f"[GEO] → lat={lat:.5f}, lng={lng:.5f}")
             return result
-        print(f"    [GEO] Rejected out-of-region coords lat={lat:.4f}, lng={lng:.4f}")
+        algorithm.logger.warning(
+            f"[GEO] Rejected out-of-region coords lat={lat:.4f}, lng={lng:.4f}"
+        )
 
-    print(f"    [GEO] Could not geocode Polígon {pol} Parcella {par}")
+    algorithm.logger.warning(
+        f"[GEO] Could not geocode Polígon {pol} Parcella {par}"
+    )
     return None
 
 
-def geocode_records(records: list[dict]) -> list[dict]:
-    """Geocode all records via Catastro API."""
-    for rec in records:
-        coords = geocode_record(rec)
-        if coords:
-            rec["lat"], rec["lng"] = coords
+async def geocode_records(
+    client: httpx.AsyncClient, records: list[dict]
+) -> list[dict]:
+    """Geocode all records via Catastro API in parallel with a small semaphore."""
+    sem = asyncio.Semaphore(GEO_CONCURRENCY)
+
+    async def _bounded(rec: dict) -> None:
+        async with sem:
+            coords = await geocode_record(client, rec)
+            if coords:
+                rec["lat"], rec["lng"] = coords
+
+    await asyncio.gather(*[_bounded(r) for r in records])
     return records
 
 
@@ -612,7 +722,9 @@ def records_to_map_rows(records: list[dict]) -> list[dict]:
             "source_file": rec["pdf_name"],
         })
     geocoded = len(rows)
-    print(f"\n  {geocoded}/{len(records)} records geocoded successfully")
+    algorithm.logger.info(
+        f"  {geocoded}/{len(records)} records geocoded successfully"
+    )
     return rows
 
 
@@ -630,21 +742,17 @@ def idw_grid(lats, lngs, values, grid_lat, grid_lng, power=2, min_dist=0.02):
 
 
 def raster_to_base64(grid_values, cmap, vmin, vmax, hull_mask=None):
-    """Render interpolated grid as a transparent PNG with edge-fade alpha, return base64 data URI.
-
-    hull_mask: optional boolean array (H, W); True = inside convex hull, False = outside.
-    Pixels outside the hull are set fully transparent.
-    """
+    """Render interpolated grid as a transparent PNG with edge-fade alpha, return base64 data URI."""
     import numpy as np
     import io
-    import base64
+    import base64 as b64mod
     import matplotlib.colors as mcolors
     from scipy.ndimage import gaussian_filter
     from PIL import Image
 
     smoothed = gaussian_filter(grid_values, sigma=1.2)
     norm = mcolors.Normalize(vmin=vmin, vmax=vmax)
-    rgba = cmap(norm(smoothed)).copy()  # shape (H, W, 4), values in [0, 1]
+    rgba = cmap(norm(smoothed)).copy()
 
     H, W = smoothed.shape
     row_dist = np.minimum(np.arange(H), H - 1 - np.arange(H)).astype(np.float32)
@@ -660,24 +768,17 @@ def raster_to_base64(grid_values, cmap, vmin, vmax, hull_mask=None):
         soft_hull = np.clip(soft_hull, 0, 1)
         rgba[..., 3] *= soft_hull
 
-    # Encode to PNG using PIL for precise per-pixel alpha control
     img_array = (rgba * 255).astype(np.uint8)
     img = Image.fromarray(img_array, mode="RGBA")
     buf = io.BytesIO()
     img.save(buf, format="PNG")
     buf.seek(0)
-    b64 = base64.b64encode(buf.read()).decode()
-    return f"data:image/png;base64,{b64}"
+    data = b64mod.b64encode(buf.read()).decode()
+    return f"data:image/png;base64,{data}"
 
 
 def _cluster_hull(lngs_seq, lats_seq, buffer: float = 0.025, eps: float = 0.5):
-    """
-    Return a shapely geometry that is the union of per-cluster buffered convex
-    hulls.  Points within `eps` degrees of each other belong to the same
-    cluster, so distant regions (e.g. Lleida vs Huesca vs Castellón) produce
-    separate, non-connected hulls — preventing IDW from being shown across the
-    empty space between them.
-    """
+    """Union of per-cluster buffered convex hulls (DBSCAN-like over coords)."""
     from scipy.spatial import KDTree
     from shapely.geometry import MultiPoint
     from shapely.ops import unary_union
@@ -707,10 +808,6 @@ def _cluster_hull(lngs_seq, lats_seq, buffer: float = 0.025, eps: float = 0.5):
     return unary_union(hulls)
 
 
-# Hex codes sampled directly from the ISRIC WMS GetLegendGraphic response for
-# the MostProbable WRB layer (https://maps.isric.org/mapserv?map=/map/wrb.map).
-# Each (name, hex, short hint) row in the in-app legend uses these exact colours
-# so the swatches always match the rendered map tiles.
 WRB_LEGEND = [
     ("Acrisols",     "#f7991d", "acidic, weathered"),
     ("Albeluvisols", "#9b9d57", "bleached"),
@@ -752,7 +849,7 @@ def generate_map(all_rows: list[dict]) -> None:
     import folium.raster_layers
 
     if not all_rows:
-        print("[WARN] No data to plot")
+        algorithm.logger.warning("No data to plot")
         return
 
     lats = [r["lat"] for r in all_rows]
@@ -760,7 +857,6 @@ def generate_map(all_rows: list[dict]) -> None:
     center_lat = sum(lats) / len(lats)
     center_lng = sum(lngs) / len(lngs)
 
-    # --- Per-parameter configuration ---
     PARAMS = {
         "ph":    ("pH",             lambda r: r.get("pH")),
         "mo":    ("OM — Organic Matter (%)",              lambda r: float(r["MO"])        if r.get("MO")        else None),
@@ -768,22 +864,18 @@ def generate_map(all_rows: list[dict]) -> None:
         "n_no3": ("N-NO₃ (mg/kg)", lambda r: float(r["N_Nitrico"]) if r.get("N_Nitrico") else None),
         "p":     ("P (mg/kg)",      lambda r: float(r["Fosforo"])   if r.get("Fosforo")   else None),
     }
-    # Sequential ramps so colour does not encode "good/bad" — the legend marks
-    # the optimal range explicitly. Each ramp is single- or two-hue so it does
-    # not visually compete with the desaturated WRB context layer below.
     CMAP_STOPS = {
-        "ph":    ["#440154", "#3b528b", "#21918c", "#5ec962", "#fde725"],  # viridis
-        "mo":    ["#ffffe5", "#78c679", "#004529"],                          # YlGn
-        "ce":    ["#f7fbff", "#6baed6", "#08306b"],                          # Blues
-        "n_no3": ["#fff5eb", "#fd8d3c", "#7f2704"],                          # Oranges
-        "p":     ["#fff5eb", "#fd8d3c", "#7f2704"],                          # Oranges
+        "ph":    ["#440154", "#3b528b", "#21918c", "#5ec962", "#fde725"],
+        "mo":    ["#ffffe5", "#78c679", "#004529"],
+        "ce":    ["#f7fbff", "#6baed6", "#08306b"],
+        "n_no3": ["#fff5eb", "#fd8d3c", "#7f2704"],
+        "p":     ["#fff5eb", "#fd8d3c", "#7f2704"],
     }
     CMAPS = {
         key: mcolors.LinearSegmentedColormap.from_list(key, stops)
         for key, stops in CMAP_STOPS.items()
     }
 
-    # --- Build IDW rasters ---
     PAD = 0.05
     lat_min = min(lats) - PAD
     lat_max = max(lats) + PAD
@@ -791,24 +883,18 @@ def generate_map(all_rows: list[dict]) -> None:
     lng_max = max(lngs) + PAD
     GRID_N = 120
     grid_lng_vals = np.linspace(lng_min, lng_max, GRID_N)
-    grid_lat_vals = np.linspace(lat_max, lat_min, GRID_N)  # top→bottom for imshow
+    grid_lat_vals = np.linspace(lat_max, lat_min, GRID_N)
     grid_lng, grid_lat = np.meshgrid(grid_lng_vals, grid_lat_vals)
 
-    # --- Per-subset (aggregate + per-year) hull masks ---
-    # Each geographic cluster gets its own buffered convex hull so the IDW
-    # raster is never shown in the empty space between distant regions.
-    # For yearly subsets the hull is recomputed from just that year's points
-    # so areas not sampled in a given year stay transparent (honest coverage).
     from shapely.geometry import Point
     from shapely.prepared import prep
 
-    MIN_SAMPLES_FOR_YEAR = 3   # IDW requires ≥3 points to interpolate
+    MIN_SAMPLES_FOR_YEAR = 3
     years_available = sorted({r["year"] for r in all_rows if r["year"] is not None})
     subsets: dict[str, list[dict]] = {"all": all_rows}
     for y in years_available:
         subsets[str(y)] = [r for r in all_rows if r["year"] == y]
 
-    # Drop years below the IDW minimum so they never reach the dropdown
     years_available = [y for y in years_available
                        if len(subsets[str(y)]) >= MIN_SAMPLES_FOR_YEAR]
     for y_str in list(subsets):
@@ -833,24 +919,23 @@ def generate_map(all_rows: list[dict]) -> None:
 
     subset_hull_masks = {k: _build_hull_mask(rows) for k, rows in subsets.items()}
 
-    # raster_b64[param][subset_key] → data URI
-    # raster_ranges[param] → (vmin, vmax)  — same scale across subsets so
-    # cross-year comparison is visually honest.
     raster_b64: dict[str, dict[str, str]] = {}
     raster_ranges: dict[str, tuple[float, float]] = {}
-    print("  Computing IDW rasters (aggregate + per-year)...")
+    algorithm.logger.info("Computing IDW rasters (aggregate + per-year)...")
     for key, (label, extractor) in PARAMS.items():
         all_pts = [(r["lat"], r["lng"], extractor(r))
                    for r in all_rows if extractor(r) is not None]
         if len(all_pts) < 3:
-            print(f"    [SKIP] {label}: fewer than 3 valid samples in aggregate")
+            algorithm.logger.info(
+                f"  [SKIP] {label}: fewer than 3 valid samples in aggregate"
+            )
             continue
         _, _, all_vals = zip(*all_pts)
         all_vals_arr = np.array(all_vals, dtype=float)
         vmin = float(np.percentile(all_vals_arr, 2))
         vmax = float(np.percentile(all_vals_arr, 98))
         if vmin == vmax:
-            vmax = vmin + 1  # prevent degenerate colormap
+            vmax = vmin + 1
         raster_ranges[key] = (round(vmin, 2), round(vmax, 2))
         raster_b64[key] = {}
 
@@ -866,11 +951,12 @@ def generate_map(all_rows: list[dict]) -> None:
                 hull_mask=subset_hull_masks.get(subset_key),
             )
 
-        print(f"    {label}: [{vmin:.2f}, {vmax:.2f}]  "
-              f"({len(raster_b64[key])}/{len(subsets)} subsets, "
-              f"{len(all_pts)} samples aggregate)")
+        algorithm.logger.info(
+            f"  {label}: [{vmin:.2f}, {vmax:.2f}]  "
+            f"({len(raster_b64[key])}/{len(subsets)} subsets, "
+            f"{len(all_pts)} samples aggregate)"
+        )
 
-    # --- Aggregated statistics (computed in Python, injected as static values) ---
     def safe_float(val):
         try:
             return float(val) if val else None
@@ -915,7 +1001,6 @@ def generate_map(all_rows: list[dict]) -> None:
         param_stats_html("P (mg/kg)", "p", lambda r: safe_float(r.get("Fosforo"))),
     ])
 
-    # --- Build Folium map ---
     m = folium.Map(
         location=[center_lat, center_lng],
         zoom_start=10,
@@ -924,8 +1009,6 @@ def generate_map(all_rows: list[dict]) -> None:
     )
     folium.TileLayer("CartoDB Positron", control=False).add_to(m)
 
-    # Esri World Hillshade — transparent shaded relief layer between basemap
-    # and WRB, giving subtle terrain context without competing for colour.
     folium.TileLayer(
         tiles=(
             "https://server.arcgisonline.com/ArcGIS/rest/services/"
@@ -937,7 +1020,6 @@ def generate_map(all_rows: list[dict]) -> None:
         control=False,
     ).add_to(m)
 
-    # WMS soil type layer (always visible, opacity controllable via slider)
     wms_layer = folium.WmsTileLayer(
         url="https://maps.isric.org/mapserv?map=/map/wrb.map",
         layers="MostProbable",
@@ -951,9 +1033,6 @@ def generate_map(all_rows: list[dict]) -> None:
     wms_layer.add_to(m)
     wms_var = wms_layer.get_name()
 
-    # IDW raster overlays — one per (parameter, subset). JS toggles which one
-    # is visible based on the parameter + year dropdowns. All are hidden at
-    # build time; JS calls switchView("ph", "all") on init.
     overlay_vars: dict[str, dict[str, str]] = {}
     for key in raster_b64:
         overlay_vars[key] = {}
@@ -972,7 +1051,6 @@ def generate_map(all_rows: list[dict]) -> None:
 
     map_var = m.get_name()
 
-    # --- Parameter + year selector + WMS slider panel (top-left) ---
     param_options_html = "\n".join(
         f'<option value="{k}">{PARAMS[k][0]}</option>'
         for k in raster_b64
@@ -1029,9 +1107,6 @@ def generate_map(all_rows: list[dict]) -> None:
     """
     m.get_root().html.add_child(folium.Element(selector_html))
 
-    # --- WRB soil type legend (top-right, collapsed by default) ---
-    # Built from WRB_LEGEND (hex codes sampled from the ISRIC GetLegendGraphic
-    # response), so the swatches match the rendered tiles by construction.
     wrb_rows_html = "\n".join(
         f'<div title="{name} — {hint}" '
         f'style="display:flex;align-items:center;margin-bottom:3px;'
@@ -1084,7 +1159,6 @@ def generate_map(all_rows: list[dict]) -> None:
     """
     m.get_root().html.add_child(folium.Element(wrb_legend_html))
 
-    # --- Aggregated stats panel (bottom-right, collapsible) ---
     ph_cats_rows = "\n".join(
         f'<tr><td style="padding:2px 6px 2px 0">{label}</td>'
         f'<td style="padding:2px 0; text-align:right">{pct_val}%</td></tr>'
@@ -1118,9 +1192,8 @@ def generate_map(all_rows: list[dict]) -> None:
     """
     m.get_root().html.add_child(folium.Element(stats_panel_html))
 
-    # --- Unified JavaScript ---
-    overlay_vars_js = json.dumps(overlay_vars)            # {param: {subset: var_name}}
-    samples_per_subset_js = json.dumps(samples_per_subset)  # {subset: int}
+    overlay_vars_js = json.dumps(overlay_vars)
+    samples_per_subset_js = json.dumps(samples_per_subset)
     param_colors_js = "{" + ", ".join(
         f'"{k}": {CMAP_STOPS[k]}' for k in raster_b64
     ) + "}"
@@ -1141,7 +1214,6 @@ def generate_map(all_rows: list[dict]) -> None:
 
           L.control.zoom({{position: 'topright'}}).addTo(map);
 
-          // Nested: param → subset → Leaflet layer
           var overlayVarNames = {overlay_vars_js};
           var overlayLayers = {{}};
           Object.keys(overlayVarNames).forEach(function(p) {{
@@ -1154,8 +1226,6 @@ def generate_map(all_rows: list[dict]) -> None:
           var samplesPerSubset = {samples_per_subset_js};
           var wmsLayer = window["{wms_var}"];
 
-          // WRB is context, not protagonist: put it on its own pane so we can
-          // desaturate it via CSS without affecting the basemap or IDW overlay.
           if (!map.getPane('wrbPane')) {{
             map.createPane('wrbPane');
             var wp = map.getPane('wrbPane');
@@ -1168,8 +1238,6 @@ def generate_map(all_rows: list[dict]) -> None:
             wmsLayer.addTo(map);
           }}
 
-          // Stack the three control panels into a single left column so the
-          // eye doesn't have to travel diagonally across the map.
           if (!document.getElementById('left-stack')) {{
             var stack = document.createElement('div');
             stack.id = 'left-stack';
@@ -1198,7 +1266,6 @@ def generate_map(all_rows: list[dict]) -> None:
 
           var LOW_SAMPLE_THRESHOLD = 50;
 
-          // Optimal range metadata per parameter.
           var paramOptimal = {{
             'ph':    {{ optimalRange: [6.0, 7.5], direction: null,      note: 'Optimal: 6.0 – 7.5' }},
             'mo':    {{ optimalRange: null,        direction: 'higher',  note: 'Higher → better (organic matter)' }},
@@ -1223,7 +1290,6 @@ def generate_map(all_rows: list[dict]) -> None:
             document.getElementById('legend-title').textContent =
               paramLabels[param] + ' · ' + yearLabel + ' · samples=' + n;
 
-            // Optimal annotation
             var opt = paramOptimal[param];
             var optEl  = document.getElementById('legend-optimal');
             var barEl  = document.getElementById('legend-optimal-bar');
@@ -1256,7 +1322,6 @@ def generate_map(all_rows: list[dict]) -> None:
               barEl.style.display = 'none';
             }}
 
-            // Warning for low-sample yearly subsets, or missing raster
             if (!hasRaster) {{
               warnEl.textContent = 'No data for ' + yearLabel + ' — fewer than 3 samples for this parameter';
               warnEl.style.display = 'block';
@@ -1269,13 +1334,11 @@ def generate_map(all_rows: list[dict]) -> None:
           }}
 
           function switchView(param, year) {{
-            // Hide every overlay first
             Object.keys(overlayLayers).forEach(function(p) {{
               Object.keys(overlayLayers[p]).forEach(function(s) {{
                 if (overlayLayers[p][s]) map.removeLayer(overlayLayers[p][s]);
               }});
             }});
-            // Show selected (param, year) if it exists
             var layer = overlayLayers[param] && overlayLayers[param][year];
             if (layer) {{
               map.addLayer(layer);
@@ -1302,7 +1365,6 @@ def generate_map(all_rows: list[dict]) -> None:
             document.documentElement.style.setProperty('--wrb-swatch-opacity', val);
           }});
 
-          // Initialise
           switchView('ph', 'all');
         }}
       }}, 50);
@@ -1313,39 +1375,59 @@ def generate_map(all_rows: list[dict]) -> None:
 
     OUTPUT_MAP.parent.mkdir(parents=True, exist_ok=True)
     m.save(str(OUTPUT_MAP))
-    print(f"\nMap saved: {OUTPUT_MAP}")
-    print(f"  {total_n} samples, {len(raster_b64)} IDW rasters generated")
+    algorithm.logger.info(f"Map saved: {OUTPUT_MAP}")
+    algorithm.logger.info(
+        f"  {total_n} samples, {len(raster_b64)} IDW rasters generated"
+    )
 
 
 # ============================================================================
-# MAIN
+# ENTRY POINT (ocean-runner)
 # ============================================================================
 
-def main():
-    print("=" * 60)
-    print("Soil Data Extraction & Map Generation")
-    print("=" * 60)
+@algorithm.validate
+def validate(algorithm: Algorithm) -> None:
+    # soil-mapping reads PDFs directly from /data/inputs and does not depend on
+    # OceanProtocol DDO metadata, so we skip the default DDO assertion that
+    # would fail when the container is launched outside the Ocean job runner.
+    return
+
+
+@algorithm.run
+async def run(algorithm: Algorithm) -> list[dict]:
+    algorithm.logger.info("=" * 60)
+    algorithm.logger.info("Soil Data Extraction & Map Generation")
+    algorithm.logger.info("=" * 60)
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     extract_inputs()
 
-    # Phase 1: Extract PDF data
-    records = extract_all_pdfs()
+    # Phase 1: LLM extraction (concurrent, bounded by LLM_CONCURRENCY)
+    async with httpx.AsyncClient(timeout=300) as llm_client:
+        await _warmup_llm(llm_client)
+        records = await extract_all_pdfs(llm_client)
 
     if not records:
-        print("[ERROR] No records extracted. Aborting.")
-        sys.exit(1)
+        raise RuntimeError("No records extracted")
 
-    # Phase 2: Geocode via Spain Catastro API
-    print("\nGeocoding via Spain Catastro API...")
-    records = geocode_records(records)
+    # Phase 2: Catastro geocoding (concurrent, bounded by GEO_CONCURRENCY)
+    algorithm.logger.info("Geocoding via Spain Catastro API...")
+    async with httpx.AsyncClient(timeout=15) as geo_client:
+        records = await geocode_records(geo_client, records)
 
-    # Phase 3: Generate map directly from geocoded records (no JSON/CSV written)
-    all_rows = records_to_map_rows(records)
-    generate_map(all_rows)
+    # Phase 3: map generation (CPU-bound, synchronous)
+    rows = records_to_map_rows(records)
+    generate_map(rows)
 
-    print("\nDone.")
+    algorithm.logger.info("Done.")
+    return rows
+
+
+@algorithm.save_results
+async def save(algorithm: Algorithm, result: list[dict], base: Path) -> None:
+    # generate_map() already writes /data/outputs/soil-characteristics-map.html.
+    return
 
 
 if __name__ == "__main__":
-    main()
+    algorithm()
