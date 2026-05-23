@@ -1,0 +1,406 @@
+{
+  "resultado": {
+    "detalleOperacion": [
+      {
+        "codigo": 105,
+        "descripcion": "JSON generado correctamente"
+      }
+    ],
+    "codigoResultado": "OK",
+    "explotacionREA": {
+      "EXPLOTACION": [
+        {
+          "coauExplotacion": "01",
+          "codigoREA": "ES010000021468",
+          "cacheSIGPAC": 2021,
+          "actualizacionSustitutiva": false,
+          "datosExplotacion": {
+            "datosGeneralesExplotacion": {
+              "fechaRegistro": "13/05/2021",
+              "jovenAgricultor": false,
+              "inicioActividadAgraria": false,
+              "autocontrol": false,
+              "ventaDirecta": false,
+              "ocioAutoconsumo": false,
+              "SRID": "4258"
+            },
+            "entidadesRelacionadas": [
+              {
+                "idAsociado": "A04046868",
+                "tipoAsociado": 1,
+                "razonSocial": "Algodones Confort"
+              },
+              {
+                "idAsociado": "B77777779",
+                "tipoAsociado": 9,
+                "razonSocial": "Atria La competente"
+              }
+            ],
+            "actividadesSecundarias": {
+              "actividadSecundaria": [
+                {
+                  "tipoActividadSecundaria": 3,
+                  "tipoProductoActividad": 1,
+                  "productoActividad": 2
+                }
+              ]
+            },
+            "instalacionesEdificaciones": [
+              {
+                "claseInstalacion": 2,
+                "referenciaCatastral": "07010A005000120000SK",
+                "dimension": 225,
+                "identificador": 15868,
+                "anyoConstruccion": 2011
+              },
+              {
+                "claseInstalacion": 2,
+                "referenciaCatastral": "",
+                "dimension": 1,
+                "identificador": 37105
+              }
+            ],
+            "maquinariaEquipos": [
+              {
+                "numeroROMA": "111000606179"
+              },
+              {
+                "numeroROMA": "111000607381"
+              },
+              {
+                "numeroROMA": "111000607382"
+              },
+              {
+                "numeroROMA": "115000604177"
+              },
+              {
+                "numeroROMA": "141000280220"
+              },
+              {
+                "numeroROMA": "285005005008"
+              }
+            ],
+            "produccionIntegrada": false
+          },
+          "titular": {
+            "idTitular": "12345678Z",
+            "identificadorExtranjero": false,
+            "datosGeneralesTitular": {
+              "nombre": "Juan",
+              "primerApellido": "Doe",
+              "segundoApellido": "Smith",
+              "telefono": 123456789,
+              "email": "john.doe@smith.com",
+              "provincia": " ",
+              "municipio": " ",
+              "direccion": " ",
+              "codigoPostal": " "
+            }
+          },
+          "DGC": [
+            {
+              "provincia": "07",
+              "municipio": "001",
+              "agregado": "000",
+              "zona": "00",
+              "poligono": "002",
+              "parcela": "00001",
+              "recinto": "00189",
+              "codigoDGC": 343437,
+              "datosGeneralesDGC": {
+                "referenciaCatastral": "",
+                "origenCUE": false,
+                "indParcelaSIGPAG": false,
+                "indicadorConcentracionParcelaria": false,
+                "indicadorPastoComun": false,
+                "indicadorDehesaComun": false,
+                "identificadorExtranjero": false,
+                "pequeniaSup": false,
+                "superficieDGC": 27.02,
+                "fechaAlta": "18/07/2023",
+                "puntosAgua": {
+                  "masasAgua": false,
+                  "puntosExtraccionAgua": false
+                }
+              },
+              "cultivos": [
+                {
+                  "identificadorCultivo": 277637,
+                  "cultivo": 343,
+                  "variedad": 9,
+                  "fechaInicio": "01/01/2023",
+                  "sistemaExplotacion": "R",
+                  "siembraDirecta": false,
+                  "detalleVariedadesFrutales": [
+                    {
+                      "variedadFrutal": 9
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "provincia": "07",
+              "municipio": "010",
+              "agregado": "000",
+              "zona": "00",
+              "poligono": "005",
+              "parcela": "00012",
+              "recinto": "00025",
+              "codigoDGC": 343438,
+              "datosGeneralesDGC": {
+                "referenciaCatastral": "",
+                "origenCUE": false,
+                "indParcelaSIGPAG": false,
+                "indicadorConcentracionParcelaria": false,
+                "indicadorPastoComun": false,
+                "indicadorDehesaComun": false,
+                "regimenTenencia": 1,
+                "identificadorExtranjero": false,
+                "pequeniaSup": false,
+                "superficieDGC": 119.92,
+                "fechaAlta": "18/07/2023",
+                "puntosAgua": {
+                  "masasAgua": false,
+                  "puntosExtraccionAgua": false
+                }
+              },
+              "cultivos": [
+                {
+                  "identificadorCultivo": 277638,
+                  "cultivo": 101,
+                  "variedad": 52,
+                  "fechaInicio": "01/01/2017",
+                  "sistemaExplotacion": "S",
+                  "siembraDirecta": false
+                }
+              ]
+            },
+            {
+              "provincia": "07",
+              "municipio": "056",
+              "agregado": "000",
+              "zona": "00",
+              "poligono": "008",
+              "parcela": "00325",
+              "recinto": "00001",
+              "codigoDGC": 343439,
+              "datosGeneralesDGC": {
+                "referenciaCatastral": "",
+                "origenCUE": false,
+                "indParcelaSIGPAG": false,
+                "indicadorConcentracionParcelaria": false,
+                "indicadorPastoComun": false,
+                "indicadorDehesaComun": false,
+                "regimenTenencia": 1,
+                "identificadorExtranjero": false,
+                "pequeniaSup": false,
+                "superficieDGC": 10.39,
+                "fechaAlta": "18/07/2023",
+                "puntosAgua": {
+                  "masasAgua": false,
+                  "puntosExtraccionAgua": false
+                }
+              },
+              "cultivos": [
+                {
+                  "identificadorCultivo": 277639,
+                  "cultivo": 193,
+                  "variedad": 0,
+                  "fechaInicio": "01/05/2023",
+                  "fechaFin": "31/12/2023",
+                  "sistemaExplotacion": "R",
+                  "siembraDirecta": false,
+                  "detalleHorticolasViveros": [
+                    {
+                      "cultivo": 151,
+                      "superficie": 0,
+                      "fechaInicio": "01/05/2023",
+                      "fechaFin": "31/12/2023"
+                    },
+                    {
+                      "cultivo": 121,
+                      "superficie": 0,
+                      "fechaInicio": "01/05/2023",
+                      "fechaFin": "31/12/2023"
+                    },
+                    {
+                      "cultivo": 99,
+                      "superficie": 0,
+                      "fechaInicio": "01/05/2023",
+                      "fechaFin": "31/12/2023"
+                    }
+                  ]
+                },
+                {
+                  "identificadorCultivo": 277640,
+                  "cultivo": 193,
+                  "variedad": 0,
+                  "fechaInicio": "01/01/2023",
+                  "fechaFin": "30/04/2023",
+                  "sistemaExplotacion": "R",
+                  "siembraDirecta": false,
+                  "detalleHorticolasViveros": [
+                    {
+                      "cultivo": 92,
+                      "superficie": 0,
+                      "fechaInicio": "01/01/2023",
+                      "fechaFin": "30/04/2023"
+                    },
+                    {
+                      "cultivo": 155,
+                      "superficie": 0,
+                      "fechaInicio": "01/01/2023",
+                      "fechaFin": "30/04/2023"
+                    },
+                    {
+                      "cultivo": 152,
+                      "superficie": 0,
+                      "fechaInicio": "01/01/2023",
+                      "fechaFin": "30/04/2023"
+                    },
+                    {
+                      "cultivo": 82,
+                      "superficie": 0,
+                      "fechaInicio": "01/01/2023",
+                      "fechaFin": "30/04/2023"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "provincia": "07",
+              "municipio": "010",
+              "agregado": "000",
+              "zona": "00",
+              "poligono": "005",
+              "parcela": "00012",
+              "recinto": "00029",
+              "codigoDGC": 343440,
+              "datosGeneralesDGC": {
+                "referenciaCatastral": "",
+                "origenCUE": false,
+                "indParcelaSIGPAG": false,
+                "indicadorConcentracionParcelaria": false,
+                "indicadorPastoComun": false,
+                "indicadorDehesaComun": false,
+                "regimenTenencia": 1,
+                "identificadorExtranjero": false,
+                "pequeniaSup": false,
+                "superficieDGC": 34.44,
+                "fechaAlta": "18/07/2023",
+                "puntosAgua": {
+                  "masasAgua": false,
+                  "puntosExtraccionAgua": false
+                }
+              },
+              "aprovechamientos": [
+                {
+                  "identificadorAprovechamiento": 277640,
+                  "aprovechamiento": 1,
+                  "fechaInicio": "01/01/2023",
+                  "fechaFin": "31/12/2023"
+                }
+              ]
+            },
+            {
+              "provincia": "07",
+              "municipio": "001",
+              "agregado": "000",
+              "zona": "00",
+              "poligono": "001",
+              "parcela": "00001",
+              "recinto": "00001",
+              "codigoDGC": 343441,
+              "datosGeneralesDGC": {
+                "referenciaCatastral": "",
+                "origenCUE": false,
+                "indParcelaSIGPAG": false,
+                "indicadorConcentracionParcelaria": false,
+                "indicadorPastoComun": false,
+                "indicadorDehesaComun": false,
+                "regimenTenencia": 1,
+                "identificadorExtranjero": false,
+                "pequeniaSup": false,
+                "superficieDGC": 75.01,
+                "fechaAlta": "18/07/2023",
+                "puntosAgua": {
+                  "masasAgua": false,
+                  "puntosExtraccionAgua": false
+                }
+              },
+              "cultivos": [
+                {
+                  "identificadorCultivo": 277642,
+                  "cultivo": 194,
+                  "variedad": 4,
+                  "fechaInicio": "01/05/2023",
+                  "fechaFin": "31/12/2023",
+                  "sistemaExplotacion": "R",
+                  "siembraDirecta": false
+                },
+                {
+                  "identificadorCultivo": 277641,
+                  "cultivo": 194,
+                  "variedad": 4,
+                  "fechaInicio": "01/01/2023",
+                  "fechaFin": "30/04/2023",
+                  "sistemaExplotacion": "R",
+                  "siembraDirecta": false
+                }
+              ]
+            },
+            {
+              "provincia": "07",
+              "municipio": "001",
+              "agregado": "000",
+              "zona": "00",
+              "poligono": "001",
+              "parcela": "00001",
+              "recinto": "00001",
+              "codigoDGC": 343442,
+              "datosGeneralesDGC": {
+                "referenciaCatastral": "",
+                "origenCUE": false,
+                "indParcelaSIGPAG": false,
+                "indicadorConcentracionParcelaria": false,
+                "indicadorPastoComun": false,
+                "indicadorDehesaComun": false,
+                "regimenTenencia": 1,
+                "identificadorExtranjero": false,
+                "pequeniaSup": false,
+                "superficieDGC": 49.49,
+                "fechaAlta": "18/07/2023",
+                "puntosAgua": {
+                  "masasAgua": false,
+                  "puntosExtraccionAgua": false
+                }
+              },
+              "cultivos": [
+                {
+                  "identificadorCultivo": 277643,
+                  "cultivo": 1,
+                  "variedad": 4,
+                  "fechaInicio": "01/01/2023",
+                  "fechaFin": "30/04/2023",
+                  "sistemaExplotacion": "S",
+                  "siembraDirecta": false
+                },
+                {
+                  "identificadorCultivo": 277644,
+                  "cultivo": 1,
+                  "variedad": 4,
+                  "fechaInicio": "01/06/2023",
+                  "fechaFin": "31/01/2024",
+                  "sistemaExplotacion": "S",
+                  "siembraDirecta": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
