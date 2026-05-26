@@ -1,3 +1,4 @@
 algorithm/src/__pycache__
 .env
 records.json
+_data/transformations/

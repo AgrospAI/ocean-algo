@@ -15,6 +15,8 @@ import zipfile
 from pathlib import Path
 
 import httpx
+from dotenv import get_key
+from functools import lru_cache
 from ocean_runner import Algorithm, Config
 
 # --- Paths ------------------------------------------------------------------
@@ -24,15 +26,25 @@ RAW_DIR = Path("/tmp/soil-pdfs")
 
 OUTPUT_MAP = OUTPUT_DIR / "soil-characteristics-map.html"
 
-OPENWEBUI_API_KEY = os.getenv("OPENWEBUI_API_KEY")
 OPENWEBUI_URL = "https://chat.agrospai.udl.cat"
 CHAT_COMPLETIONS_URL = f"{OPENWEBUI_URL}/api/chat/completions"
-LLM_MODEL = os.getenv("LLM_MODEL")
 
 LLM_CONCURRENCY = 4
 GEO_CONCURRENCY = 4
 
-algorithm = Algorithm(Config())
+algorithm = Algorithm.create(Config())
+
+
+@lru_cache(maxsize=None)
+def _load_env(key: str) -> str:
+    path = algorithm.job_details.paths.algorithm
+    source = "file" if path.exists() else "environ"
+    value = get_key(str(path), key) if path.exists() else os.getenv(key)
+    assert value, (
+        f"{key} not populated (source={source}, path={path}); "
+        f"got value={value!r}"
+    )
+    return value
 
 # In-memory cache: province_int → {NORMALIZED_NAME: mun_3digit}
 _province_muni_cache: dict[int, dict[str, int]] = {}
@@ -185,17 +197,15 @@ def pdf_to_markdown(pdf_path: Path) -> str | None:
 
 async def _warmup_llm(client: httpx.AsyncClient) -> None:
     """Send a tiny ping so the first real PDF doesn't pay the full cold-start cost."""
-    if not OPENWEBUI_API_KEY:
-        return
     try:
         await client.post(
             CHAT_COMPLETIONS_URL,
             headers={
-                "Authorization": f"Bearer {OPENWEBUI_API_KEY}",
+                "Authorization": f"Bearer {_load_env('OPENWEBUI_API_KEY')}",
                 "Content-Type": "application/json",
             },
             json={
-                "model": LLM_MODEL,
+                "model": _load_env("LLM_MODEL"),
                 "stream": False,
                 "messages": [{"role": "user", "content": "ping"}],
                 "temperature": 0.0,
@@ -213,10 +223,6 @@ async def _warmup_llm(client: httpx.AsyncClient) -> None:
 
 async def extract_with_llm(client: httpx.AsyncClient, pdf_path: Path) -> dict | None:
     """Extract a soil analysis record from a PDF using the local LLM."""
-    if not OPENWEBUI_API_KEY:
-        algorithm.logger.error("OPENWEBUI_API_KEY not set — cannot extract via LLM")
-        return None
-
     # PDF rasterisation and docling markdown are CPU/subprocess-bound — run in
     # threads so the event loop can keep dispatching other LLM tasks meanwhile.
     images, markdown = await asyncio.gather(
@@ -231,7 +237,7 @@ async def extract_with_llm(client: httpx.AsyncClient, pdf_path: Path) -> dict | 
         return None
 
     headers = {
-        "Authorization": f"Bearer {OPENWEBUI_API_KEY}",
+        "Authorization": f"Bearer {_load_env('OPENWEBUI_API_KEY')}",
         "Content-Type": "application/json",
     }
 
@@ -248,7 +254,7 @@ async def extract_with_llm(client: httpx.AsyncClient, pdf_path: Path) -> dict | 
         content.append({"type": "image_url", "image_url": {"url": img_url}})
 
     payload = {
-        "model": LLM_MODEL,
+        "model": _load_env("LLM_MODEL"),
         "stream": False,
         "messages": [{"role": "user", "content": content}],
         "temperature": 0.0,
@@ -742,7 +748,13 @@ def idw_grid(lats, lngs, values, grid_lat, grid_lng, power=2, min_dist=0.02):
 
 
 def raster_to_base64(grid_values, cmap, vmin, vmax, hull_mask=None):
-    """Render interpolated grid as a transparent PNG with edge-fade alpha, return base64 data URI."""
+    """Render interpolated grid as a transparent PNG with edge-fade alpha.
+
+    Returns ``(data_uri, value_grid)`` where ``value_grid`` is a nested list of the
+    smoothed interpolated values (the exact values the rendered colours represent),
+    with ``None`` wherever the raster is effectively invisible (outside the hull or
+    fully faded). This drives the hover tooltip so the read-out matches the colour.
+    """
     import numpy as np
     import io
     import base64 as b64mod
@@ -768,13 +780,22 @@ def raster_to_base64(grid_values, cmap, vmin, vmax, hull_mask=None):
         soft_hull = np.clip(soft_hull, 0, 1)
         rgba[..., 3] *= soft_hull
 
+    # Expose the displayed value where the raster is visible; None elsewhere so the
+    # tooltip vanishes off the painted area. Threshold matches near-zero alpha.
+    visible = rgba[..., 3] >= 0.05
+    rounded = np.round(smoothed, 2)
+    value_grid = [
+        [float(v) if vis else None for v, vis in zip(row_vals, row_vis)]
+        for row_vals, row_vis in zip(rounded.tolist(), visible.tolist())
+    ]
+
     img_array = (rgba * 255).astype(np.uint8)
     img = Image.fromarray(img_array, mode="RGBA")
     buf = io.BytesIO()
     img.save(buf, format="PNG")
     buf.seek(0)
     data = b64mod.b64encode(buf.read()).decode()
-    return f"data:image/png;base64,{data}"
+    return f"data:image/png;base64,{data}", value_grid
 
 
 def _cluster_hull(lngs_seq, lats_seq, buffer: float = 0.025, eps: float = 0.5):
@@ -920,6 +941,7 @@ def generate_map(all_rows: list[dict]) -> None:
     subset_hull_masks = {k: _build_hull_mask(rows) for k, rows in subsets.items()}
 
     raster_b64: dict[str, dict[str, str]] = {}
+    raster_grids: dict[str, dict[str, list]] = {}
     raster_ranges: dict[str, tuple[float, float]] = {}
     algorithm.logger.info("Computing IDW rasters (aggregate + per-year)...")
     for key, (label, extractor) in PARAMS.items():
@@ -938,6 +960,7 @@ def generate_map(all_rows: list[dict]) -> None:
             vmax = vmin + 1
         raster_ranges[key] = (round(vmin, 2), round(vmax, 2))
         raster_b64[key] = {}
+        raster_grids[key] = {}
 
         for subset_key, rows_subset in subsets.items():
             pts = [(r["lat"], r["lng"], extractor(r))
@@ -946,10 +969,12 @@ def generate_map(all_rows: list[dict]) -> None:
                 continue
             plats, plngs, pvals = zip(*pts)
             grid_vals = idw_grid(plats, plngs, pvals, grid_lat, grid_lng)
-            raster_b64[key][subset_key] = raster_to_base64(
+            img_uri, value_grid = raster_to_base64(
                 grid_vals, CMAPS[key], vmin, vmax,
                 hull_mask=subset_hull_masks.get(subset_key),
             )
+            raster_b64[key][subset_key] = img_uri
+            raster_grids[key][subset_key] = value_grid
 
         algorithm.logger.info(
             f"  {label}: [{vmin:.2f}, {vmax:.2f}]  "
@@ -1203,6 +1228,8 @@ def generate_map(all_rows: list[dict]) -> None:
     param_labels_js = "{" + ", ".join(
         f'"{k}": "{PARAMS[k][0]}"' for k in raster_b64
     ) + "}"
+    raster_grids_js = json.dumps(raster_grids)
+    grid_bounds_js = json.dumps([lat_min, lat_max, lng_min, lng_max])
 
     js_html = f"""
     <script>
@@ -1263,6 +1290,56 @@ def generate_map(all_rows: list[dict]) -> None:
           var paramColors = {param_colors_js};
           var paramRanges = {param_ranges_js};
           var paramLabels = {param_labels_js};
+
+          // --- Per-pixel value read-out (hover tooltip) -----------------------
+          var gridData = {raster_grids_js};
+          var gridBounds = {grid_bounds_js};   // [lat_min, lat_max, lng_min, lng_max]
+          var GRID_N = {GRID_N};
+
+          // Compact per-parameter formatting for the read-out.
+          var tipFmt = {{
+            'ph':    {{ label: 'pH',    dp: 1, unit: ''       }},
+            'mo':    {{ label: 'OM',    dp: 1, unit: ' %'     }},
+            'ce':    {{ label: 'EC',    dp: 2, unit: ' dS/m'  }},
+            'n_no3': {{ label: 'N-NO₃', dp: 0, unit: ' mg/kg' }},
+            'p':     {{ label: 'P',     dp: 0, unit: ' mg/kg' }},
+          }};
+
+          function hexToRgb(h) {{
+            h = h.replace('#', '');
+            return [parseInt(h.slice(0,2),16), parseInt(h.slice(2,4),16), parseInt(h.slice(4,6),16)];
+          }}
+          // Colour at normalised position t (0..1) along a parameter's gradient stops,
+          // mirroring the matplotlib LinearSegmentedColormap used for the raster.
+          function colorAt(param, t) {{
+            var stops = paramColors[param];
+            if (!stops || !stops.length) return '#888';
+            t = Math.max(0, Math.min(1, t));
+            var seg = t * (stops.length - 1);
+            var i = Math.min(stops.length - 2, Math.floor(seg));
+            var f = seg - i;
+            var a = hexToRgb(stops[i]), b = hexToRgb(stops[i+1]);
+            var r = Math.round(a[0]+(b[0]-a[0])*f);
+            var g = Math.round(a[1]+(b[1]-a[1])*f);
+            var bl = Math.round(a[2]+(b[2]-a[2])*f);
+            return 'rgb(' + r + ',' + g + ',' + bl + ')';
+          }}
+
+          var tip = document.createElement('div');
+          tip.id = 'px-tooltip';
+          tip.style.cssText =
+            'position:fixed; pointer-events:none; z-index:1200; display:none;' +
+            'align-items:center; gap:8px; padding:6px 10px; font-size:13px;' +
+            'background:rgba(255,255,255,0.96); border:1px solid #e5e7eb;' +
+            'border-radius:8px; box-shadow:0 6px 16px rgba(0,0,0,0.12);' +
+            'font-family:inherit; white-space:nowrap;';
+          tip.innerHTML =
+            '<span id="px-dot" style="width:11px; height:11px; border-radius:50%;' +
+            'border:1px solid rgba(0,0,0,0.15); flex-shrink:0;"></span>' +
+            '<span><b id="px-label" style="color:#57534e; font-weight:600;"></b>' +
+            '<span id="px-value" style="margin-left:6px; font-variant-numeric:tabular-nums;"></span></span>';
+          document.body.appendChild(tip);
+          function hideTip() {{ tip.style.display = 'none'; }}
 
           var LOW_SAMPLE_THRESHOLD = 50;
 
@@ -1340,11 +1417,14 @@ def generate_map(all_rows: list[dict]) -> None:
               }});
             }});
             var layer = overlayLayers[param] && overlayLayers[param][year];
+            hideTip();
             if (layer) {{
               map.addLayer(layer);
               updateLegend(param, year, true);
+              map.getContainer().style.cursor = 'crosshair';
             }} else {{
               updateLegend(param, year, false);
+              map.getContainer().style.cursor = '';
             }}
           }}
 
@@ -1357,6 +1437,47 @@ def generate_map(all_rows: list[dict]) -> None:
           yearSelect.addEventListener('change', function() {{
             switchView(paramSelect.value, yearSelect.value);
           }});
+
+          // Follow-cursor read-out: map cursor lat/lng → grid cell → interpolated value.
+          var lat_min = gridBounds[0], lat_max = gridBounds[1];
+          var lng_min = gridBounds[2], lng_max = gridBounds[3];
+          var rafPending = false, lastEvt = null;
+          function renderTip() {{
+            rafPending = false;
+            var e = lastEvt;
+            if (!e) return;
+            var param = paramSelect.value, year = yearSelect.value;
+            var grid = gridData[param] && gridData[param][year];
+            if (!grid) {{ hideTip(); return; }}
+            var lat = e.latlng.lat, lng = e.latlng.lng;
+            var col = Math.round((lng - lng_min) / (lng_max - lng_min) * (GRID_N - 1));
+            var row = Math.round((lat_max - lat) / (lat_max - lat_min) * (GRID_N - 1));
+            if (row < 0 || row >= GRID_N || col < 0 || col >= GRID_N) {{ hideTip(); return; }}
+            var val = grid[row][col];
+            if (val === null || val === undefined) {{ hideTip(); return; }}
+
+            var fmt = tipFmt[param] || {{ label: paramLabels[param] || param, dp: 2, unit: '' }};
+            var range = paramRanges[param] || [0, 1];
+            var t = (val - range[0]) / ((range[1] - range[0]) || 1);
+            document.getElementById('px-dot').style.background = colorAt(param, t);
+            document.getElementById('px-label').textContent = fmt.label;
+            document.getElementById('px-value').textContent = val.toFixed(fmt.dp) + fmt.unit;
+
+            tip.style.display = 'flex';
+            // Offset from cursor; flip near the viewport edges so it stays visible.
+            var oe = e.originalEvent;
+            var w = tip.offsetWidth, h = tip.offsetHeight;
+            var x = oe.clientX + 14, y = oe.clientY + 14;
+            if (x + w > window.innerWidth - 8)  x = oe.clientX - w - 14;
+            if (y + h > window.innerHeight - 8) y = oe.clientY - h - 14;
+            tip.style.left = x + 'px';
+            tip.style.top  = y + 'px';
+          }}
+          map.on('mousemove', function(e) {{
+            lastEvt = e;
+            if (!rafPending) {{ rafPending = true; requestAnimationFrame(renderTip); }}
+          }});
+          map.on('mouseout', hideTip);
 
           document.getElementById('wms-opacity-slider').addEventListener('input', function() {{
             var val = this.value / 100;
@@ -1390,7 +1511,8 @@ def validate(algorithm: Algorithm) -> None:
     # soil-mapping reads PDFs directly from /data/inputs and does not depend on
     # OceanProtocol DDO metadata, so we skip the default DDO assertion that
     # would fail when the container is launched outside the Ocean job runner.
-    return
+    _load_env("OPENWEBUI_API_KEY")
+    _load_env("LLM_MODEL")
 
 
 @algorithm.run

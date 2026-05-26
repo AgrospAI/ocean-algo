@@ -6,8 +6,6 @@ services:
       - ./_data/inputs:/data/inputs:ro
       - ./_data/ddos:/data/ddos:ro
       - ./_data/outputs:/data/outputs:rw
+      - ./_data/transformations:/data/transformations:ro
       - ./algorithm/src:/algorithm/src/
     entrypoint: ["python3", "/algorithm/src/algorithm.py"]
-    environment:
-      - OPENWEBUI_API_KEY=${OPENWEBUI_API_KEY}
-      - LLM_MODEL=${LLM_MODEL}
