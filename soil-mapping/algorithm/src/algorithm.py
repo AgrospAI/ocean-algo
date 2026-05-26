@@ -8,7 +8,6 @@ import re
 import subprocess
 import tempfile
 import threading
-import urllib.parse
 import uuid
 import xml.etree.ElementTree as ET
 import zipfile
