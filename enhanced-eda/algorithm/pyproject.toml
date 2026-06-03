@@ -10,7 +10,7 @@ dependencies = [
     "pandas>=2.3.3",
     "ydata-profiling>=4.17.0",
     "setuptools>=80.9.0",
-    "ocean-runner>=0.3.11",
+    "ocean-runner>=0.3.16",
 ]
 
 [tool.uv]
