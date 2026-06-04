@@ -154,6 +154,22 @@ def run(_) -> ResultsT:
             dgc_data = json.load(file)
 
         parcels = extract_parcels(dgc_data)
+
+        # Log error message from input file if DGCs are missing
+        if not parcels:
+            resultado = dgc_data.get("resultado", {})
+            codigo = resultado.get("codigoResultado")
+            detalle = resultado.get("detalleImportacion", [])
+            if codigo == "FALLO" and detalle:
+                error_descriptions = [d.get("descripcion", "Sin descripción") for d in detalle]
+                logger.warning(
+                    f"Input file {file_path} does not contain DGCs. "
+                    f"Error in input file: codigoResultado={codigo}, "
+                    f"detalleImportacion={error_descriptions}"
+                )
+            else:
+                logger.warning(f"Input file {file_path} does not contain DGCs.")
+
         features: list[GeoJSONFeature] = []
         log_entries: list[ParcelLogEntry] = []
         for parcel in parcels:
