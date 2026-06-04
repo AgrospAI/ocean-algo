@@ -153,7 +153,7 @@ wheels = [
 
 [[package]]
 name = "ocean-runner"
-version = "0.3.15"
+version = "0.3.16"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiofiles" },
@@ -161,14 +161,14 @@ dependencies = [
     { name = "pydantic" },
     { name = "pydantic-settings" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/58/c5/cce32b84ba5f23ae3d3bba0d3264371b7317d9f80934bc75cc4339553c6f/ocean_runner-0.3.15.tar.gz", hash = "sha256:3c83d20d884fe4e5dff3de4213f3dc39935dfe90d68deee605607a2731625592", size = 8549, upload-time = "2026-04-13T09:03:20.325Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/a7/0c/a70cb7f9c7762c230c9577fa704b7155c52e72b1c957a687e45ed9f11439/ocean_runner-0.3.16.tar.gz", hash = "sha256:64425ff1cd22029d85809b2655529a325836bef2e4394ad587df639f841c6a92", size = 8557, upload-time = "2026-06-03T10:52:19.372Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ee/6f/e6358fd2560c62afa77375572551709a1a89005946e094077d09e5522e8d/ocean_runner-0.3.15-py3-none-any.whl", hash = "sha256:4c956c0731e931a5dbc9e8bad771a3f4d04c01feae2a8d175bc5c7791e94b59f", size = 11066, upload-time = "2026-04-13T09:03:19.503Z" },
+    { url = "https://files.pythonhosted.org/packages/9c/45/9dc5f657d793a11cd5b1eb08bd27b1bd74d87b1a61b752f24e4620da2bfc/ocean_runner-0.3.16-py3-none-any.whl", hash = "sha256:0959a0471954b337cff212764e462360562e8c524456b59e4a1eff6d62013312", size = 11066, upload-time = "2026-06-03T10:52:18.528Z" },
 ]
 
 [[package]]
 name = "oceanprotocol-job-details"
-version = "0.4.5"
+version = "0.4.6"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiofiles" },
@@ -177,9 +177,9 @@ dependencies = [
     { name = "pydantic" },
     { name = "pydantic-settings" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/3f/70/b89167e82d40a1bec53d455c175997e372a51ec740cdb5248d14b2273349/oceanprotocol_job_details-0.4.5.tar.gz", hash = "sha256:821d0b88c210344781b3dc1d100658c399e30cac747638807f2a61c5dbf3ef88", size = 8998, upload-time = "2026-04-13T08:26:46.94Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/4e/a1/7c90066a9780af6ee5853c12921abda83caf93ca6c21b819c46552d2a137/oceanprotocol_job_details-0.4.6.tar.gz", hash = "sha256:16a1fb9667b5f1f1429a65f5c81334397e9cdcea0e7e9178c5ba0bbd662950e6", size = 9004, upload-time = "2026-06-03T10:45:39.557Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b7/1f/64a75452aff5936ce89b2b9999a4eeb21eab892c40f20b70d90df55295d9/oceanprotocol_job_details-0.4.5-py3-none-any.whl", hash = "sha256:99085ad1772ba36e37e7d0bd11e2ff6fc1878a5289adbb58b2f859a273475e51", size = 15750, upload-time = "2026-04-13T08:26:45.795Z" },
+    { url = "https://files.pythonhosted.org/packages/86/d0/e1f1b4d236c821292364e14c04cc882b27cd0fb44ae09a4211c77074e417/oceanprotocol_job_details-0.4.6-py3-none-any.whl", hash = "sha256:1bd85749b227e4ac5b23fe5a6e5f3cdf77bb95f8c7fa64f6f8dbf08d07298268", size = 15758, upload-time = "2026-06-03T10:45:38.484Z" },
 ]
 
 [[package]]
@@ -285,7 +285,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "folium", specifier = ">=0.17.0" },
-    { name = "ocean-runner", specifier = ">=0.3.15" },
+    { name = "ocean-runner", specifier = ">=0.3.16" },
     { name = "requests", specifier = ">=2.34.2" },
 ]
 
