@@ -2,6 +2,7 @@
 services:
   algorithm:
     build: .
+    entrypoint: 'ocean-execute --base-dir /data'
     volumes:
       - ./_data/inputs:/data/inputs:ro
       - ./_data/ddos:/data/ddos:ro
