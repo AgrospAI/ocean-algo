@@ -1,0 +1,108 @@
+{
+  "id": "did:op:f5b6edaf44f0fb7bb4a529889acb966f36f9e6cd1985251d490342a8d924e46d",
+  "@context": [
+    "https://w3id.org/did/v1"
+  ],
+  "nftAddress": "0x00A806AA632DdC37a7aa29AFD1981ACAc49cAb9A",
+  "chainId": 32456,
+  "version": "4.1.0",
+  "metadata": {
+    "type": "dataset",
+    "name": "REA Information for holding ES010000021468",
+    "author": "ES010000021468",
+    "description": "REA (Spanish Register of Agricultural Holdings) information for a simulated holding in the testing environment of SIEX, the Spanish IACS (Integrated Administration and Control System).\n\nFor the holding with code ES010000021468, it includes: \n* Holding's identification data (holder, surface area, and location)\n* Buildings, machinery and equipment codes\n* Agricultural Parcels associated with the holding and the recent crops on those parcels.\n\nParcels are identified using \"Crop Graphical Delimitations (DGC)\" from SIGPAC, the Spanish Land Parcel Identification System (LPIS).\n\nOutput fragment:\n\n```json\n{\n  \"EXPLOTACION\": [{\n    \"coauExplotacion\": \"01\",\n    \"codigoREA\": \"ES010000021468\",\n    \"cacheSIGPAC\": 2021,\n    \"actualizacionSustitutiva\": false,\n    \"datosExplotacion\": {\n      \"datosGeneralesExplotacion\": {\n        \"fechaRegistro\": \"13/05/2021\",\n        \"jovenAgricultor\": false,\n        \"inicioActividadAgraria\": false,\n        \"autocontrol\": false,\n        \"ventaDirecta\": false,\n        \"ocioAutoconsumo\": false,\n        \"SRID\": \"4258\"\n      },\n      \"actividadesSecundarias\": {\n        \"actividadSecundaria\": [{\n          \"tipoActividadSecundaria\": 3,\n          \"tipoProductoActividad\": 1,\n          \"productoActividad\": 2\n        }]\n      },\n      \"instalacionesEdificaciones\": [{\n          \"claseInstalacion\": 2,\n          \"referenciaCatastral\": \"07010A005000120000SK\",\n          \"dimension\": 225,\n          \"identificador\": 15868,\n          \"anyoConstruccion\": 2011\n        },\n        {\n          \"claseInstalacion\": 2,\n          \"referenciaCatastral\": \"\",\n          \"dimension\": 1,\n          \"identificador\": 37105\n        }\n      ],\n      \"maquinariaEquipos\": [{\n          \"numeroROMA\": \"111000606179\"\n        },\n        {\n          \"numeroROMA\": \"111000607381\"\n        }\n      ],\n      \"produccionIntegrada\": false\n    },\n    \"titular\": {\n      \"idTitular\": \"12345678Z\",\n      \"identificadorExtranjero\": false,\n      \"datosGeneralesTitular\": {\n        \"nombre\": \"Juan\",\n        \"primerApellido\": \"Doe\"\n      }\n    },\n    \"DGC\": [{\n      \"provincia\": \"07\",\n      \"municipio\": \"056\",\n      \"agregado\": \"000\",\n      \"zona\": \"00\",\n      \"poligono\": \"008\",\n      \"parcela\": \"00325\",\n      \"recinto\": \"00001\",\n      \"codigoDGC\": 343439,\n      \"datosGeneralesDGC\": {\n        \"referenciaCatastral\": \"\",\n        \"origenCUE\": false,\n        \"indParcelaSIGPAG\": false,\n        \"indicadorConcentracionParcelaria\": false,\n        \"indicadorPastoComun\": false,\n        \"indicadorDehesaComun\": false,\n        \"regimenTenencia\": 1,\n        \"identificadorExtranjero\": false,\n        \"pequeniaSup\": false,\n        \"superficieDGC\": 10.39,\n        \"fechaAlta\": \"18/07/2023\",\n        \"puntosAgua\": {\n          \"masasAgua\": false,\n          \"puntosExtraccionAgua\": false\n        }\n      },\n      \"cultivos\": [\n        {\n          \"identificadorCultivo\": 277639,\n          \"cultivo\": 193,\n          \"variedad\": 0,\n          \"fechaInicio\": \"01/05/2023\",\n          \"fechaFin\": \"31/12/2023\",\n          \"sistemaExplotacion\": \"R\",\n          \"siembraDirecta\": false,\n          \"detalleHorticolasViveros\": [\n            {\n              \"cultivo\": 151,\n              \"superficie\": 0,\n              \"fechaInicio\": \"01/05/2023\",\n              \"fechaFin\": \"31/12/2023\"\n            },\n            {\n              \"cultivo\": 121,\n              \"superficie\": 0,\n              \"fechaInicio\": \"01/05/2023\",\n              \"fechaFin\": \"31/12/2023\"\n            },\n            {\n              \"cultivo\": 99,\n              \"superficie\": 0,\n              \"fechaInicio\": \"01/05/2023\",\n              \"fechaFin\": \"31/12/2023\"\n            }\n          ]\n        }\n      ]\n    }]\n  }]\n}\n```\n\n# Important\n\nThis data is **not available for download**, it can only be processed in the AgrospAI **compute-to-data \"data rooms\"**, guaranteeing the confidentiality of the holding information. \n\nFor service providers interested in offering an algorithm that reuses this data on the compute-to-data environment, they can make a **consent petition** to get their algorithm authorized to access it using the \"MAKE PETITION\" link.\n",
+    "tags": [
+      "register",
+      "holding",
+      "agriculture",
+      "machinery",
+      "siex",
+      "sigpac",
+      "test",
+      "parcel",
+      "iacs",
+      "lpis",
+      "agrospai"
+    ],
+    "license": "unlicensed",
+    "created": "2026-05-21T21:06:21Z",
+    "updated": "2026-05-21T21:06:21Z",
+    "additionalInformation": {
+      "gaiaXInformation": {
+        "containsPII": false,
+        "termsAndConditions": [
+          {
+            "url": ""
+          }
+        ]
+      }
+    }
+  },
+  "services": [
+    {
+      "id": "4545def6ec36b61a1c211b558b94619e446f9c6eee2f6e52c1ee1c216e11beee",
+      "datatokenAddress": "0x60a75cD3B8F58b323cf2F97b9783a4ED0a991697",
+      "type": "compute",
+      "serviceEndpoint": "https://provider.agrospai.udl.cat",
+      "timeout": 604800,
+      "files": "0x048a55756d1b5cd86b9989c6f287700e5bfc2b7edeacb0aa4fdecf102aa7ca86eec51441520657b3618878d6582e633cf6beaf792e8f7fd3b1467cf3c6040fa42c1697f41b6443de3c4f1686be2b4798dc8c26fe91e8f752e6721101027399a967a784393d2fea36c250e908cf223243b9a3ecfc3a03c5c897c3ede3f8c4bf0fd0b26ac0f2a2cf8c2dd5022fc0d50fc1ed5866f155c566669a8832bb49a70401cd67ba48fc1f03d03d5a6bb202d8bf073c0c2b70b906e475c8b8ab1df26ed0e62a667fdc0160a89a3bcad23006e74a71723b0200f5cc033e7466d736a120697f69fec3ae4591d132009ac0f3be83e85ec291705869022757eede15a0d3d93ff20e7faf4f5128f57c2cf3b1b4d65e96ef6b5e0b45f7b2b9a0d1502466d5a8088be263103fcb50b1e3a9679364e5b4b22a7f07fda16cc1dee973b54cab1bec16a2a310e1697a9725a32854be52150095399c34a5feef13c7797d4a0c6b25663edc42e9e6d8c2b12fe357c2671095424436975e990d8f66a7cd4c85c48b99c57032f2302192c232cbe7d91d1267639ef172626fc494cc1d51b726980d34b2762b2750733418899f6bbe1f5488b2adc52ee105afedb60b427aa1227c69a0bdfc352c21dea4cbabe6bcc32a557b11f7cb85a65ef3ba54bec38057d588d17ca2fd27bf5d3946456be7615beea9dc710b6873dfc0f9aed9a04e1c9b81740dfe21e7f892b0c1f60e603e9309f95b1a0b1ba41b43d501899411fe45c3f1159813458949f3626a35db11e1fa0af681c795db9ff51333306ab6ea9c61c13b0befb847fde15825e24dc3ce2302dc600e605dd56bf8d2e855c074faff862ff71b0b60f4c766209cc620d7fadd487bd2fc534faacbbee29d8b54be454c96443c3c7da8a470814b7c948ccac3fdafd2c89aeccbb58eb817761ff10029a879d2a6f3b913b28c1a2b78a2d1326448639dd5042acbcfd706a46e1db943601c6f8dab0a1c67c2aa7b666120f50122c5299e208d5740b5d271b52dec2019fd75f588093cc3cb56fc3787a59d59e116a849019141024d3c86976f963ad14158eb4be96f104749fcc355692167595f40",
+      "compute": {
+        "allowNetworkAccess": false,
+        "allowRawAlgorithm": false,
+        "publisherTrustedAlgorithmPublishers": [],
+        "publisherTrustedAlgorithms": []
+      }
+    }
+  ],
+  "credentials": {
+    "allow": [],
+    "deny": []
+  },
+  "event": {
+    "tx": "0x6b100ff67c5930425892bd7300ede670ec98470ff92909eb572c78408e7a204c",
+    "block": 12626137,
+    "from": "0xD999bAaE98AC5246568FD726be8832c49626867D",
+    "contract": "0x00A806AA632DdC37a7aa29AFD1981ACAc49cAb9A",
+    "datetime": "2026-05-21T21:10:46"
+  },
+  "nft": {
+    "address": "0x00A806AA632DdC37a7aa29AFD1981ACAc49cAb9A",
+    "name": "REA-ES010000021468",
+    "symbol": "REA-ES010000021468",
+    "state": 0,
+    "tokenURI": "data:application/json;base64,eyJpbWFnZSI6Imh0dHBzOi8vd3d3LmZlZ2EuZ29iLmVzL3NpdGVzL2RlZmF1bHQvZmlsZXMvaW5saW5lLWltYWdlcy9pc29sb2dvX2xvZ29fY29sb3IucG5nIiwiZGVzY3JpcHRpb24iOiJ1bmRlZmluZWQiLCJleHRlcm5hbF91cmwiOiJodHRwczovL3BvcnRhbC5wb250dXMteC5ldS9hc3NldC9kaWQ6b3A6ZjViNmVkYWY0NGYwZmI3YmI0YTUyOTg4OWFjYjk2NmYzNmY5ZTZjZDE5ODUyNTFkNDkwMzQyYThkOTI0ZTQ2ZCJ9",
+    "owner": "0xD999bAaE98AC5246568FD726be8832c49626867D",
+    "created": "2026-05-21T21:06:25"
+  },
+  "purgatory": {
+    "state": false
+  },
+  "datatokens": [
+    {
+      "address": "0x60a75cD3B8F58b323cf2F97b9783a4ED0a991697",
+      "name": "REA-ES010000021468",
+      "symbol": "REA-ES010000021468",
+      "serviceId": "4545def6ec36b61a1c211b558b94619e446f9c6eee2f6e52c1ee1c216e11beee"
+    }
+  ],
+  "stats": {
+    "allocated": 0,
+    "orders": 0,
+    "price": {
+      "value": 0
+    }
+  },
+  "accessDetails": {
+    "templateId": 2,
+    "publisherMarketOrderFee": "0",
+    "type": "free",
+    "addressOrId": "0x60a75cd3b8f58b323cf2f97b9783a4ed0a991697",
+    "price": "0",
+    "isPurchasable": true,
+    "datatoken": {
+      "address": "0x60a75cd3b8f58b323cf2f97b9783a4ed0a991697",
+      "name": "REA-ES010000021468",
+      "symbol": "REA-ES010000021468"
+    }
+  }
+}
