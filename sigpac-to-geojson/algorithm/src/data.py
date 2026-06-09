@@ -34,7 +34,7 @@ class InputParameters(BaseModel):
         return " AND ".join(parts)
 
 
-    def to_sigpac_params(self) -> dict[str, str]:
+    def to_sigpac_params(self) -> dict[str, Any]:
         return {
             'f': 'json',
             'limit': 1,
