@@ -1,0 +1,21 @@
+[project]
+name = "clip-raster"
+version = "0.0.1"
+description = ""
+authors = [{ name = "AgrospAI", email = "agrospai@udl.cat" }]
+requires-python = ">=3.12,<3.13"
+readme = "README.md"
+license = { file = "LICENSE" }
+dependencies = [
+    "ocean-runner>=0.3.16",
+    "requests>=2.34.2",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+
+[dependency-groups]
+dev = []
