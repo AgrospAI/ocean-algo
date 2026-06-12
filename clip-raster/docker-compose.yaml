@@ -7,6 +7,7 @@ services:
       - ./_data/inputs:/data/inputs:ro
       - ./_data/ddos:/data/ddos:ro
       - ./_data/outputs:/data/outputs:rw
+      - ./_data/transformations:/data/transformations:ro
       - ./_data/logs:/data/logs:rw
       - ./algorithm/src:/algorithm/src/
       - ./algorithm/tests:/algorithm/tests/

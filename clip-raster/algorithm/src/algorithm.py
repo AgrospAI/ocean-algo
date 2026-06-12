@@ -4,7 +4,7 @@ from pathlib import Path
 from numpy.ma import MaskedArray
 from .data import InputParameters
 from .raster import clip, save_as_img
-from download import download_product
+from .download import download_product
 from ocean_runner import Algorithm, Config
 from .raster import require, get_band_path
 from .indices import INDEXES

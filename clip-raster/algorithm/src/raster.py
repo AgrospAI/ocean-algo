@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 BANDS = {
     'blue': ('B02', '10m'),
     'green': ('B03', '10m'),
+    'green_20m': ('B03', '20m'),
     'red': ('B04', '10m'),
     'red_edge_1': ('B05', '20m'),
     'red_edge_2': ('B06', '20m'),
@@ -23,11 +24,7 @@ BANDS = {
     'swir_2': ('B12', '20m')
 }
 
-WGS84_TO_UTM31 = pyproj.Transformer.from_crs(
-    'EPSG:4326',
-    'EPSG:32631',
-    always_xy=True,
-)
+
 
 def require(band: Path | None) -> Path:
     if not band:
@@ -46,9 +43,15 @@ def get_band_path(band: str) -> Path | None:
 
 
 def clip(geometry, band_path: Path):
-    geom_utm = transform(WGS84_TO_UTM31.transform, geometry)
-    
     with rasterio.open(band_path) as band_image:
+        project = pyproj.Transformer.from_crs(
+            'EPSG:4326',
+            band_image.crs,
+            always_xy=True,
+        ).transform
+
+        geom_utm = transform(project, geometry)
+        
         band_out, _ = rasterio.mask.mask(
             band_image,
             [geom_utm],

@@ -1,18 +1,18 @@
 import os
 import boto3
-import tqdm
 import logging
 import requests
+from tqdm import tqdm
 from time import sleep
 from pathlib import Path
 from shapely.geometry import box
 from ocean_runner import Algorithm
-from .auth import get_copernicus_token, request_temp_s3_creds
+from .auth import get_copernicus_token, request_temp_s3_creds, delete_temp_s3_creds
 
 logger = logging.getLogger(__name__)
 
 ODATA_BASE_URL      = "https://catalogue.dataspace.copernicus.eu/odata/v1/Products"
-S3_ENDPOINT_URL     = "https://eodata.dataspace.copernicus.eu",
+S3_ENDPOINT_URL     = "https://eodata.dataspace.copernicus.eu"
 
 
 def format_filename(filename, length=40):
@@ -21,6 +21,7 @@ def format_filename(filename, length=40):
     else:
         return filename.ljust(length)
 
+
 def download_file_s3(s3, bucket_name, s3_key, local_path, failed_downloads):
     try:
         file_size = s3.head_object(Bucket=bucket_name, Key=s3_key)['ContentLength']
@@ -28,7 +29,6 @@ def download_file_s3(s3, bucket_name, s3_key, local_path, failed_downloads):
         with tqdm(total=file_size, unit='B', unit_scale=True, desc=formatted_filename, ncols=80, bar_format='{desc:.40}|{bar:20}| {percentage:3.0f}% {n_fmt}/{total_fmt}B') as pbar:
             def progress_callback(bytes_transferred):
                 pbar.update(bytes_transferred)
-
             s3.download_file(bucket_name, s3_key, local_path, Callback=progress_callback)
     except Exception as e:
         logger.error(f'Failed to download {s3_key}. Error: {e}')
@@ -104,6 +104,9 @@ def download_product(geometry) -> None:
             traverse_and_download_s3(s3_resource, bucket_name, base_s3_path, out_dir, failed_downloads)
             
             logger.info(f'Failed downloads: {failed_downloads}')
+
+            delete_temp_s3_creds(headers, s3_credentials['access_id'])
+            
 
     except Exception as e:
         logger.error(f'Error downloading product: {e}')
