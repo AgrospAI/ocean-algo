@@ -30,6 +30,13 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 FROM python:3.12-slim
 
+RUN apt-get update && apt-get install -y \
+    libexpat1 \
+    libgdal-dev \
+    libspatialindex-dev \
+    gdal-bin \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /algorithm
 
 # Copy the algorithm code (with the same depth)
