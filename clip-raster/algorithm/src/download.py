@@ -3,18 +3,23 @@ import boto3
 import tqdm
 import logging
 import requests
-from .utils import format_filename
-from .auth import get_copernicus_token, request_temp_s3_creds
 from time import sleep
 from pathlib import Path
 from shapely.geometry import box
-from .utils import format_filename
 from ocean_runner import Algorithm
+from .auth import get_copernicus_token, request_temp_s3_creds
 
 logger = logging.getLogger(__name__)
 
 ODATA_BASE_URL      = "https://catalogue.dataspace.copernicus.eu/odata/v1/Products"
 S3_ENDPOINT_URL     = "https://eodata.dataspace.copernicus.eu",
+
+
+def format_filename(filename, length=40):
+    if len(filename) > length:
+        return filename[:length - 3] + '...'
+    else:
+        return filename.ljust(length)
 
 def download_file_s3(s3, bucket_name, s3_key, local_path, failed_downloads):
     try:
