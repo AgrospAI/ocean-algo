@@ -1,13 +1,15 @@
 import logging
 import geopandas as gpd
 from pathlib import Path
+from .indices import INDEXES
 from numpy.ma import MaskedArray
 from .data import InputParameters
 from .raster import clip, save_as_img
 from .download import download_product
 from ocean_runner import Algorithm, Config
 from .raster import require, get_band_path
-from .indices import INDEXES
+from shapely.geometry.base import BaseGeometry
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -15,10 +17,20 @@ logger = logging.getLogger(__name__)
 CATASTRO_URL_PREFIX = 'http://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=WFS&version=2.0.0&request=GetFeature&STOREDQUERY_ID=GetParcel&refcat=' 
 
 
-def compute_indices(geometry):
+def compute_indices(geometry: BaseGeometry) -> dict[str, MaskedArray]:
+    cache = {}
+
+    def get_clipped_band(name):
+        if name not in cache:
+            cache[name] = clip(geometry, require(get_band_path(name)))
+            return cache[name]
+        else:
+            return cache[name]
+
     return {
-        index: fn(clip(geometry, require(get_band_path(a))), 
-                  clip(geometry, require(get_band_path(b))))
+        index:  fn(
+                    get_clipped_band(a),
+                    get_clipped_band(b))
         for index, (fn, a, b) in INDEXES.items()
     }
 

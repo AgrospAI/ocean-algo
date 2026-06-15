@@ -2,8 +2,8 @@ import pyproj
 import logging
 import rasterio
 import rasterio.mask
-from pathlib import Path
 import matplotlib.pyplot as plt
+from pathlib import Path
 from numpy.ma import MaskedArray
 from shapely.ops import transform
 from ocean_runner import Algorithm
@@ -25,11 +25,10 @@ BANDS = {
 }
 
 
-
 def require(band: Path | None) -> Path:
     if not band:
         logger.error('Missing band path')
-        raise Algorithm.Error(f'Missing band path')
+        raise Algorithm.Error('Missing band path')
     return band
 
 
@@ -72,8 +71,14 @@ def save_as_img(data: dict[str, MaskedArray], out_path: Path) -> None:
         'ndmi': 'BrBG'
     }
 
+    vmin_mappings = {
+        'ndwi': -1,
+        'ndmi': -1
+    }
+
     for ax, name, values in zip(axes.flat, data.keys(), data.values()):
-        im = ax.imshow(values, cmap=color_mappings.get(name), vmin=-1, vmax=1)
+        vmin = vmin_mappings.get(name, 0)
+        im = ax.imshow(values, cmap=color_mappings.get(name), vmin=vmin, vmax=1)
         ax.set_title(name, fontsize=14, fontweight="bold")
         ax.axis("off")
         fig.colorbar(im, ax=ax, shrink=0.8)
