@@ -20,7 +20,6 @@ def request_copernicus_token(username: str, password: str) -> str:
     response = requests.post(COPERNICUS_AUTH_SERVER_URL, data=payload, timeout=10)
 
     if response.status_code == 200:
-        print(response.json().get('access_token'))
         return response.json().get('access_token')
     else:
         raise Algorithm.Error(f'Error generating auth token. Status code = {response.status_code}')
