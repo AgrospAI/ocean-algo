@@ -79,9 +79,9 @@ def save_as_img(data: dict[str, MaskedArray], out_path: Path) -> None:
     for ax, name, values in zip(axes.flat, data.keys(), data.values()):
         vmin = vmin_mappings.get(name, 0)
         im = ax.imshow(values, cmap=color_mappings.get(name), vmin=vmin, vmax=1)
-        ax.set_title(name, fontsize=14, fontweight="bold")
-        ax.axis("off")
+        ax.set_title(name, fontsize=14, fontweight='bold')
+        ax.axis('off')
         fig.colorbar(im, ax=ax, shrink=0.8)
 
     plt.tight_layout()
-    fig.savefig(out_path, dpi=150, bbox_inches="tight")
+    fig.savefig(out_path, dpi=150, bbox_inches='tight')
