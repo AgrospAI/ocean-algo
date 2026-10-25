@@ -17,6 +17,7 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "ocean-runner" },
+    { name = "oceanprotocol-job-details" },
     { name = "pandas" },
     { name = "setuptools" },
     { name = "ydata-profiling" },
@@ -32,6 +33,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "ocean-runner", specifier = ">=0.3.16" },
+    { name = "oceanprotocol-job-details", specifier = ">=0.5.2" },
     { name = "pandas", specifier = ">=2.3.3" },
     { name = "setuptools", specifier = ">=80.9.0" },
     { name = "ydata-profiling", specifier = ">=4.17.0" },
@@ -425,7 +427,7 @@ wheels = [
 
 [[package]]
 name = "oceanprotocol-job-details"
-version = "0.4.6"
+version = "0.5.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiofiles" },
@@ -434,9 +436,9 @@ dependencies = [
     { name = "pydantic" },
     { name = "pydantic-settings" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/4e/a1/7c90066a9780af6ee5853c12921abda83caf93ca6c21b819c46552d2a137/oceanprotocol_job_details-0.4.6.tar.gz", hash = "sha256:16a1fb9667b5f1f1429a65f5c81334397e9cdcea0e7e9178c5ba0bbd662950e6", size = 9004, upload-time = "2026-06-03T10:45:39.557Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/fc/ad/949ce024b1211745dfe1e5ffb8daf486ba13f66ddb487f7ac7b481c70d7c/oceanprotocol_job_details-0.5.2.tar.gz", hash = "sha256:e2d86359fea955e3a8f91bf0011dbae036f0b26df1429698431edf727c11ebc5", size = 9418, upload-time = "2026-10-16T20:53:49.559Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/86/d0/e1f1b4d236c821292364e14c04cc882b27cd0fb44ae09a4211c77074e417/oceanprotocol_job_details-0.4.6-py3-none-any.whl", hash = "sha256:1bd85749b227e4ac5b23fe5a6e5f3cdf77bb95f8c7fa64f6f8dbf08d07298268", size = 15758, upload-time = "2026-06-03T10:45:38.484Z" },
+    { url = "https://files.pythonhosted.org/packages/a6/4d/24773966feac410e7f83f835166797d25af93cfa56678116f686dac60078/oceanprotocol_job_details-0.5.2-py3-none-any.whl", hash = "sha256:c20a7e74c15e7009ce5eb35a1a0d5ff38a6493d6cb83df04b81cfb81f1d88933", size = 16250, upload-time = "2026-10-16T20:53:48.419Z" },
 ]
 
 [[package]]
