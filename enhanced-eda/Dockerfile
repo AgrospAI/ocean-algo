@@ -43,6 +43,8 @@ RUN chmod -R a+rX /algorithm
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
+# Non-root compute uid has no writable HOME; keep matplotlib's cache writable
+ENV MPLCONFIGDIR=/tmp
 
 ENV PATH="/algorithm/.venv/bin:$PATH"
 ENV PYTHONPATH="/algorithm"
