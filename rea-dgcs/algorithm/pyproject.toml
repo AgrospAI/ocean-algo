@@ -8,6 +8,7 @@ readme = "README.md"
 license = { file = "LICENSE" }
 dependencies = [
     "ocean-runner>=0.3.16",
+    "oceanprotocol-job-details>=0.5.2",
     "requests>=2.34.2",
 ]
 
