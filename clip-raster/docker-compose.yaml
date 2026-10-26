@@ -5,7 +5,6 @@ services:
     entrypoint: 'ocean-execute --base-dir /data'
     volumes:
       - ./_data/inputs:/data/inputs:ro
-      - ./_data/ddos:/data/ddos:ro
       - ./_data/outputs:/data/outputs:rw
       - ./_data/transformations:/data/transformations:ro
       - ./_data/logs:/data/logs:rw
