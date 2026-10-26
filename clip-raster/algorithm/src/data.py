@@ -1,15 +1,13 @@
-from typing import Any
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, ConfigDict, Field
+
 
 class InputParameters(BaseModel):
-    refcat: str
+    """Algorithm parameters, read from `algoCustomData.json`."""
 
-    @field_validator("refcat", mode="before")
-    @classmethod
-    def is_valid_refcat(cls, v: Any) -> str | None:
-        if v is None:
-            return v
-        stripped = str(v).strip()
-        if stripped and not stripped.isalnum():
-            raise ValueError(f"'{stripped}' must be alpha-numeric")
-        return stripped
+    model_config = ConfigDict(populate_by_name=True)
+
+    lookback_days: int = Field(default=60, ge=1, le=365, alias="lookbackDays")
+    """How many days back to search for Sentinel-2 scenes."""
+
+    max_cloud_cover: float = Field(default=20, ge=0, le=100, alias="maxCloudCover")
+    """Maximum share (%) of cloudy, shadowed or missing pixels inside the parcel."""

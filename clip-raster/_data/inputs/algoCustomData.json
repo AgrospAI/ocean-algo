@@ -1,3 +1,4 @@
 {
-    "refcat": "25168A010000060000IZ"
+    "lookbackDays": 60,
+    "maxCloudCover": 20
 }
