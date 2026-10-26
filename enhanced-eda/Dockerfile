@@ -37,6 +37,10 @@ COPY --from=builder /algorithm/.venv /algorithm/.venv
 COPY algorithm/src /algorithm/src
 COPY algorithm/tests /algorithm/tests
 
+# Make the algorithm tree readable/executable for the compute node's non-root uid
+# (repo sources ship as 0600, which COPY otherwise preserves and blocks import)
+RUN chmod -R a+rX /algorithm
+
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
